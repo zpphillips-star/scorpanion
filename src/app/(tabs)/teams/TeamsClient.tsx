@@ -3,8 +3,13 @@ import { SEATTLE_TEAMS, getTeamLogoUrl } from '@/lib/teams'
 import { useSelectedTeams } from '@/hooks/useSelectedTeams'
 import TeamLogo from '@/components/TeamLogo'
 
-const PRO_TEAMS = SEATTLE_TEAMS.filter(t => !['college-football', 'mens-college-basketball'].includes(t.league))
-const COLLEGE_TEAMS = SEATTLE_TEAMS.filter(t => ['college-football', 'mens-college-basketball'].includes(t.league))
+const PRO_TEAM_IDS = ['seahawks', 'mariners', 'kraken', 'sounders']
+const WOMENS_PRO_IDS = ['reign', 'storm']
+const COLLEGE_UW_IDS = ['uw-football', 'uw-basketball', 'uw-wbb', 'uw-volleyball', 'uw-baseball']
+const COLLEGE_WSU_IDS = ['wsu-football', 'wsu-wbb', 'wsu-baseball']
+const OTHER_IDS = ['seattleu']
+
+const byIds = (ids: string[]) => ids.map(id => SEATTLE_TEAMS.find(t => t.id === id)!).filter(Boolean)
 
 export default function TeamsClient() {
   const { selectedTeamIds, toggleTeam, loaded } = useSelectedTeams()
@@ -59,14 +64,35 @@ export default function TeamsClient() {
       <div className="px-4 mt-4">
         <h2 className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-3">Pro Sports</h2>
         <div className="grid grid-cols-2 gap-3">
-          {PRO_TEAMS.map(team => <TeamCard key={team.id} team={team} />)}
+          {byIds(PRO_TEAM_IDS).map(team => <TeamCard key={team.id} team={team} />)}
         </div>
       </div>
 
       <div className="px-4 mt-6">
-        <h2 className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-3">College Sports</h2>
+        <h2 className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-3">Women&apos;s Pro</h2>
         <div className="grid grid-cols-2 gap-3">
-          {COLLEGE_TEAMS.map(team => <TeamCard key={team.id} team={team} />)}
+          {byIds(WOMENS_PRO_IDS).map(team => <TeamCard key={team.id} team={team} />)}
+        </div>
+      </div>
+
+      <div className="px-4 mt-6">
+        <h2 className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-3">College — University of Washington</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {byIds(COLLEGE_UW_IDS).map(team => <TeamCard key={team.id} team={team} />)}
+        </div>
+      </div>
+
+      <div className="px-4 mt-6">
+        <h2 className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-3">College — Washington State</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {byIds(COLLEGE_WSU_IDS).map(team => <TeamCard key={team.id} team={team} />)}
+        </div>
+      </div>
+
+      <div className="px-4 mt-6">
+        <h2 className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-3">Other</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {byIds(OTHER_IDS).map(team => <TeamCard key={team.id} team={team} />)}
         </div>
       </div>
     </div>
