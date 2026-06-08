@@ -1,8 +1,10 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { Game, ScoreUpdate } from '@/lib/types'
 import { SEATTLE_TEAMS, getTeamLogoUrl } from '@/lib/teams'
 import { useSelectedTeams } from '@/hooks/useSelectedTeams'
+import { useTeamClickCounts } from '@/hooks/useTeamClickCounts'
 import GameCard from '@/components/GameCard'
 import TeamLogo from '@/components/TeamLogo'
 
@@ -35,8 +37,48 @@ function isWithinLastDays(dateStr: string, days: number): boolean {
   return date >= cutoff && date < new Date(new Date().toLocaleDateString('en-CA') + 'T00:00:00')
 }
 
+function AuthButton() {
+  const [user, setUser] = useState<{ email?: string } | null>(null)
+  const [checked, setChecked] = useState(false)
+
+  useEffect(() => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+      setChecked(true)
+      return
+    }
+    import('@/lib/supabase').then(({ createClient }) => {
+      const supabase = createClient()
+      supabase.auth.getUser().then(({ data }) => {
+        setUser(data.user ? { email: data.user.email } : null)
+        setChecked(true)
+      })
+    })
+  }, [])
+
+  if (!checked) return null
+
+  if (user) {
+    return (
+      <Link href="/auth/login" className="w-8 h-8 rounded-full bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-blue-400 text-sm font-bold hover:bg-blue-600/50 transition-colors" title={user.email}>
+        {user.email?.[0]?.toUpperCase() ?? '?'}
+      </Link>
+    )
+  }
+
+  return (
+    <Link href="/auth/login" className="text-xs text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1">
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      </svg>
+      Sign in
+    </Link>
+  )
+}
+
 export default function ScheduleClient() {
   const { selectedTeamIds, loaded } = useSelectedTeams()
+  const { counts: teamClickCounts, recordClick: recordTeamClick } = useTeamClickCounts()
   const [games, setGames] = useState<Game[]>([])
   const [liveScores, setLiveScores] = useState<Record<string, ScoreUpdate>>({})
   const [loading, setLoading] = useState(true)
@@ -110,7 +152,14 @@ export default function ScheduleClient() {
   const groupedUpcoming = groupGamesByDate(upcomingGames)
   const sortedUpcomingDates = [...groupedUpcoming.keys()].sort()
 
-  const followedTeams = SEATTLE_TEAMS.filter(t => selectedTeamIds.includes(t.id))
+  const followedTeams = SEATTLE_TEAMS
+    .filter(t => selectedTeamIds.includes(t.id))
+    .sort((a, b) => {
+      const cA = teamClickCounts[a.id] || 0
+      const cB = teamClickCounts[b.id] || 0
+      if (cA !== cB) return cB - cA
+      return a.shortName.localeCompare(b.shortName)
+    })
 
   if (loading) {
     return (
@@ -145,7 +194,7 @@ export default function ScheduleClient() {
           {followedTeams.map(team => (
             <button
               key={team.id}
-              onClick={() => setActiveTeamFilter(team.id)}
+              onClick={() => { setActiveTeamFilter(team.id); recordTeamClick(team.id) }}
               className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all border whitespace-nowrap"
               style={{
                 backgroundColor: activeTeamFilter === team.id ? `${team.primaryColor}44` : 'rgba(255,255,255,0.05)',
@@ -214,8 +263,9 @@ export default function ScheduleClient() {
 
   return (
     <>
-      <div className="sticky top-0 z-30 px-4 py-3 bg-[#0a0a0f]/95 backdrop-blur-md border-b border-white/10">
+      <div className="sticky top-0 z-30 px-4 py-3 bg-[#0a0a0f]/95 backdrop-blur-md border-b border-white/10 flex items-center justify-between">
         <h1 className="text-xl lg:text-2xl font-bold text-white">Schedule</h1>
+        <AuthButton />
       </div>
 
       {/* Desktop: 2/3 + 1/3 sidebar layout */}

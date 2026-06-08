@@ -4,6 +4,8 @@ import { Game } from '@/lib/types'
 import { SPORT_COLORS, getTeamLogoUrl } from '@/lib/teams'
 import TeamLogo from './TeamLogo'
 
+const PRO_TEAM_IDS = ['seahawks', 'mariners', 'kraken', 'sounders', 'storm', 'reign']
+
 interface GameCardProps {
   game: Game
 }
@@ -77,6 +79,17 @@ export default function GameCard({ game }: GameCardProps) {
                 <RecordBadge wins={game.opponentRecord.wins} losses={game.opponentRecord.losses} ties={game.opponentRecord.ties} />
               )}
             </div>
+            {PRO_TEAM_IDS.includes(game.seattleTeamId) && game.status === 'upcoming' && (
+              <a
+                href={`https://gametime.com/search?q=${encodeURIComponent(game.seattleTeam.name)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                className="text-xs text-gray-500 hover:text-gray-300 transition-colors mt-0.5 inline-flex items-center gap-0.5"
+              >
+                🎟 Tickets
+              </a>
+            )}
           </div>
         </div>
         
