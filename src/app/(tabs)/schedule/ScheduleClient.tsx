@@ -88,10 +88,32 @@ export default function ScheduleClient() {
   const fetchSchedule = useCallback(async () => {
     if (!loaded || selectedTeamIds.length === 0) return
     try {
-      const res = await fetch(`/api/schedule?teams=${selectedTeamIds.join(',')}`)
-      if (!res.ok) throw new Error('Failed to fetch schedule')
-      const data: Game[] = await res.json()
-      setGames(data)
+      const espnTeamIds = selectedTeamIds.filter(id => id !== 'torrent')
+      const fetches: Promise<Game[]>[] = []
+
+      if (espnTeamIds.length > 0) {
+        fetches.push(
+          fetch(`/api/schedule?teams=${espnTeamIds.join(',')}`).then(r => {
+            if (!r.ok) throw new Error('Failed to fetch schedule')
+            return r.json()
+          })
+        )
+      }
+
+      if (selectedTeamIds.includes('torrent')) {
+        fetches.push(
+          fetch('/api/pwhl').then(r => {
+            if (!r.ok) return []
+            return r.json()
+          })
+        )
+      }
+
+      const results = await Promise.all(fetches)
+      const merged = results.flat().sort(
+        (a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime()
+      )
+      setGames(merged)
       setError(null)
     } catch {
       setError('Unable to load schedule. Check your connection.')

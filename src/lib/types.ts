@@ -9,6 +9,7 @@ export interface SeattleTeam {
   primaryColor: string
   secondaryColor: string
   emoji: string
+  logoUrl?: string
 }
 
 export interface TeamRecord {

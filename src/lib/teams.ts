@@ -2,7 +2,7 @@ import { SeattleTeam } from './types'
 
 export const SEATTLE_TEAMS: SeattleTeam[] = [
   // NFL
-  { id: 'seahawks', name: 'Seattle Seahawks', shortName: 'Seahawks', abbr: 'SEA', 
+  { id: 'seahawks', name: 'Seattle Seahawks', shortName: 'Seahawks', abbr: 'SEA',
     sport: 'football', league: 'nfl', espnId: '26',
     primaryColor: '#002244', secondaryColor: '#69BE28', emoji: '🏈' },
   // MLB
@@ -25,7 +25,12 @@ export const SEATTLE_TEAMS: SeattleTeam[] = [
   { id: 'storm', name: 'Seattle Storm', shortName: 'Storm', abbr: 'SEA',
     sport: 'basketball', league: 'wnba', espnId: '14',
     primaryColor: '#2C5235', secondaryColor: '#FEF200', emoji: '🏀' },
-  // College Football
+  // PWHL
+  { id: 'torrent', name: 'Seattle Torrent', shortName: 'Torrent', abbr: 'SEA',
+    sport: 'hockey', league: 'pwhl', espnId: '',
+    primaryColor: '#006272', secondaryColor: '#00243D', emoji: '🏒',
+    logoUrl: 'https://res.cloudinary.com/pwhl-low/image/upload/v1744984265/Seattle-MockLogo_SEATTLE.png' },
+  // College Football — UW
   { id: 'uw-football', name: 'Washington Huskies', shortName: 'Huskies', abbr: 'UW',
     sport: 'football', league: 'college-football', espnId: '264',
     primaryColor: '#33006F', secondaryColor: '#B7A57A', emoji: '🏈' },
@@ -45,10 +50,18 @@ export const SEATTLE_TEAMS: SeattleTeam[] = [
   { id: 'uw-baseball', name: 'Washington Huskies', shortName: 'Huskies (BB)', abbr: 'UW',
     sport: 'baseball', league: 'college-baseball', espnId: '133',
     primaryColor: '#33006F', secondaryColor: '#B7A57A', emoji: '⚾' },
+  // UW Women's Lacrosse
+  { id: 'uw-lacrosse', name: 'Washington Huskies', shortName: 'Huskies (LAX)', abbr: 'UW',
+    sport: 'lacrosse', league: 'womens-college-lacrosse', espnId: '264',
+    primaryColor: '#33006F', secondaryColor: '#B7A57A', emoji: '🥍' },
   // WSU Football
   { id: 'wsu-football', name: 'Washington State Cougars', shortName: 'Cougars', abbr: 'WSU',
     sport: 'football', league: 'college-football', espnId: '265',
     primaryColor: '#981E32', secondaryColor: '#C0C0C0', emoji: '🏈' },
+  // WSU Men's Basketball
+  { id: 'wsu-mbb', name: 'Washington State Cougars', shortName: 'Cougars (MBB)', abbr: 'WSU',
+    sport: 'basketball', league: 'mens-college-basketball', espnId: '265',
+    primaryColor: '#981E32', secondaryColor: '#C0C0C0', emoji: '🏀' },
   // WSU Women's Basketball — verified: ID 265 returns 34 events
   { id: 'wsu-wbb', name: 'Washington State Cougars', shortName: 'Cougars (WBB)', abbr: 'WSU',
     sport: 'basketball', league: 'womens-college-basketball', espnId: '265',
@@ -57,6 +70,10 @@ export const SEATTLE_TEAMS: SeattleTeam[] = [
   { id: 'wsu-baseball', name: 'Washington State Cougars', shortName: 'Cougars (BB)', abbr: 'WSU',
     sport: 'baseball', league: 'college-baseball', espnId: '134',
     primaryColor: '#981E32', secondaryColor: '#C0C0C0', emoji: '⚾' },
+  // WSU Women's Volleyball
+  { id: 'wsu-volleyball', name: 'Washington State Cougars', shortName: 'Cougars (VB)', abbr: 'WSU',
+    sport: 'volleyball', league: 'womens-college-volleyball', espnId: '265',
+    primaryColor: '#981E32', secondaryColor: '#C0C0C0', emoji: '🏐' },
   // Seattle University — verified: ID 2547 returns 33 events
   { id: 'seattleu', name: 'Seattle University Redhawks', shortName: 'Redhawks', abbr: 'SU',
     sport: 'basketball', league: 'mens-college-basketball', espnId: '2547',
@@ -73,6 +90,7 @@ export const SPORT_COLORS: Record<string, string> = {
 }
 
 export function getTeamLogoUrl(team: SeattleTeam): string {
+  if (team.logoUrl) return team.logoUrl
   switch (team.id) {
     case 'seahawks': return 'https://a.espncdn.com/i/teamlogos/nfl/500/sea.png'
     case 'mariners': return 'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png'
@@ -84,10 +102,13 @@ export function getTeamLogoUrl(team: SeattleTeam): string {
     case 'uw-basketball':
     case 'uw-wbb':
     case 'uw-volleyball':
-    case 'uw-baseball': return 'https://a.espncdn.com/i/teamlogos/ncaa/500/264.png'
+    case 'uw-baseball':
+    case 'uw-lacrosse': return 'https://a.espncdn.com/i/teamlogos/ncaa/500/264.png'
     case 'wsu-football':
+    case 'wsu-mbb':
     case 'wsu-wbb':
-    case 'wsu-baseball': return 'https://a.espncdn.com/i/teamlogos/ncaa/500/265.png'
+    case 'wsu-baseball':
+    case 'wsu-volleyball': return 'https://a.espncdn.com/i/teamlogos/ncaa/500/265.png'
     case 'seattleu': return 'https://a.espncdn.com/i/teamlogos/ncaa/500/2547.png'
     default: return ''
   }

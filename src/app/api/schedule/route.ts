@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
   await Promise.all(
     teams.map(async (team) => {
       try {
+        if (!team.espnId) return  // skip non-ESPN teams (e.g. PWHL)
         const url = `https://site.api.espn.com/apis/site/v2/sports/${team.sport}/${team.league}/teams/${team.espnId}/schedule`
         const res = await fetch(url, { next: { revalidate: 300 } })
         if (!res.ok) return
