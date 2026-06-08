@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { Game } from '@/lib/types'
-import { SPORT_COLORS } from '@/lib/teams'
+import { SEATTLE_TEAMS } from '@/lib/teams'
 import { useSelectedTeams } from '@/hooks/useSelectedTeams'
 import GameCard from '@/components/GameCard'
 
@@ -19,20 +19,26 @@ interface MonthCalendarProps {
   games: Game[]
   onDayClick: (dateStr: string) => void
   selectedDate: string | null
+  onPrev: () => void
+  onNext: () => void
 }
 
-function MonthCalendar({ year, month, games, onDayClick, selectedDate }: MonthCalendarProps) {
+function MonthCalendar({ year, month, games, onDayClick, selectedDate, onPrev, onNext }: MonthCalendarProps) {
   const daysInMonth = getDaysInMonth(year, month)
   const firstDay = getFirstDayOfMonth(year, month)
   const today = new Date().toLocaleDateString('en-CA')
-  
-  const gamesByDay = new Map<string, Game[]>()
+
+  // Map date → unique team primary colors
+  const gamesByDay = new Map<string, { games: Game[]; colors: string[] }>()
   for (const g of games) {
     const d = new Date(g.kickoff)
     if (d.getFullYear() === year && d.getMonth() === month) {
       const key = d.toLocaleDateString('en-CA')
-      if (!gamesByDay.has(key)) gamesByDay.set(key, [])
-      gamesByDay.get(key)!.push(g)
+      if (!gamesByDay.has(key)) gamesByDay.set(key, { games: [], colors: [] })
+      const entry = gamesByDay.get(key)!
+      entry.games.push(g)
+      const color = g.seattleTeam.primaryColor
+      if (!entry.colors.includes(color)) entry.colors.push(color)
     }
   }
 
@@ -41,29 +47,51 @@ function MonthCalendar({ year, month, games, onDayClick, selectedDate }: MonthCa
   const blanks = Array.from({ length: firstDay }, (_, i) => i)
 
   return (
-    <div className="mb-6">
-      <div className="px-4 py-2">
+    <div className="mb-2">
+      {/* Month header with navigation */}
+      <div className="flex items-center justify-between px-4 py-3">
+        <button
+          onClick={onPrev}
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
         <h2 className="text-white font-semibold text-base">{monthName}</h2>
+        <button
+          onClick={onNext}
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
+
+      {/* Day headers */}
       <div className="grid grid-cols-7 px-4 mb-1">
         {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
           <div key={d} className="text-center text-gray-500 text-xs py-1">{d}</div>
         ))}
       </div>
+
+      {/* Day cells */}
       <div className="grid grid-cols-7 px-4 gap-y-1">
         {blanks.map(i => <div key={`blank-${i}`} />)}
         {days.map(day => {
           const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-          const dayGames = gamesByDay.get(dateStr) || []
+          const entry = gamesByDay.get(dateStr)
+          const hasGames = !!entry && entry.games.length > 0
           const isToday = dateStr === today
           const isSelected = dateStr === selectedDate
-          
+
           return (
             <button
               key={day}
-              onClick={() => dayGames.length > 0 && onDayClick(dateStr)}
+              onClick={() => hasGames && onDayClick(dateStr)}
               className={`relative flex flex-col items-center justify-start pt-1 pb-1.5 rounded-lg min-h-[44px] transition-colors ${
-                isSelected ? 'bg-blue-600/30' : isToday ? 'bg-white/10' : dayGames.length > 0 ? 'hover:bg-white/5' : ''
+                isSelected ? 'bg-blue-600/30' : isToday ? 'bg-white/10' : hasGames ? 'hover:bg-white/5 cursor-pointer' : 'cursor-default'
               }`}
             >
               <span className={`text-sm w-7 h-7 flex items-center justify-center rounded-full ${
@@ -71,13 +99,13 @@ function MonthCalendar({ year, month, games, onDayClick, selectedDate }: MonthCa
               }`}>
                 {day}
               </span>
-              {dayGames.length > 0 && (
+              {hasGames && (
                 <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
-                  {[...new Set(dayGames.map(g => g.sport))].slice(0, 3).map(sport => (
+                  {entry!.colors.slice(0, 3).map((color, idx) => (
                     <span
-                      key={sport}
+                      key={idx}
                       className="w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: SPORT_COLORS[sport] || '#888' }}
+                      style={{ backgroundColor: color }}
                     />
                   ))}
                 </div>
@@ -96,6 +124,10 @@ export default function CalendarClient() {
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
+  const now = new Date()
+  const [viewYear, setViewYear] = useState(now.getFullYear())
+  const [viewMonth, setViewMonth] = useState(now.getMonth())
+
   const fetchSchedule = useCallback(async () => {
     if (!loaded || selectedTeamIds.length === 0) return
     try {
@@ -111,20 +143,37 @@ export default function CalendarClient() {
     if (loaded) fetchSchedule()
   }, [loaded, fetchSchedule])
 
-  const now = new Date()
-  const months = [0, 1, 2].map(offset => {
-    const d = new Date(now.getFullYear(), now.getMonth() + offset, 1)
-    return { year: d.getFullYear(), month: d.getMonth() }
-  })
+  // Filter games to only those from followed teams
+  const filteredGames = games.filter(g => selectedTeamIds.includes(g.seattleTeamId))
 
   const selectedGames = selectedDate
-    ? games.filter(g => new Date(g.kickoff).toLocaleDateString('en-CA') === selectedDate)
+    ? filteredGames.filter(g => new Date(g.kickoff).toLocaleDateString('en-CA') === selectedDate)
     : []
+
+  function prevMonth() {
+    if (viewMonth === 0) {
+      setViewMonth(11)
+      setViewYear(y => y - 1)
+    } else {
+      setViewMonth(m => m - 1)
+    }
+    setSelectedDate(null)
+  }
+
+  function nextMonth() {
+    if (viewMonth === 11) {
+      setViewMonth(0)
+      setViewYear(y => y + 1)
+    } else {
+      setViewMonth(m => m + 1)
+    }
+    setSelectedDate(null)
+  }
 
   return (
     <div className="pb-4">
       <div className="sticky top-0 z-30 px-4 py-3 bg-[#0a0a0f]/95 backdrop-blur-md border-b border-white/10">
-        <h1 className="text-xl font-bold text-white">Calendar</h1>
+        <h1 className="text-xl lg:text-2xl font-bold text-white">Calendar</h1>
       </div>
 
       {loading ? (
@@ -132,17 +181,28 @@ export default function CalendarClient() {
           <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
-        <div className="mt-2">
-          {months.map(({ year, month }) => (
-            <MonthCalendar
-              key={`${year}-${month}`}
-              year={year}
-              month={month}
-              games={games}
-              onDayClick={setSelectedDate}
-              selectedDate={selectedDate}
-            />
-          ))}
+        <div className="mt-2 max-w-2xl mx-auto">
+          <MonthCalendar
+            year={viewYear}
+            month={viewMonth}
+            games={filteredGames}
+            onDayClick={setSelectedDate}
+            selectedDate={selectedDate}
+            onPrev={prevMonth}
+            onNext={nextMonth}
+          />
+
+          {/* Legend */}
+          {selectedTeamIds.length > 0 && (
+            <div className="px-4 mt-2 flex flex-wrap gap-x-4 gap-y-1">
+              {SEATTLE_TEAMS.filter(t => selectedTeamIds.includes(t.id)).map(team => (
+                <div key={team.id} className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: team.primaryColor }} />
+                  <span className="text-gray-500 text-xs">{team.shortName}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -151,7 +211,7 @@ export default function CalendarClient() {
         <div className="fixed inset-0 z-50 flex items-end" onClick={() => setSelectedDate(null)}>
           <div className="absolute inset-0 bg-black/60" />
           <div
-            className="relative w-full rounded-t-2xl max-h-[70vh] overflow-y-auto"
+            className="relative w-full rounded-t-2xl max-h-[70vh] overflow-y-auto lg:max-w-2xl lg:mx-auto"
             style={{ background: '#0f0f1a' }}
             onClick={e => e.stopPropagation()}
           >

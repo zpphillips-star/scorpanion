@@ -11,12 +11,20 @@ export interface SeattleTeam {
   emoji: string
 }
 
+export interface TeamRecord {
+  wins: number
+  losses: number
+  ties?: number
+  summary?: string
+}
+
 export interface Opponent {
   id: string
   name: string
   shortName: string
   abbr: string
   logo: string
+  record?: TeamRecord
 }
 
 export interface GameVenue {
@@ -41,6 +49,8 @@ export interface Game {
   seasonType?: string
   weekLabel?: string
   broadcast?: string
+  seattleRecord?: TeamRecord
+  opponentRecord?: TeamRecord
 }
 
 export interface ScoreUpdate {

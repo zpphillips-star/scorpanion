@@ -63,35 +63,35 @@ export default function TeamsClient() {
 
       <div className="px-4 mt-4">
         <h2 className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-3">Pro Sports</h2>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {byIds(PRO_TEAM_IDS).map(team => <TeamCard key={team.id} team={team} />)}
         </div>
       </div>
 
       <div className="px-4 mt-6">
         <h2 className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-3">Women&apos;s Pro</h2>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {byIds(WOMENS_PRO_IDS).map(team => <TeamCard key={team.id} team={team} />)}
         </div>
       </div>
 
       <div className="px-4 mt-6">
         <h2 className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-3">College — University of Washington</h2>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {byIds(COLLEGE_UW_IDS).map(team => <TeamCard key={team.id} team={team} />)}
         </div>
       </div>
 
       <div className="px-4 mt-6">
         <h2 className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-3">College — Washington State</h2>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {byIds(COLLEGE_WSU_IDS).map(team => <TeamCard key={team.id} team={team} />)}
         </div>
       </div>
 
       <div className="px-4 mt-6">
         <h2 className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-3">Other</h2>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {byIds(OTHER_IDS).map(team => <TeamCard key={team.id} team={team} />)}
         </div>
       </div>

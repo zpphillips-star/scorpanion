@@ -1,9 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest } from 'next/server'
 import { SEATTLE_TEAMS } from '@/lib/teams'
-import { Game } from '@/lib/types'
+import { Game, TeamRecord } from '@/lib/types'
 
 export const runtime = 'edge'
+
+function parseRecord(comp: any): TeamRecord | undefined {
+  const records: any[] = comp.records || []
+  const overall = records.find((r: any) => r.type === 'total' || r.name === 'overall' || r.type === 'overall') || records[0]
+  if (!overall) return undefined
+  const summary: string = overall.summary || ''
+  const parts = summary.split('-').map((s: string) => parseInt(s.trim(), 10))
+  if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+    return { wins: parts[0], losses: parts[1], ties: parts[2], summary }
+  }
+  return undefined
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -42,6 +54,9 @@ export async function GET(request: NextRequest) {
           const gameId = `${team.id}|${event.id}`
           if (seenIds.has(gameId)) continue
           seenIds.add(gameId)
+
+          const seattleRecord = parseRecord(seattleComp)
+          const opponentRecord = parseRecord(opponentComp)
           
           allGames.push({
             id: gameId,
@@ -54,6 +69,7 @@ export async function GET(request: NextRequest) {
               shortName: opponentComp.team.shortDisplayName || opponentComp.team.abbreviation,
               abbr: opponentComp.team.abbreviation,
               logo: opponentComp.team.logo || '',
+              record: opponentRecord,
             },
             kickoff: event.date,
             venue: {
@@ -67,6 +83,8 @@ export async function GET(request: NextRequest) {
             sport: team.sport,
             league: team.league,
             broadcast: comp.broadcasts?.[0]?.names?.[0],
+            seattleRecord,
+            opponentRecord,
           })
         }
       } catch {
