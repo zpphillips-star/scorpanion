@@ -156,9 +156,9 @@ export default function CalendarClient() {
       }
       if (NCAA_TEAM_IDS.some(id => selectedTeamIds.includes(id))) {
         fetches.push(
-          fetch('/api/ncaa').then(r => r.ok ? r.json() as Promise<Game[]> : []).then(games =>
+          fetch('/api/ncaa', { signal: AbortSignal.timeout(8000) }).then(r => r.ok ? r.json() as Promise<Game[]> : []).then(games =>
             games.filter(g => selectedTeamIds.includes(g.seattleTeamId))
-          )
+          ).catch(() => [])
         )
       }
 

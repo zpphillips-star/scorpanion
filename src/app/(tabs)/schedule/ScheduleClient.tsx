@@ -126,12 +126,12 @@ export default function ScheduleClient() {
 
       if (NCAA_TEAM_IDS.some(id => selectedTeamIds.includes(id))) {
         fetches.push(
-          fetch('/api/ncaa').then(r => {
+          fetch('/api/ncaa', { signal: AbortSignal.timeout(8000) }).then(r => {
             if (!r.ok) return []
             return r.json() as Promise<Game[]>
           }).then(games =>
             games.filter(g => selectedTeamIds.includes(g.seattleTeamId))
-          )
+          ).catch(() => [])
         )
       }
 
