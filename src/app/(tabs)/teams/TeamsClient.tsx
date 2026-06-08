@@ -6,7 +6,7 @@ import { useSelectedTeams } from '@/hooks/useSelectedTeams'
 import TeamLogo from '@/components/TeamLogo'
 import { SeattleTeam } from '@/lib/types'
 
-const PRO_TEAM_IDS = ['seahawks', 'mariners', 'kraken', 'sounders', 'storm', 'reign', 'torrent']
+const PRO_TEAM_IDS = ['seahawks', 'mariners', 'kraken', 'sounders', 'storm', 'reign', 'torrent', 'thunderbirds', 'silvertips']
 const OTHER_IDS = ['seattleu']
 
 type DrillDownItem =
@@ -18,9 +18,9 @@ const UW_DRILLDOWN: DrillDownItem[] = [
   { type: 'team', teamId: 'uw-basketball' },
   { type: 'team', teamId: 'uw-wbb' },
   { type: 'team', teamId: 'uw-baseball' },
-  { type: 'unavailable', label: 'Softball', emoji: '🥎', link: 'https://gohuskies.com' },
+  { type: 'team', teamId: 'uw-softball' },
   { type: 'team', teamId: 'uw-volleyball' },
-  { type: 'unavailable', label: "Women's Soccer", emoji: '⚽', link: 'https://gohuskies.com' },
+  { type: 'team', teamId: 'uw-soccer' },
   { type: 'unavailable', label: "Women's Gymnastics", emoji: '🤸', link: 'https://gohuskies.com' },
   { type: 'unavailable', label: "Men's Gymnastics", emoji: '🤸', link: 'https://gohuskies.com' },
   { type: 'team', teamId: 'uw-lacrosse' },

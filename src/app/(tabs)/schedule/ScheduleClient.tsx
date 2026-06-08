@@ -88,7 +88,11 @@ export default function ScheduleClient() {
   const fetchSchedule = useCallback(async () => {
     if (!loaded || selectedTeamIds.length === 0) return
     try {
-      const espnTeamIds = selectedTeamIds.filter(id => id !== 'torrent')
+      const WHL_TEAM_IDS = ['thunderbirds', 'silvertips']
+      const NCAA_TEAM_IDS = ['uw-softball', 'uw-soccer']
+      const espnTeamIds = selectedTeamIds.filter(
+        id => id !== 'torrent' && !WHL_TEAM_IDS.includes(id) && !NCAA_TEAM_IDS.includes(id)
+      )
       const fetches: Promise<Game[]>[] = []
 
       if (espnTeamIds.length > 0) {
@@ -106,6 +110,28 @@ export default function ScheduleClient() {
             if (!r.ok) return []
             return r.json()
           })
+        )
+      }
+
+      if (WHL_TEAM_IDS.some(id => selectedTeamIds.includes(id))) {
+        fetches.push(
+          fetch('/api/whl').then(r => {
+            if (!r.ok) return []
+            return r.json() as Promise<Game[]>
+          }).then(games =>
+            games.filter(g => selectedTeamIds.includes(g.seattleTeamId))
+          )
+        )
+      }
+
+      if (NCAA_TEAM_IDS.some(id => selectedTeamIds.includes(id))) {
+        fetches.push(
+          fetch('/api/ncaa').then(r => {
+            if (!r.ok) return []
+            return r.json() as Promise<Game[]>
+          }).then(games =>
+            games.filter(g => selectedTeamIds.includes(g.seattleTeamId))
+          )
         )
       }
 

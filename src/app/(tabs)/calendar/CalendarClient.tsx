@@ -131,10 +131,39 @@ export default function CalendarClient() {
   const fetchSchedule = useCallback(async () => {
     if (!loaded || selectedTeamIds.length === 0) return
     try {
-      const res = await fetch(`/api/schedule?teams=${selectedTeamIds.join(',')}`)
-      if (!res.ok) return
-      const data: Game[] = await res.json()
-      setGames(data)
+      const WHL_TEAM_IDS = ['thunderbirds', 'silvertips']
+      const NCAA_TEAM_IDS = ['uw-softball', 'uw-soccer']
+      const espnTeamIds = selectedTeamIds.filter(
+        id => id !== 'torrent' && !WHL_TEAM_IDS.includes(id) && !NCAA_TEAM_IDS.includes(id)
+      )
+
+      const fetches: Promise<Game[]>[] = []
+
+      if (espnTeamIds.length > 0) {
+        fetches.push(
+          fetch(`/api/schedule?teams=${espnTeamIds.join(',')}`).then(r => r.ok ? r.json() : [])
+        )
+      }
+      if (selectedTeamIds.includes('torrent')) {
+        fetches.push(fetch('/api/pwhl').then(r => r.ok ? r.json() : []))
+      }
+      if (WHL_TEAM_IDS.some(id => selectedTeamIds.includes(id))) {
+        fetches.push(
+          fetch('/api/whl').then(r => r.ok ? r.json() as Promise<Game[]> : []).then(games =>
+            games.filter(g => selectedTeamIds.includes(g.seattleTeamId))
+          )
+        )
+      }
+      if (NCAA_TEAM_IDS.some(id => selectedTeamIds.includes(id))) {
+        fetches.push(
+          fetch('/api/ncaa').then(r => r.ok ? r.json() as Promise<Game[]> : []).then(games =>
+            games.filter(g => selectedTeamIds.includes(g.seattleTeamId))
+          )
+        )
+      }
+
+      const results = await Promise.all(fetches)
+      setGames(results.flat())
     } catch {}
     finally { setLoading(false) }
   }, [loaded, selectedTeamIds])

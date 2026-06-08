@@ -15,11 +15,11 @@ export const SEATTLE_TEAMS: SeattleTeam[] = [
     primaryColor: '#001628', secondaryColor: '#99D9D9', emoji: '🏒' },
   // MLS
   { id: 'sounders', name: 'Seattle Sounders FC', shortName: 'Sounders', abbr: 'SEA',
-    sport: 'soccer', league: 'usa.1', espnId: '9',
+    sport: 'soccer', league: 'usa.1', espnId: '9726',
     primaryColor: '#5D9732', secondaryColor: '#002244', emoji: '⚽' },
   // NWSL
-  { id: 'reign', name: 'Seattle Reign FC', shortName: 'Reign', abbr: 'SEA',
-    sport: 'soccer', league: 'nwsl', espnId: '19',
+  { id: 'reign', name: 'OL Reign', shortName: 'Reign', abbr: 'SEA',
+    sport: 'soccer', league: 'usa.nwsl', espnId: '15363',
     primaryColor: '#5D2D91', secondaryColor: '#FFFFFF', emoji: '⚽' },
   // WNBA — verified: ESPN ID 14 returns Seattle Storm schedule (46 events)
   { id: 'storm', name: 'Seattle Storm', shortName: 'Storm', abbr: 'SEA',
@@ -30,6 +30,13 @@ export const SEATTLE_TEAMS: SeattleTeam[] = [
     sport: 'hockey', league: 'pwhl', espnId: '',
     primaryColor: '#006272', secondaryColor: '#00243D', emoji: '🏒',
     logoUrl: 'https://res.cloudinary.com/pwhl-low/image/upload/v1744984265/Seattle-MockLogo_SEATTLE.png' },
+  // WHL
+  { id: 'thunderbirds', name: 'Seattle Thunderbirds', shortName: 'Thunderbirds', abbr: 'SEA',
+    sport: 'hockey', league: 'whl', espnId: '',
+    primaryColor: '#C8102E', secondaryColor: '#FFFFFF', emoji: '🏒' },
+  { id: 'silvertips', name: 'Everett Silvertips', shortName: 'Silvertips', abbr: 'EVT',
+    sport: 'hockey', league: 'whl', espnId: '',
+    primaryColor: '#006040', secondaryColor: '#C0C0C0', emoji: '🏒' },
   // College Football — UW
   { id: 'uw-football', name: 'Washington Huskies', shortName: 'Huskies', abbr: 'UW',
     sport: 'football', league: 'college-football', espnId: '264',
@@ -54,6 +61,14 @@ export const SEATTLE_TEAMS: SeattleTeam[] = [
   { id: 'uw-lacrosse', name: 'Washington Huskies', shortName: 'Huskies (LAX)', abbr: 'UW',
     sport: 'lacrosse', league: 'womens-college-lacrosse', espnId: '264',
     primaryColor: '#33006F', secondaryColor: '#B7A57A', emoji: '🥍' },
+  // UW Softball (NCAA API)
+  { id: 'uw-softball', name: 'Washington Huskies', shortName: 'Huskies (SB)', abbr: 'UW',
+    sport: 'softball', league: 'ncaa-softball', espnId: '',
+    primaryColor: '#33006F', secondaryColor: '#B7A57A', emoji: '🥎' },
+  // UW Women's Soccer (NCAA API)
+  { id: 'uw-soccer', name: 'Washington Huskies', shortName: 'Huskies (SOC)', abbr: 'UW',
+    sport: 'soccer', league: 'ncaa-soccer', espnId: '',
+    primaryColor: '#33006F', secondaryColor: '#B7A57A', emoji: '⚽' },
   // WSU Football
   { id: 'wsu-football', name: 'Washington State Cougars', shortName: 'Cougars', abbr: 'WSU',
     sport: 'football', league: 'college-football', espnId: '265',
@@ -95,8 +110,8 @@ export function getTeamLogoUrl(team: SeattleTeam): string {
     case 'seahawks': return 'https://a.espncdn.com/i/teamlogos/nfl/500/sea.png'
     case 'mariners': return 'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png'
     case 'kraken': return 'https://a.espncdn.com/i/teamlogos/nhl/500/sea.png'
-    case 'sounders': return 'https://a.espncdn.com/i/teamlogos/soccer/500/9.png'
-    case 'reign': return 'https://a.espncdn.com/i/teamlogos/soccer/500/19.png'
+    case 'sounders': return 'https://a.espncdn.com/i/teamlogos/soccer/500/9726.png'
+    case 'reign': return 'https://a.espncdn.com/i/teamlogos/soccer/500/15363.png'
     case 'storm': return 'https://a.espncdn.com/i/teamlogos/wnba/500/sea.png'
     case 'uw-football':
     case 'uw-basketball':
