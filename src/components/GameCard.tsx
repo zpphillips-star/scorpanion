@@ -3,6 +3,8 @@ import { useState } from "react"
 import { Game } from "@/lib/types"
 import { getTeamLogoUrl } from "@/lib/teams"
 import TeamLogo from "./TeamLogo"
+import BoxScore from "./BoxScore"
+import TeamDetailSheet from "./TeamDetailSheet"
 
 const PRO_TEAM_IDS = ["seahawks","mariners","kraken","sounders","storm","reign"]
 
@@ -21,6 +23,7 @@ interface GameCardProps { game: Game }
 
 export default function GameCard({ game }: GameCardProps) {
   const [open, setOpen] = useState(false)
+  const [teamSheet, setTeamSheet] = useState<{ id: string; name: string; logo: string } | null>(null)
   const isLive = game.status === "live"
   const isFt   = game.status === "ft"
   const isUp   = game.status === "upcoming"
@@ -29,6 +32,9 @@ export default function GameCard({ game }: GameCardProps) {
   const seattleWon = isFt && game.seattleScore !== undefined && game.opponentScore !== undefined && game.seattleScore > game.opponentScore
   const seattleLost = isFt && game.seattleScore !== undefined && game.opponentScore !== undefined && game.seattleScore < game.opponentScore
   const seattleColor = game.seattleTeam.primaryColor
+
+  // Show box score for completed/live games with ESPN IDs
+  const canShowBoxScore = (isLive || isFt) && !!game.id && game.league !== "whl" && game.league !== "pwhl"
 
   return (
     <>
@@ -75,13 +81,14 @@ export default function GameCard({ game }: GameCardProps) {
           <div className="flex items-center px-4 pb-3 gap-3">
             {/* Seattle side */}
             <div className="flex-1 flex items-center gap-2.5 min-w-0">
-              <div className="relative flex-shrink-0">
+              <button
+                className="relative flex-shrink-0 active:scale-95 transition-transform"
+                onClick={e => { e.stopPropagation(); setTeamSheet({ id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl }) }}
+              >
                 <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={38} />
-              </div>
+              </button>
               <div className="min-w-0">
-                <div className={`font-display text-[16px] font-700 leading-tight truncate ${
-                  seattleLost ? "text-zinc-400" : "text-white"
-                }`}>
+                <div className={`font-display text-[16px] font-700 leading-tight truncate ${seattleLost ? "text-zinc-400" : "text-white"}`}>
                   {game.seattleTeam.shortName}
                 </div>
                 {game.seattleRecord && (
@@ -93,9 +100,7 @@ export default function GameCard({ game }: GameCardProps) {
             {/* Score / VS center */}
             <div className="flex flex-col items-center justify-center min-w-[72px] flex-shrink-0">
               {hasScore ? (
-                <div className={`font-display text-[22px] font-800 tabular-nums leading-none ${
-                  isLive ? "text-white" : isFt ? "text-white" : "text-zinc-300"
-                }`}>
+                <div className={`font-display text-[22px] font-800 tabular-nums leading-none ${isLive || isFt ? "text-white" : "text-zinc-300"}`}>
                   {game.seattleScore}<span className="text-zinc-500 mx-1">-</span>{game.opponentScore}
                 </div>
               ) : (
@@ -111,18 +116,19 @@ export default function GameCard({ game }: GameCardProps) {
             {/* Opponent side */}
             <div className="flex-1 flex items-center justify-end gap-2.5 min-w-0">
               <div className="min-w-0 text-right">
-                <div className={`font-display text-[16px] font-700 leading-tight truncate ${
-                  seattleWon ? "text-zinc-400" : "text-white"
-                }`}>
+                <div className={`font-display text-[16px] font-700 leading-tight truncate ${seattleWon ? "text-zinc-400" : "text-white"}`}>
                   {game.opponent.shortName || game.opponent.name}
                 </div>
                 {game.opponentRecord && (
                   <div className="text-[11px] text-zinc-500 leading-none mt-0.5 text-right">{formatRecord(game.opponentRecord)}</div>
                 )}
               </div>
-              <div className="relative flex-shrink-0">
+              <button
+                className="relative flex-shrink-0 active:scale-95 transition-transform"
+                onClick={e => { e.stopPropagation(); setTeamSheet({ id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo }) }}
+              >
                 <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={38} />
-              </div>
+              </button>
             </div>
           </div>
 
@@ -191,9 +197,11 @@ export default function GameCard({ game }: GameCardProps) {
 
               {/* Big face-off */}
               <div className="flex items-center justify-between gap-4">
-                {/* Seattle */}
+                {/* Seattle — tappable */}
                 <div className="flex-1 flex flex-col items-center gap-2">
-                  <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={56} />
+                  <button className="active:scale-95 transition-transform" onClick={e => { e.stopPropagation(); setOpen(false); setTeamSheet({ id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl }) }}>
+                    <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={56} />
+                  </button>
                   <div>
                     <div className="font-display text-[15px] font-700 text-white text-center leading-tight">{game.seattleTeam.shortName}</div>
                     {game.seattleRecord && <div className="text-[11px] text-zinc-500 text-center">{formatRecord(game.seattleRecord)}</div>}
@@ -203,25 +211,23 @@ export default function GameCard({ game }: GameCardProps) {
                 {/* Score center */}
                 <div className="flex flex-col items-center gap-1 min-w-[100px]">
                   {hasScore ? (
-                    <div className={`font-display font-800 tabular-nums leading-none text-[40px] ${isLive ? "text-white" : "text-white"}`}>
+                    <div className="font-display font-800 tabular-nums leading-none text-[40px] text-white">
                       {game.seattleScore}<span className="text-zinc-600 mx-1 text-[28px]">-</span>{game.opponentScore}
                     </div>
                   ) : (
-                    <>
-                      <div className="font-display text-[28px] font-700 text-zinc-500">vs</div>
-                      <div className="font-display text-[15px] font-700 text-white text-center leading-tight">{formatGameTime(game.kickoff)}</div>
-                    </>
+                    <div className="font-display text-[28px] font-700 text-zinc-500">vs</div>
                   )}
-                  {game.isHome ? (
-                    <span className="text-[9px] uppercase tracking-widest font-bold text-zinc-600">Home</span>
-                  ) : (
-                    <span className="text-[9px] uppercase tracking-widest font-bold text-zinc-600">Away</span>
+                  {!hasScore && (
+                    <div className="font-display text-[15px] font-700 text-white text-center leading-tight mt-0.5">{formatGameTime(game.kickoff)}</div>
                   )}
+                  <span className="text-[9px] uppercase tracking-widest font-bold text-zinc-600 mt-0.5">{game.isHome ? "Home" : "Away"}</span>
                 </div>
 
-                {/* Opponent */}
+                {/* Opponent — tappable */}
                 <div className="flex-1 flex flex-col items-center gap-2">
-                  <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={56} />
+                  <button className="active:scale-95 transition-transform" onClick={e => { e.stopPropagation(); setOpen(false); setTeamSheet({ id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo }) }}>
+                    <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={56} />
+                  </button>
                   <div>
                     <div className="font-display text-[15px] font-700 text-white text-center leading-tight">{game.opponent.shortName || game.opponent.name}</div>
                     {game.opponentRecord && <div className="text-[11px] text-zinc-500 text-center">{formatRecord(game.opponentRecord)}</div>}
@@ -230,28 +236,46 @@ export default function GameCard({ game }: GameCardProps) {
               </div>
             </div>
 
-            {/* Details */}
-            <div className="px-5 py-4 space-y-3 border-t border-white/5">
-              {game.venue?.name && (
-                <div className="flex items-center gap-2.5 text-zinc-400 text-sm">
-                  <span className="text-base">📍</span>
-                  <span>{game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}{game.venue.state ? `, ${game.venue.state}` : ""}</span>
-                </div>
-              )}
-              <div className="flex items-center gap-2.5 text-zinc-400 text-sm">
-                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: seattleColor }} />
-                <span className="capitalize">{game.sport} · <span className="uppercase text-[11px] tracking-wider">{game.league}</span></span>
-              </div>
-              {isUp && (
-                <div className="flex items-center gap-2.5 text-zinc-300 text-sm">
-                  <span className="text-base">🕐</span>
-                  <span>{formatGameTime(game.kickoff)}</span>
-                </div>
-              )}
+          {/* Box Score — for completed/live games */}
+          {canShowBoxScore && (
+            <div className="border-t border-white/5 pb-4" style={{ overflowY: "auto", maxHeight: "40dvh" }}>
+              <BoxScore eventId={game.id} league={game.league} seattleTeamId={game.seattleTeam.espnId} color={seattleColor} />
             </div>
-            </div>{/* end inner sheet */}
-          </div>{/* end outer wrapper */}
-        </>
+          )}
+
+          {/* Details */}
+          <div className="px-5 py-4 space-y-3 border-t border-white/5">
+            {game.venue?.name && (
+              <div className="flex items-center gap-2.5 text-zinc-400 text-sm">
+                <span className="text-base">📍</span>
+                <span>{game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}{game.venue.state ? `, ${game.venue.state}` : ""}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2.5 text-zinc-400 text-sm">
+              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: seattleColor }} />
+              <span className="capitalize">{game.sport} · <span className="uppercase text-[11px] tracking-wider">{game.league}</span></span>
+            </div>
+            {isUp && (
+              <div className="flex items-center gap-2.5 text-zinc-300 text-sm">
+                <span className="text-base">🕐</span>
+                <span>{formatGameTime(game.kickoff)}</span>
+              </div>
+            )}
+          </div>
+          </div>{/* end inner sheet */}
+        </div>{/* end outer wrapper */}
+      </>
+      )}
+
+      {/* Team detail sheet */}
+      {teamSheet && (
+        <TeamDetailSheet
+          teamId={teamSheet.id}
+          teamName={teamSheet.name}
+          teamLogo={teamSheet.logo}
+          league={game.league}
+          onClose={() => setTeamSheet(null)}
+        />
       )}
     </>
   )

@@ -6,6 +6,8 @@ import { useSelectedTeams } from "@/hooks/useSelectedTeams"
 import { useTeamClickCounts } from "@/hooks/useTeamClickCounts"
 import GameCard from "@/components/GameCard"
 import TeamLogo from "@/components/TeamLogo"
+import BoxScore from "@/components/BoxScore"
+import TeamDetailSheet from "@/components/TeamDetailSheet"
 
 function todayStr() { return new Date().toLocaleDateString("en-CA") }
 function dateStr(d: Date) { return d.toLocaleDateString("en-CA") }
@@ -45,9 +47,11 @@ interface Division { name: string; entries: StandingsRow[] }
 // ── Recent result detail bottom sheet ────────────────────────────────────
 function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void }) {
   const [standings, setStandings] = useState<Division[]>([])
+  const [teamSheet, setTeamSheet] = useState<{ id: string; name: string; logo: string } | null>(null)
   const seattleWon = (game.seattleScore ?? 0) > (game.opponentScore ?? 0)
   const seattleLost = (game.seattleScore ?? 0) < (game.opponentScore ?? 0)
   const color = game.seattleTeam.primaryColor
+  const canShowBoxScore = !!game.id && game.league !== "whl" && game.league !== "pwhl"
 
   const leagueKey = STANDINGS_LEAGUE_MAP[game.league]
   useEffect(() => {
@@ -87,7 +91,9 @@ function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void })
           {/* Face-off */}
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1 flex flex-col items-center gap-2">
-              <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={56} />
+              <button className="active:scale-95 transition-transform" onClick={() => { onClose(); setTeamSheet({ id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: getTeamLogoUrl(game.seattleTeam) }) }}>
+                <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={56} />
+              </button>
               <div className="font-display text-[15px] font-700 text-white text-center leading-tight">{game.seattleTeam.shortName}</div>
               {game.seattleRecord && <div className="text-[11px] text-zinc-500 text-center">{game.seattleRecord.wins}-{game.seattleRecord.losses}</div>}
             </div>
@@ -103,12 +109,21 @@ function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void })
               <span className="text-[9px] uppercase tracking-widest font-bold text-zinc-600 mt-0.5">{game.isHome ? "Home" : "Away"}</span>
             </div>
             <div className="flex-1 flex flex-col items-center gap-2">
-              <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={56} />
+              <button className="active:scale-95 transition-transform" onClick={() => { onClose(); setTeamSheet({ id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo }) }}>
+                <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={56} />
+              </button>
               <div className="font-display text-[15px] font-700 text-white text-center leading-tight">{game.opponent.shortName || game.opponent.name}</div>
               {game.opponentRecord && <div className="text-[11px] text-zinc-500 text-center">{game.opponentRecord.wins}-{game.opponentRecord.losses}</div>}
             </div>
           </div>
         </div>
+
+        {/* Box Score */}
+        {canShowBoxScore && (
+          <div className="border-t border-white/5 pb-2">
+            <BoxScore eventId={game.id} league={game.league} seattleTeamId={game.seattleTeam.espnId} color={color} />
+          </div>
+        )}
 
         {/* Details */}
         <div className="px-5 py-3 border-t border-white/5 space-y-2.5">
@@ -124,7 +139,7 @@ function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void })
           </div>
         </div>
 
-        {/* Standings */}
+        {/* Division Standings */}
         {seattleDivision && (
           <div className="px-5 pb-6 border-t border-white/5">
             <div className="font-display text-[11px] font-700 uppercase tracking-widest text-zinc-500 mt-4 mb-3">{seattleDivision.name} Standings</div>
@@ -158,6 +173,17 @@ function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void })
           </div>
         )}
       </div>
+
+      {/* Team detail sheet */}
+      {teamSheet && (
+        <TeamDetailSheet
+          teamId={teamSheet.id}
+          teamName={teamSheet.name}
+          teamLogo={teamSheet.logo}
+          league={game.league}
+          onClose={() => setTeamSheet(null)}
+        />
+      )}
     </>
   )
 }
