@@ -376,22 +376,31 @@ export default function HomeClient() {
   // Categorize
   const today = todayStr()
   const cutoff3 = daysAgo(3)
-  const cutoff7 = daysFromNow(7)
+  const cutoff14 = daysFromNow(14)
 
   const recent = filtered.filter(g => {
     const d = dateStr(new Date(g.kickoff))
-    return g.status === "ft" && d >= cutoff3 && d < today
+    return g.status === "ft" && d >= cutoff3 && d <= today
   }).sort((a, b) => new Date(b.kickoff).getTime() - new Date(a.kickoff).getTime()).slice(0, 12)
 
   const todayGames = filtered.filter(g => dateStr(new Date(g.kickoff)) === today)
   const liveGames = filtered.filter(g => g.status === "live")
   const upcoming = filtered.filter(g => {
     const d = dateStr(new Date(g.kickoff))
-    return g.status === "upcoming" && d > today && d <= cutoff7
+    return g.status === "upcoming" && d > today && d <= cutoff14
   })
 
+  // If no upcoming in 14 days, grab the next N games regardless of date
+  const upcomingFallback = upcoming.length === 0
+    ? filtered.filter(g => g.status === "upcoming" && dateStr(new Date(g.kickoff)) > today)
+        .sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime())
+        .slice(0, 6)
+    : []
+
+  const allUpcoming = [...upcoming, ...upcomingFallback]
+
   const upcomingByDate: Record<string, Game[]> = {}
-  for (const g of upcoming) {
+  for (const g of allUpcoming) {
     const d = dateStr(new Date(g.kickoff)); if (!upcomingByDate[d]) upcomingByDate[d] = []
     upcomingByDate[d].push(g)
   }
@@ -563,7 +572,7 @@ export default function HomeClient() {
       )}
 
       {/* ── Today ────────────────────────────────────────────────────────── */}
-      {todayGames.length > 0 && (
+      {todayGames.filter(g => g.status !== "ft").length > 0 && (
         <div className="mt-5">
           <div className="px-4 mb-2 flex items-center gap-3">
             <span className="font-display text-[13px] font-700 uppercase tracking-widest" style={{ color: "var(--accent)" }}>Today</span>
@@ -572,7 +581,7 @@ export default function HomeClient() {
             </span>
             <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
           </div>
-          {todayGames.map(g => <GameCard key={g.id} game={g} />)}
+          {todayGames.filter(g => g.status !== "ft").map(g => <GameCard key={g.id} game={g} />)}
         </div>
       )}
 
@@ -583,13 +592,15 @@ export default function HomeClient() {
         </div>
       )}
 
-      {/* ── Next 7 days ──────────────────────────────────────────────────── */}
+      {/* ── Next 14 days ──────────────────────────────────────────────────── */}
       {upcomingDates.length > 0 && (
         <div className="mt-5">
           <div className="px-4 mb-1 flex items-center gap-3">
             <span className="font-display text-[13px] font-700 text-zinc-400 uppercase tracking-widest">Upcoming</span>
             <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-            <span className="font-display text-[10px] text-zinc-600 uppercase tracking-wider">Next 7 days</span>
+            <span className="font-display text-[10px] text-zinc-600 uppercase tracking-wider">
+              {upcomingFallback.length > 0 ? "Next scheduled" : "Next 14 days"}
+            </span>
           </div>
           {upcomingDates.map(ds => (
             <div key={ds}>
@@ -604,9 +615,9 @@ export default function HomeClient() {
         </div>
       )}
 
-      {upcoming.length === 0 && upcomingDates.length === 0 && todayGames.length === 0 && !hasAnyLive && (
+      {allUpcoming.length === 0 && todayGames.length === 0 && !hasAnyLive && (
         <div className="mt-4 mx-4 p-4 rounded-2xl text-center" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-          <p className="font-display text-[13px] font-600 text-zinc-500 uppercase tracking-wider">No games in the next 7 days</p>
+          <p className="font-display text-[13px] font-600 text-zinc-500 uppercase tracking-wider">No upcoming games scheduled</p>
         </div>
       )}
 

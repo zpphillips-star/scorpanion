@@ -7,6 +7,7 @@ import { useSelectedTeams } from '@/hooks/useSelectedTeams'
 import { useTeamClickCounts } from '@/hooks/useTeamClickCounts'
 import GameCard from '@/components/GameCard'
 import TeamLogo from '@/components/TeamLogo'
+import TeamFilterBar, { getCollegeGroupKey } from '@/components/TeamFilterBar'
 
 function groupGamesByDate(games: Game[]): Map<string, Game[]> {
   const groups = new Map<string, Game[]>()
@@ -186,9 +187,18 @@ export default function ScheduleClient() {
     return { ...g, status: update.status, seattleScore: update.seattleScore, opponentScore: update.opponentScore }
   })
 
-  const filteredGames = activeTeamFilter === 'all'
-    ? mergedGames
-    : mergedGames.filter(g => g.seattleTeamId === activeTeamFilter)
+  const filteredGames = (() => {
+    if (activeTeamFilter === 'all') return mergedGames
+    // College group: match any sport variant
+    const item = SEATTLE_TEAMS.find(t => t.id === activeTeamFilter)
+    if (!item) return mergedGames
+    const gk = getCollegeGroupKey(activeTeamFilter)
+    if (gk) {
+      const ids = SEATTLE_TEAMS.filter(t => getCollegeGroupKey(t.id) === gk).map(t => t.id)
+      return mergedGames.filter(g => ids.includes(g.seattleTeamId))
+    }
+    return mergedGames.filter(g => g.seattleTeamId === activeTeamFilter)
+  })()
 
   const liveGames = filteredGames.filter(g => g.status === 'live')
   const todayStr = new Date().toLocaleDateString('en-CA')
@@ -209,14 +219,7 @@ export default function ScheduleClient() {
   const groupedUpcoming = groupGamesByDate(upcomingGames)
   const sortedUpcomingDates = [...groupedUpcoming.keys()].sort()
 
-  const followedTeams = SEATTLE_TEAMS
-    .filter(t => selectedTeamIds.includes(t.id))
-    .sort((a, b) => {
-      const cA = teamClickCounts[a.id] || 0
-      const cB = teamClickCounts[b.id] || 0
-      if (cA !== cB) return cB - cA
-      return a.shortName.localeCompare(b.shortName)
-    })
+  const followedTeams = SEATTLE_TEAMS.filter(t => selectedTeamIds.includes(t.id))
 
   if (loading) {
     return (
@@ -234,36 +237,14 @@ export default function ScheduleClient() {
         </div>
       )}
 
-      {/* Team filter chips */}
-      <div className="overflow-x-auto scrollbar-hide">
-        <div className="flex gap-2 px-4 py-3 min-w-max">
-          <button
-            onClick={() => setActiveTeamFilter('all')}
-            className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all border"
-            style={{
-              backgroundColor: activeTeamFilter === 'all' ? 'rgba(59,130,246,0.3)' : 'rgba(255,255,255,0.05)',
-              borderColor: activeTeamFilter === 'all' ? '#3b82f6' : 'rgba(255,255,255,0.1)',
-              color: activeTeamFilter === 'all' ? '#93c5fd' : '#9ca3af',
-            }}
-          >
-            All
-          </button>
-          {followedTeams.map(team => (
-            <button
-              key={team.id}
-              onClick={() => { setActiveTeamFilter(team.id); recordTeamClick(team.id) }}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all border whitespace-nowrap"
-              style={{
-                backgroundColor: activeTeamFilter === team.id ? `${team.primaryColor}44` : 'rgba(255,255,255,0.05)',
-                borderColor: activeTeamFilter === team.id ? team.primaryColor : 'rgba(255,255,255,0.1)',
-                color: activeTeamFilter === team.id ? '#fff' : '#9ca3af',
-              }}
-            >
-              {team.shortName}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Team logo filter bar */}
+      <TeamFilterBar
+        selectedTeamIds={selectedTeamIds}
+        activeFilter={activeTeamFilter}
+        onFilterChange={setActiveTeamFilter}
+        teamClickCounts={teamClickCounts}
+        recordClick={recordTeamClick}
+      />
 
       {/* Live Now — wcscores style live banner */}
       {liveGames.length > 0 && (

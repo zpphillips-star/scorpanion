@@ -1,6 +1,10 @@
 "use client"
 import { useState, useEffect } from "react"
 import Image from "next/image"
+import { SEATTLE_TEAMS, getTeamLogoUrl } from "@/lib/teams"
+import { useSelectedTeams } from "@/hooks/useSelectedTeams"
+import { useTeamClickCounts } from "@/hooks/useTeamClickCounts"
+import TeamLogo from "@/components/TeamLogo"
 
 interface StandingsEntry {
   teamId: string; teamName: string; abbr: string; logo: string
@@ -21,17 +25,40 @@ interface StandingsResponse {
   seattleConferenceName: string | null
 }
 
-const LEAGUE_TABS = [
-  { id: "mlb",  label: "MLB",  emoji: "⚾" },
-  { id: "wnba", label: "WNBA", emoji: "🏀" },
-  { id: "mls",  label: "MLS",  emoji: "⚽" },
-  { id: "nhl",  label: "NHL",  emoji: "🏒" },
-  { id: "nfl",  label: "NFL",  emoji: "🏈" },
-  { id: "nba",  label: "NBA",  emoji: "🏀" },
-]
+// Map Seattle team IDs → standings league key
+const TEAM_TO_LEAGUE: Record<string, string> = {
+  mariners: "mlb",
+  kraken: "nhl",
+  storm: "wnba",
+  sounders: "mls",
+  seahawks: "nfl",
+  reign: "nwsl",  // no API support yet
+}
 
-const SEATTLE_COLORS: Record<string, string> = {
-  mlb: "#005C5C", nhl: "#99D9D9", wnba: "#2C5235", mls: "#5D9732", nfl: "#002244"
+// League display info
+const LEAGUE_INFO: Record<string, { label: string; logo: string; color: string }> = {
+  mlb:  { label: "MLB",  logo: "https://a.espncdn.com/i/teamlogos/mlb/500/sea.png",  color: "#005C5C" },
+  nhl:  { label: "NHL",  logo: "https://a.espncdn.com/i/teamlogos/nhl/500/sea.png",  color: "#99D9D9" },
+  wnba: { label: "WNBA", logo: "https://a.espncdn.com/i/teamlogos/wnba/500/sea.png", color: "#2C5235" },
+  mls:  { label: "MLS",  logo: "https://a.espncdn.com/i/teamlogos/soccer/500/9726.png", color: "#5D9732" },
+  nfl:  { label: "NFL",  logo: "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png",  color: "#002244" },
+  nba:  { label: "NBA",  logo: "https://a.espncdn.com/i/leaguelogos/nba/500/46.png", color: "#1d428a" },
+}
+
+// Supported leagues for standings API
+const SUPPORTED_STANDINGS = new Set(["mlb", "nhl", "wnba", "mls", "nfl"])
+
+function getCollegeGroupKey(teamId: string): string | null {
+  if (teamId.startsWith("uw-")) return "uw"
+  if (teamId.startsWith("wsu-")) return "wsu"
+  if (teamId === "seattleu") return "seattleu"
+  return null
+}
+
+const SPORT_LABELS: Record<string, string> = {
+  football: "Football", baseball: "Baseball", basketball: "Basketball",
+  volleyball: "Volleyball", lacrosse: "Lacrosse", softball: "Softball",
+  soccer: "Soccer", hockey: "Hockey",
 }
 
 type Scope = "division" | "conference" | "league"
@@ -54,7 +81,8 @@ function TeamLogoImg({ src, abbr }: { src: string; abbr: string }) {
 }
 
 function SeasonBanner({ season, leagueId }: { season: SeasonInfo; leagueId: string }) {
-  const seattleColor = SEATTLE_COLORS[leagueId] || "#00d4ff"
+  const info = LEAGUE_INFO[leagueId]
+  const seattleColor = info?.color || "#00d4ff"
 
   if (season.status === "offseason") {
     return (
@@ -214,20 +242,108 @@ function DivisionTable({ division, seattleColor }: { division: Division; seattle
   )
 }
 
+// College picker dropdown for standings
+function CollegeStandingsPicker({
+  groupKey, availableTeams, activeCollegeSport,
+  onSelect, onClose,
+}: {
+  groupKey: string
+  availableTeams: typeof SEATTLE_TEAMS
+  activeCollegeSport: string | null
+  onSelect: (sport: string) => void
+  onClose: () => void
+}) {
+  const rep = availableTeams[0]
+  const school = groupKey === "uw" ? "Washington Huskies" : groupKey === "wsu" ? "WSU Cougars" : groupKey
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40" onClick={onClose} />
+      <div
+        className="absolute left-0 z-50 mt-1 rounded-2xl overflow-hidden shadow-2xl animate-slide-down"
+        style={{ background: "var(--surface)", border: "1px solid var(--border)", top: "100%", minWidth: "180px" }}
+      >
+        <div className="px-3 py-2.5 border-b border-white/5 flex items-center gap-2">
+          {rep && <TeamLogo src={getTeamLogoUrl(rep)} emoji={rep.emoji} abbr={rep.abbr} size={20} />}
+          <span className="font-display text-[12px] font-800 text-white uppercase">{school}</span>
+        </div>
+        <div className="p-2.5 flex flex-col gap-1">
+          {availableTeams.map(team => (
+            <button
+              key={team.id}
+              onClick={() => onSelect(team.id)}
+              className="px-3 py-2 rounded-xl text-[12px] font-700 font-display uppercase tracking-wide text-left transition-all flex items-center gap-2"
+              style={{
+                background: activeCollegeSport === team.id ? team.primaryColor + "30" : "var(--surface-2)",
+                color: activeCollegeSport === team.id ? "#fff" : "#9ca3af",
+                border: `1px solid ${activeCollegeSport === team.id ? team.primaryColor : "rgba(255,255,255,0.08)"}`,
+              }}
+            >
+              <span className="text-sm">{team.emoji}</span>
+              {SPORT_LABELS[team.sport] || team.sport}
+              <span className="ml-auto text-zinc-600 text-[10px]">Coming soon</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  )
+}
+
 export default function StandingsClient() {
-  const [activeLeague, setActiveLeague] = useState("mlb")
+  const { selectedTeamIds, loaded } = useSelectedTeams()
+  const { counts: teamClickCounts, recordClick } = useTeamClickCounts()
+  const [activeLeague, setActiveLeague] = useState<string>("")
   const [data, setData] = useState<StandingsResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [scope, setScope] = useState<Scope>("division")
+  const [collegePicker, setCollegePicker] = useState<string | null>(null)
+
+  // Build available leagues from followed teams
+  const availableLeagues = (() => {
+    const seen = new Set<string>()
+    const result: { leagueId: string; teamId: string }[] = []
+    for (const team of SEATTLE_TEAMS) {
+      if (!selectedTeamIds.includes(team.id)) continue
+      const leagueId = TEAM_TO_LEAGUE[team.id]
+      if (leagueId && SUPPORTED_STANDINGS.has(leagueId) && !seen.has(leagueId)) {
+        seen.add(leagueId)
+        result.push({ leagueId, teamId: team.id })
+      }
+    }
+    return result
+  })()
+
+  // College teams followed
+  const collegeGroups = (() => {
+    const groups: Record<string, typeof SEATTLE_TEAMS> = {}
+    for (const team of SEATTLE_TEAMS) {
+      if (!selectedTeamIds.includes(team.id)) continue
+      const gk = getCollegeGroupKey(team.id)
+      if (gk) {
+        if (!groups[gk]) groups[gk] = []
+        groups[gk].push(team)
+      }
+    }
+    return groups
+  })()
+
+  // Auto-select first available league
+  useEffect(() => {
+    if (!loaded) return
+    if (availableLeagues.length > 0 && !activeLeague) {
+      setActiveLeague(availableLeagues[0].leagueId)
+    }
+  }, [loaded, availableLeagues, activeLeague])
 
   useEffect(() => {
+    if (!activeLeague || !SUPPORTED_STANDINGS.has(activeLeague)) return
     setLoading(true); setError(null); setData(null)
     fetch(`/api/standings?league=${activeLeague}`)
       .then(r => r.ok ? r.json() : Promise.reject())
       .then((d: StandingsResponse) => {
         setData(d)
-        // Auto-set scope: if no Seattle division found, fall back to league
         if (!d.seattleDivisionName && !d.seattleConferenceName) setScope("league")
         else if (!d.seattleDivisionName) setScope("conference")
         else setScope("division")
@@ -236,9 +352,8 @@ export default function StandingsClient() {
       .finally(() => setLoading(false))
   }, [activeLeague])
 
-  const seattleColor = SEATTLE_COLORS[activeLeague] || "#00d4ff"
+  const seattleColor = LEAGUE_INFO[activeLeague]?.color || "#00d4ff"
 
-  // Compute which divisions to show based on scope
   const visibleDivisions: Division[] = (() => {
     if (!data) return []
     if (scope === "league") return data.divisions
@@ -246,41 +361,103 @@ export default function StandingsClient() {
       const conf = data.conferences.find(c => c.name === data.seattleConferenceName)
       return conf ? conf.divisions : data.divisions
     }
-    // division scope: just Seattle's division
     const div = data.divisions.find(d => d.name === data.seattleDivisionName)
     return div ? [div] : data.divisions.slice(0, 1)
   })()
 
-  // Check if we have true divisions (sub-conference level) vs just conferences
   const hasTrueDivisions = !!(data?.seattleDivisionName &&
     data.conferences.some(c => c.divisions.length > 1))
   const hasConference = !!(data?.seattleConferenceName &&
     data.conferences.length > 1)
 
+  if (!loaded) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
+      </div>
+    )
+  }
+
   return (
     <div style={{ paddingBottom: "1rem" }}>
-      {/* Page header */}
-      <div className="sticky top-0 z-30 glass-header px-4 py-3">
-        <h1 className="font-display text-[26px] font-800 text-white leading-none tracking-tight uppercase">Standings</h1>
-      </div>
+      {/* Sticky header + filter bar */}
+      <div className="sticky top-0 z-30 glass-header">
+        <div className="px-4 py-3">
+          <h1 className="font-display text-[26px] font-800 text-white leading-none tracking-tight uppercase">Standings</h1>
+        </div>
 
-      {/* League tabs */}
-      <div className="overflow-x-auto no-scrollbar" style={{ borderBottom: "1px solid var(--border)" }}>
-        <div className="flex min-w-max px-3 gap-0 pt-1">
-          {LEAGUE_TABS.map(tab => {
-            const active = activeLeague === tab.id
-            return (
-              <button key={tab.id} onClick={() => setActiveLeague(tab.id)} className="relative px-4 py-2.5 transition-colors">
-                <span className={`font-display text-[13px] font-700 uppercase tracking-wider transition-colors ${active ? "text-[#00d4ff]" : "text-zinc-500 hover:text-zinc-300"}`}>
-                  {tab.label}
-                </span>
-                {active && (
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-6 rounded-t-full"
-                    style={{ background: "var(--accent)", boxShadow: "0 0 6px var(--accent)" }} />
-                )}
-              </button>
-            )
-          })}
+        {/* Team logo filter bar */}
+        <div className="relative overflow-x-auto no-scrollbar px-4 pb-3 pt-1">
+          <div className="flex gap-3 min-w-max">
+            {availableLeagues.map(({ leagueId, teamId }) => {
+              const team = SEATTLE_TEAMS.find(t => t.id === teamId)!
+              const info = LEAGUE_INFO[leagueId]
+              const active = activeLeague === leagueId
+              const clicks = teamClickCounts[teamId] || 0
+              return (
+                <button
+                  key={leagueId}
+                  onClick={() => { setActiveLeague(leagueId); setCollegePicker(null); recordClick(teamId) }}
+                  className="flex-shrink-0 flex flex-col items-center gap-1"
+                >
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center transition-all overflow-hidden p-1"
+                    style={{
+                      background: active ? `${info?.color || team.primaryColor}30` : "var(--surface-2)",
+                      border: `2px solid ${active ? (info?.color || team.primaryColor) : "rgba(255,255,255,0.1)"}`,
+                      boxShadow: active ? `0 0 14px ${info?.color || team.primaryColor}55` : "none",
+                      opacity: !active && activeLeague ? 0.5 : 1,
+                    }}
+                  >
+                    <TeamLogo src={getTeamLogoUrl(team)} emoji={team.emoji} abbr={team.abbr} size={32} />
+                  </div>
+                  <span className="font-display text-[9px] font-700 uppercase tracking-widest" style={{ color: active ? (info?.color || "var(--accent)") : "#4b5563" }}>
+                    {info?.label || leagueId.toUpperCase()}
+                  </span>
+                </button>
+              )
+            })}
+
+            {/* College school icons */}
+            {Object.entries(collegeGroups).map(([gk, teams]) => {
+              const rep = teams[0]
+              const open = collegePicker === gk
+              return (
+                <div key={gk} className="relative flex-shrink-0 flex flex-col items-center gap-1">
+                  <button
+                    onClick={() => { setCollegePicker(open ? null : gk); setActiveLeague("") }}
+                    className="flex flex-col items-center gap-1"
+                  >
+                    <div
+                      className="w-12 h-12 rounded-full flex items-center justify-center transition-all overflow-hidden p-1 relative"
+                      style={{
+                        background: open ? `${rep.primaryColor}30` : "var(--surface-2)",
+                        border: `2px solid ${open ? rep.primaryColor : "rgba(255,255,255,0.1)"}`,
+                        boxShadow: open ? `0 0 14px ${rep.primaryColor}55` : "none",
+                        opacity: !open && activeLeague ? 0.5 : 1,
+                      }}
+                    >
+                      <TeamLogo src={getTeamLogoUrl(rep)} emoji={rep.emoji} abbr={rep.abbr} size={32} />
+                      <span className="absolute bottom-0.5 right-0.5 text-[8px] text-white/60">▾</span>
+                    </div>
+                  </button>
+                  <span className="font-display text-[9px] font-700 uppercase tracking-widest" style={{ color: open ? rep.primaryColor : "#4b5563" }}>
+                    {gk === "uw" ? "Huskies" : gk === "wsu" ? "Cougars" : gk.toUpperCase()}
+                  </span>
+
+                  {open && (
+                    <CollegeStandingsPicker
+                      groupKey={gk}
+                      availableTeams={teams}
+                      activeCollegeSport={null}
+                      onSelect={() => setCollegePicker(null)}
+                      onClose={() => setCollegePicker(null)}
+                    />
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
 
@@ -295,26 +472,38 @@ export default function StandingsClient() {
         </div>
       )}
 
-      {data && !loading && (
-        <>
-          {/* Season status banner */}
-          {data.season && <SeasonBanner season={data.season} leagueId={activeLeague} />}
+      {/* College standings placeholder */}
+      {!activeLeague && collegePicker && (
+        <div className="mx-4 mt-6 p-5 rounded-2xl text-center" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+          <div className="text-3xl mb-2">🎓</div>
+          <div className="font-display text-[15px] font-800 text-white uppercase tracking-tight">College Standings</div>
+          <div className="text-zinc-500 text-[12px] mt-1">Conference standings coming soon</div>
+        </div>
+      )}
 
-          {/* Scope selector */}
+      {data && !loading && activeLeague && (
+        <>
+          {data.season && <SeasonBanner season={data.season} leagueId={activeLeague} />}
           <ScopePicker
             scope={scope} setScope={setScope}
             hasDivision={hasTrueDivisions} hasConference={hasConference}
             seattleDivisionName={data.seattleDivisionName}
             seattleConferenceName={data.seattleConferenceName}
           />
-
-          {/* Standings tables */}
           <div className="mt-3">
             {visibleDivisions.map(div => (
               <DivisionTable key={div.name} division={div} seattleColor={seattleColor} />
             ))}
           </div>
         </>
+      )}
+
+      {availableLeagues.length === 0 && Object.keys(collegeGroups).length === 0 && !loading && (
+        <div className="flex flex-col items-center justify-center h-64 px-8 text-center gap-3">
+          <span className="text-5xl">📊</span>
+          <div className="font-display text-[20px] font-800 text-white uppercase">No Teams Followed</div>
+          <p className="text-zinc-500 text-sm">Go to Teams and follow your teams to see standings.</p>
+        </div>
       )}
     </div>
   )

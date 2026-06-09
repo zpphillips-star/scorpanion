@@ -3,7 +3,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { Game } from '@/lib/types'
 import { SEATTLE_TEAMS } from '@/lib/teams'
 import { useSelectedTeams } from '@/hooks/useSelectedTeams'
+import { useTeamClickCounts } from '@/hooks/useTeamClickCounts'
 import GameCard from '@/components/GameCard'
+import TeamFilterBar, { getCollegeGroupKey } from '@/components/TeamFilterBar'
 
 function getDaysInMonth(year: number, month: number): number {
   return new Date(year, month + 1, 0).getDate()
@@ -123,9 +125,11 @@ function MonthCalendar({ year, month, games, onDayClick, selectedDate, onPrev, o
 
 export default function CalendarClient() {
   const { selectedTeamIds, loaded } = useSelectedTeams()
+  const { counts: teamClickCounts, recordClick } = useTeamClickCounts()
   const [games, setGames] = useState<Game[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [activeFilter, setActiveFilter] = useState<string>("all")
 
   const now = new Date()
   const [viewYear, setViewYear] = useState(now.getFullYear())
@@ -175,8 +179,19 @@ export default function CalendarClient() {
     if (loaded) fetchSchedule()
   }, [loaded, fetchSchedule])
 
-  // Filter games to only those from followed teams
-  const filteredGames = games.filter(g => selectedTeamIds.includes(g.seattleTeamId))
+  // Filter games to only those from followed teams + active filter
+  const filteredGames = (() => {
+    const base = games.filter(g => selectedTeamIds.includes(g.seattleTeamId))
+    if (activeFilter === "all") return base
+    const item = SEATTLE_TEAMS.find(t => t.id === activeFilter)
+    if (!item) return base
+    const gk = getCollegeGroupKey(activeFilter)
+    if (gk) {
+      const ids = SEATTLE_TEAMS.filter(t => getCollegeGroupKey(t.id) === gk).map(t => t.id)
+      return base.filter(g => ids.includes(g.seattleTeamId))
+    }
+    return base.filter(g => g.seattleTeamId === activeFilter)
+  })()
 
   const selectedGames = selectedDate
     ? filteredGames.filter(g => new Date(g.kickoff).toLocaleDateString('en-CA') === selectedDate)
@@ -204,8 +219,17 @@ export default function CalendarClient() {
 
   return (
     <div className="pb-4">
-      <div className="sticky top-0 z-30 glass-header px-4 py-3">
-        <h1 className="font-display text-[26px] font-800 text-white leading-none tracking-tight uppercase">Calendar</h1>
+      <div className="sticky top-0 z-30 glass-header">
+        <div className="px-4 py-3">
+          <h1 className="font-display text-[26px] font-800 text-white leading-none tracking-tight uppercase">Calendar</h1>
+        </div>
+        <TeamFilterBar
+          selectedTeamIds={selectedTeamIds}
+          activeFilter={activeFilter}
+          onFilterChange={setActiveFilter}
+          teamClickCounts={teamClickCounts}
+          recordClick={recordClick}
+        />
       </div>
 
       {loading ? (
