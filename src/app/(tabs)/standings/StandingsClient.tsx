@@ -86,36 +86,25 @@ function SeasonBanner({ season, leagueId }: { season: SeasonInfo; leagueId: stri
 
   if (season.status === "offseason") {
     return (
-      <div className="mx-3 mt-3 px-4 py-3 rounded-2xl flex items-center gap-3"
-        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-        <span className="text-[18px]">💤</span>
-        <div>
-          <div className="font-display text-[12px] font-700 text-zinc-400 uppercase tracking-widest">Off-Season</div>
-          {season.nextStartApprox && (
-            <div className="font-display text-[11px] text-zinc-600 mt-0.5">
-              New season starts <span className="text-zinc-400">{season.nextStartApprox}</span>
-            </div>
-          )}
+      <div className="mx-3 mt-3 px-4 py-4 rounded-2xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="flex items-center gap-3 mb-1">
+          <span className="text-[22px]">💤</span>
+          <div className="font-display text-[14px] font-700 text-zinc-300 uppercase tracking-widest">Off-Season</div>
         </div>
+        <div className="font-display text-[12px] text-zinc-600">{season.label} · Regular season complete</div>
+        {season.nextStartApprox && (
+          <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+            <span className="text-[10px]">📅</span>
+            <span className="font-display text-[11px] text-zinc-400">Next season starts <span className="text-white font-700">{season.nextStartApprox}</span></span>
+          </div>
+        )}
       </div>
     )
   }
 
   if (season.status === "playoffs") {
-    return (
-      <div className="mx-3 mt-3 px-4 py-3 rounded-2xl flex items-center gap-3"
-        style={{ background: "rgba(234,179,8,0.08)", border: "1px solid rgba(234,179,8,0.2)" }}>
-        <span className="text-[18px]">🏆</span>
-        <div>
-          <div className="font-display text-[12px] font-700 text-yellow-400 uppercase tracking-widest">Playoffs</div>
-          <div className="font-display text-[11px] text-zinc-500 mt-0.5">{season.label}</div>
-        </div>
-        <span className="ml-auto relative flex h-2.5 w-2.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-60" />
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-400" />
-        </span>
-      </div>
-    )
+    // Playoff banner is handled by PlayoffSection — just return null here
+    return null
   }
 
   if (season.status === "preseason") {
@@ -289,6 +278,137 @@ function CollegeStandingsPicker({
     </>
   )
 }
+
+function PlayoffSection({ leagueId, seattleColor }: { leagueId: string; seattleColor: string }) {
+  const [data, setData] = useState<{ rounds: { name: string; series: any[] }[]; currentRound: string | null; season: string } | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setLoading(true)
+    fetch(`/api/playoffs?league=${leagueId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { setData(d); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [leagueId])
+
+  if (loading) return (
+    <div className="mx-3 mt-3 flex items-center gap-2 px-4 py-3 rounded-2xl" style={{ background: "rgba(234,179,8,0.06)", border: "1px solid rgba(234,179,8,0.15)" }}>
+      <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin border-yellow-400" />
+      <span className="font-display text-[11px] text-zinc-500 uppercase tracking-widest">Loading playoffs...</span>
+    </div>
+  )
+
+  if (!data || data.rounds.length === 0) return (
+    <div className="mx-3 mt-3 px-4 py-3 rounded-2xl flex items-center gap-3" style={{ background: "rgba(234,179,8,0.08)", border: "1px solid rgba(234,179,8,0.2)" }}>
+      <span className="text-[20px]">🏆</span>
+      <div>
+        <div className="font-display text-[13px] font-700 text-yellow-400 uppercase tracking-widest">Playoffs Underway</div>
+        <div className="font-display text-[11px] text-zinc-500 mt-0.5">Bracket data not available</div>
+      </div>
+    </div>
+  )
+
+  // Show the most recent/active round
+  const activeRound = data.rounds[data.rounds.length - 1]
+  const seattleSeries = activeRound.series.filter((s: any) => s.isSeattle)
+  const otherSeries = activeRound.series.filter((s: any) => !s.isSeattle)
+
+  return (
+    <div className="mx-3 mt-3">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-1 mb-2">
+        <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-60" />
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-400" />
+        </span>
+        <span className="font-display text-[13px] font-800 text-yellow-400 uppercase tracking-widest">🏆 {activeRound.name}</span>
+        <div className="flex-1 h-px" style={{ background: "rgba(234,179,8,0.2)" }} />
+        <span className="font-display text-[10px] text-zinc-600">{data.season}</span>
+      </div>
+
+      {/* Seattle series first */}
+      {[...seattleSeries, ...otherSeries].map((series: any) => {
+        const isSea = series.isSeattle
+        const winsNeeded = 4 // best of 7 for most sports
+        const isOver = series.status === 'final'
+        const isLive = series.status === 'live'
+        const hWins = series.home.wins
+        const aWins = series.away.wins
+        const leader = hWins > aWins ? series.home : aWins > hWins ? series.away : null
+
+        return (
+          <div
+            key={series.id}
+            className="mb-2 rounded-2xl overflow-hidden"
+            style={{
+              background: isSea ? `${seattleColor}12` : "var(--surface)",
+              border: `1px solid ${isSea ? seattleColor + "35" : "var(--border)"}`,
+            }}
+          >
+            {isSea && <div className="h-0.5" style={{ background: `linear-gradient(to right, ${seattleColor}, transparent)` }} />}
+            <div className="px-3 py-3 flex items-center gap-2">
+              {/* Away */}
+              <div className="flex-1 flex flex-col items-center gap-1">
+                {series.away.logo
+                  ? <img src={series.away.logo} alt={series.away.abbr} width={36} height={36} className="object-contain" />
+                  : <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-[10px] text-zinc-500">{series.away.abbr}</div>
+                }
+                {series.away.seed && <span className="font-display text-[9px] text-zinc-600">#{series.away.seed}</span>}
+                <span className="font-display text-[12px] font-700 text-zinc-300">{series.away.abbr}</span>
+              </div>
+
+              {/* Series score center */}
+              <div className="flex flex-col items-center gap-0.5 min-w-[80px]">
+                <div className="font-display text-[28px] font-800 tabular-nums leading-none text-white">
+                  {aWins}<span className="text-zinc-600 mx-1.5 text-[20px]">–</span>{hWins}
+                </div>
+                {isOver ? (
+                  <span className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-500">
+                    {leader ? `${leader.abbr} wins` : "Series over"}
+                  </span>
+                ) : isLive ? (
+                  <span className="font-display text-[10px] font-700 uppercase tracking-widest text-red-400">🔴 Live</span>
+                ) : (
+                  <span className="font-display text-[10px] text-zinc-600 uppercase tracking-widest">
+                    {leader ? `${leader.abbr} leads` : "Series tied"}
+                  </span>
+                )}
+                <div className="flex gap-1 mt-1">
+                  {Array.from({ length: winsNeeded }).map((_, i) => (
+                    <div key={i} className="w-2 h-2 rounded-full" style={{
+                      background: i < aWins ? "#a1a1aa" : "var(--surface-2)",
+                      border: "1px solid rgba(255,255,255,0.1)"
+                    }} />
+                  ))}
+                  <span className="text-zinc-700 text-[9px] mx-0.5">·</span>
+                  {Array.from({ length: winsNeeded }).map((_, i) => (
+                    <div key={i} className="w-2 h-2 rounded-full" style={{
+                      background: i < hWins ? (isSea ? seattleColor : "#a1a1aa") : "var(--surface-2)",
+                      border: "1px solid rgba(255,255,255,0.1)"
+                    }} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Home */}
+              <div className="flex-1 flex flex-col items-center gap-1">
+                {series.home.logo
+                  ? <img src={series.home.logo} alt={series.home.abbr} width={36} height={36} className="object-contain" />
+                  : <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-[10px] text-zinc-500">{series.home.abbr}</div>
+                }
+                {series.home.seed && <span className="font-display text-[9px] text-zinc-600">#{series.home.seed}</span>}
+                <span className={`font-display text-[12px] font-700 ${isSea && SEATTLE_IDS[leagueId]?.includes(series.home.id) ? "text-white" : "text-zinc-300"}`}>{series.home.abbr}</span>
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const SEATTLE_IDS: Record<string, string[]> = { mlb: ['12'], nhl: ['124292'], wnba: ['14'], nfl: ['26'] }
 
 export default function StandingsClient() {
   const { selectedTeamIds, loaded } = useSelectedTeams()
@@ -483,14 +603,35 @@ export default function StandingsClient() {
 
       {data && !loading && activeLeague && (
         <>
-          {data.season && <SeasonBanner season={data.season} leagueId={activeLeague} />}
+          {/* Season status banner (offseason / preseason / regular) */}
+          {data.season && data.season.status !== 'playoffs' && (
+            <SeasonBanner season={data.season} leagueId={activeLeague} />
+          )}
+
+          {/* PLAYOFFS — show bracket prominently first */}
+          {data.season?.status === 'playoffs' && (
+            <PlayoffSection leagueId={activeLeague} seattleColor={seattleColor} />
+          )}
+
+          {/* Scope picker — Division / Conference / Full League */}
           <ScopePicker
             scope={scope} setScope={setScope}
             hasDivision={hasTrueDivisions} hasConference={hasConference}
             seattleDivisionName={data.seattleDivisionName}
             seattleConferenceName={data.seattleConferenceName}
           />
-          <div className="mt-3">
+
+          {/* Standings label — "Final" when postseason */}
+          <div className="px-4 pt-3 pb-1 flex items-center gap-3">
+            <span className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-600">
+              {data.season?.status === 'playoffs' || data.season?.status === 'offseason'
+                ? 'Regular Season — Final'
+                : 'Standings'}
+            </span>
+            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+          </div>
+
+          <div className="mt-1">
             {visibleDivisions.map(div => (
               <DivisionTable key={div.name} division={div} seattleColor={seattleColor} />
             ))}
