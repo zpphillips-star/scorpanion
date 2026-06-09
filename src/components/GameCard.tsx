@@ -209,7 +209,7 @@ export default function GameCard({ game }: GameCardProps) {
                 <div className="flex items-center justify-between gap-3">
                   <button
                     className="flex-1 flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
-                    onClick={e => { e.stopPropagation(); setOpen(false); setTeamSheet({ id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl }) }}
+                    onClick={e => { e.stopPropagation(); setTeamSheet({ id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl }) }}
                   >
                     <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={60} />
                     <span className={`font-display text-[14px] font-700 text-center leading-tight ${seattleLost ? "text-zinc-400" : "text-white"}`}>{game.seattleTeam.shortName}</span>
@@ -238,7 +238,7 @@ export default function GameCard({ game }: GameCardProps) {
 
                   <button
                     className="flex-1 flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
-                    onClick={e => { e.stopPropagation(); setOpen(false); setTeamSheet({ id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo }) }}
+                    onClick={e => { e.stopPropagation(); setTeamSheet({ id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo }) }}
                   >
                     <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={60} />
                     <span className={`font-display text-[14px] font-700 text-center leading-tight ${seattleWon ? "text-zinc-400" : "text-white"}`}>{game.opponent.shortName || game.opponent.name}</span>
