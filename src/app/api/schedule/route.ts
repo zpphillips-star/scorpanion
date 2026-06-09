@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
               name: opponentComp.team.displayName || opponentComp.team.name,
               shortName: opponentComp.team.shortDisplayName || opponentComp.team.abbreviation,
               abbr: opponentComp.team.abbreviation,
-              logo: opponentComp.team.logo || '',
+              logo: opponentComp.team.logos?.[0]?.href || opponentComp.team.logo || '',
               record: opponentRecord,
             },
             kickoff: event.date,

@@ -126,8 +126,34 @@ export default function HomeClient() {
     const u = liveScores[g.id]; return u ? { ...g, status: u.status, seattleScore: u.seattleScore, opponentScore: u.opponentScore } : g
   })
 
-  // Filter by active team
-  const filtered = activeFilter === "all" ? allGames : allGames.filter(g => g.seattleTeamId === activeFilter)
+  // Deduplicate filter bar: UW-football + UW-basketball + ... → one UW circle
+  // Key by logo URL so same-logo variants collapse into one entry
+  const followedTeamsSorted = SEATTLE_TEAMS
+    .filter(t => selectedTeamIds.includes(t.id))
+    .sort((a, b) => ((teamClickCounts[b.id] || 0) - (teamClickCounts[a.id] || 0)) || a.shortName.localeCompare(b.shortName))
+
+  const filterItems = (() => {
+    const seen = new Set<string>()
+    return followedTeamsSorted.filter(t => {
+      const key = getTeamLogoUrl(t) || t.id
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  })()
+
+  // When a deduplicated filter item is clicked, match ALL teams with same logo
+  const filterMatchIds = (filterId: string): string[] => {
+    const item = SEATTLE_TEAMS.find(t => t.id === filterId)
+    if (!item) return [filterId]
+    const logoKey = getTeamLogoUrl(item) || filterId
+    return SEATTLE_TEAMS.filter(t => (getTeamLogoUrl(t) || t.id) === logoKey).map(t => t.id)
+  }
+
+  // Filter by active team — groups same-logo variants (e.g. all UW sports)
+  const filtered = activeFilter === "all"
+    ? allGames
+    : allGames.filter(g => filterMatchIds(activeFilter).includes(g.seattleTeamId))
 
   // Categorize
   const today = todayStr()
@@ -156,10 +182,6 @@ export default function HomeClient() {
     upcomingByDate[d].push(g)
   }
   const upcomingDates = Object.keys(upcomingByDate).sort()
-
-  const followedTeams = SEATTLE_TEAMS
-    .filter(t => selectedTeamIds.includes(t.id))
-    .sort((a, b) => ((teamClickCounts[b.id] || 0) - (teamClickCounts[a.id] || 0)) || a.shortName.localeCompare(b.shortName))
 
   const hasAnyLive = liveGames.length > 0
   const liveCount = liveGames.length
@@ -222,7 +244,7 @@ export default function HomeClient() {
               </div>
             </button>
 
-            {followedTeams.map(team => {
+            {filterItems.map(team => {
               const active = activeFilter === team.id
               const logoUrl = getTeamLogoUrl(team)
               return (
