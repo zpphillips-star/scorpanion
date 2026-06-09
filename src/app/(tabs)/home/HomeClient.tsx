@@ -687,70 +687,13 @@ export default function HomeClient() {
         </div>
       </PageHeader>
 
-      {/* ── FEATURED: Live + Today ───────────────────────────────────────── */}
-      {(liveGames.length > 0 || todayGames.length > 0) && (() => {
-        // ALL today's games — finished show score, live show pulsing, upcoming show time
-        const featuredGames = todayGames
-        const hasLive = liveGames.length > 0
-        const todayDate = new Date()
-        const dateLabel = todayDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
-
-        return (
-          <div className="mt-3">
-            {/* Section header */}
-            <div
-              className="mx-3 mb-2 px-4 py-3 rounded-2xl flex items-center gap-3"
-              style={{
-                background: hasLive
-                  ? "linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.04) 100%)"
-                  : "linear-gradient(135deg, rgba(0,212,255,0.1) 0%, rgba(0,212,255,0.04) 100%)",
-                border: hasLive ? "1.5px solid rgba(239,68,68,0.25)" : "1.5px solid rgba(0,212,255,0.25)",
-              }}
-            >
-              {hasLive ? (
-                <span className="relative flex h-3 w-3 flex-shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
-                </span>
-              ) : (
-                <span className="relative flex h-3 w-3 flex-shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: "var(--accent)" }} />
-                  <span className="relative inline-flex rounded-full h-3 w-3" style={{ background: "var(--accent)" }} />
-                </span>
-              )}
-              <div className="flex-1 min-w-0">
-                <div
-                  className="font-display text-[20px] font-800 uppercase tracking-tight leading-none"
-                  style={{ color: hasLive ? "#f87171" : "var(--accent)" }}
-                >
-                  {hasLive ? "Live Now" : "Today"}
-                </div>
-                <div className="font-display text-[12px] text-zinc-500 mt-0.5">{dateLabel}</div>
-              </div>
-              <div
-                className="flex-shrink-0 font-display text-[13px] font-700 px-3 py-1.5 rounded-full"
-                style={hasLive
-                  ? { background: "rgba(239,68,68,0.12)", color: "#f87171", border: "1px solid rgba(239,68,68,0.2)" }
-                  : { background: "rgba(0,212,255,0.12)", color: "var(--accent)", border: "1px solid rgba(0,212,255,0.2)" }
-                }
-              >
-                {featuredGames.length} Game{featuredGames.length !== 1 ? "s" : ""}
-              </div>
-            </div>
-
-            {/* Featured cards */}
-            {featuredGames.map(g => <TodayGameCard key={g.id} game={g} />)}
-          </div>
-        )
-      })()}
-
       {/* ── Recent results (horizontal scroll, tappable) ─────────────────── */}
       {recent.length > 0 && (
         <div className="mt-5">
           <div className="flex items-center gap-3 px-4 mb-3">
-            <span className="font-display text-[13px] font-700 text-zinc-400 uppercase tracking-widest">Recent</span>
-            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-            <span className="font-display text-[10px] text-zinc-600 uppercase tracking-wider">Last 3 days</span>
+            <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Recent</span>
+            <div className="flex-1 h-px bg-zinc-800" />
+            <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">Last 3 days</span>
           </div>
           <div className="overflow-x-auto no-scrollbar px-4">
             <div className="flex gap-3 min-w-max pb-1">
@@ -762,12 +705,44 @@ export default function HomeClient() {
         </div>
       )}
 
+      {/* ── FEATURED: Live + Today ───────────────────────────────────────── */}
+      {(liveGames.length > 0 || todayGames.length > 0) && (() => {
+        const hasLive = liveGames.length > 0
+        const todayDate = new Date()
+        const dateLabel = todayDate.toLocaleDateString("en-US", { month: "long", day: "numeric" })
+
+        return (
+          <div className="mt-5">
+            {/* Section header — same style as Recent/Upcoming */}
+            <div className="flex items-center gap-3 px-4 mb-2">
+              {hasLive && (
+                <span className="relative flex h-2 w-2 flex-shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                </span>
+              )}
+              <span
+                className="font-display text-[13px] font-800 uppercase tracking-widest"
+                style={{ color: hasLive ? "#f87171" : "white" }}
+              >
+                {hasLive ? "Live Now" : "Today"}
+              </span>
+              <div className="flex-1 h-px bg-zinc-800" />
+              <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">{dateLabel}</span>
+            </div>
+
+            {/* Featured cards */}
+            {todayGames.map(g => <TodayGameCard key={g.id} game={g} />)}
+          </div>
+        )
+      })()}
+
       {/* ── Off-season (no games anywhere) ──────────────────────────────── */}
       {todayGames.length === 0 && !hasAnyLive && recent.length === 0 && allUpcoming.length === 0 && (
         <>
           <div className="mt-5 px-4 mb-2 flex items-center gap-3">
-            <span className="font-display text-[13px] font-700 text-zinc-500 uppercase tracking-widest">Off Season</span>
-            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+            <span className="font-display text-[13px] font-800 text-zinc-400 uppercase tracking-widest">Off Season</span>
+            <div className="flex-1 h-px bg-zinc-800" />
           </div>
           <OffSeasonCards teams={teamsWithNoGames.length > 0 ? teamsWithNoGames : followedTeams} nextGames={nextGameByTeam} />
         </>
@@ -777,9 +752,9 @@ export default function HomeClient() {
       {upcomingDates.length > 0 && (
         <div className="mt-5">
           <div className="px-4 mb-1 flex items-center gap-3">
-            <span className="font-display text-[13px] font-700 text-zinc-300 uppercase tracking-widest">Upcoming</span>
-            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-            <span className="font-display text-[10px] text-zinc-600 uppercase tracking-wider">
+            <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Upcoming</span>
+            <div className="flex-1 h-px bg-zinc-800" />
+            <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">
               {upcomingFallback.length > 0 ? "Next scheduled" : "Next 14 days"}
             </span>
           </div>
