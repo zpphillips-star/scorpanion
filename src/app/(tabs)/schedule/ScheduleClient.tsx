@@ -348,8 +348,10 @@ export default function ScheduleClient() {
 
   return (
     <>
-      <div className="sticky top-0 z-30 px-4 py-3 bg-[#0a0a0f]/95 backdrop-blur-md border-b border-white/10 flex items-center justify-between">
-        <h1 className="text-xl lg:text-2xl font-bold text-white">Schedule</h1>
+      <div className="sticky top-0 z-30 glass-header px-4 py-3 flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-[26px] font-800 text-white leading-none tracking-tight uppercase">Schedule</h1>
+        </div>
         <AuthButton />
       </div>
 

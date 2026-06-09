@@ -91,12 +91,15 @@ function MonthCalendar({ year, month, games, onDayClick, selectedDate, onPrev, o
               key={day}
               onClick={() => hasGames && onDayClick(dateStr)}
               className={`relative flex flex-col items-center justify-start pt-1 pb-1.5 rounded-lg min-h-[44px] transition-colors ${
-                isSelected ? 'bg-blue-600/30' : isToday ? 'bg-white/10' : hasGames ? 'hover:bg-white/5 cursor-pointer' : 'cursor-default'
+                isSelected ? 'bg-[#00d4ff]/15' : isToday ? 'bg-white/10' : hasGames ? 'hover:bg-white/5 cursor-pointer' : 'cursor-default'
               }`}
             >
-              <span className={`text-sm w-7 h-7 flex items-center justify-center rounded-full ${
-                isToday ? 'bg-blue-500 text-white font-bold' : 'text-gray-300'
-              }`}>
+              <span
+                className={`text-sm w-7 h-7 flex items-center justify-center rounded-full ${
+                  isToday ? 'text-[#08080f] font-bold' : 'text-zinc-300'
+                }`}
+                style={isToday ? { background: 'var(--accent)' } : {}}
+              >
                 {day}
               </span>
               {hasGames && (
@@ -201,13 +204,13 @@ export default function CalendarClient() {
 
   return (
     <div className="pb-4">
-      <div className="sticky top-0 z-30 px-4 py-3 bg-[#0a0a0f]/95 backdrop-blur-md border-b border-white/10">
-        <h1 className="text-xl lg:text-2xl font-bold text-white">Calendar</h1>
+      <div className="sticky top-0 z-30 glass-header px-4 py-3">
+        <h1 className="font-display text-[26px] font-800 text-white leading-none tracking-tight uppercase">Calendar</h1>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
         </div>
       ) : (
         <div className="mt-2 max-w-2xl mx-auto">
@@ -235,30 +238,40 @@ export default function CalendarClient() {
         </div>
       )}
 
-      {/* Day sheet */}
+      {/* Calendar day sheet */}
       {selectedDate && (
         <div className="fixed inset-0 z-50 flex items-end" onClick={() => setSelectedDate(null)}>
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
           <div
-            className="relative w-full rounded-t-2xl max-h-[70vh] overflow-y-auto lg:max-w-2xl lg:mx-auto"
-            style={{ background: '#0f0f1a' }}
+            className="relative w-full rounded-t-3xl max-h-[75vh] overflow-hidden lg:max-w-2xl lg:mx-auto animate-slide-up"
+            style={{ background: "var(--surface)" }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-[#0f0f1a] px-4 py-3 border-b border-white/10 flex items-center justify-between">
-              <span className="text-white font-semibold">
-                {new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-              </span>
-              <button onClick={() => setSelectedDate(null)} className="text-gray-400 hover:text-white">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+            <div className="w-10 h-1 rounded-full bg-white/15 mx-auto mt-3 mb-0" />
+            <div className="sticky top-0 px-5 py-3.5 flex items-center justify-between" style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)" }}>
+              <div>
+                <div className="font-display text-[18px] font-800 text-white uppercase tracking-tight">
+                  {new Date(selectedDate + "T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})}
+                </div>
+                <div className="font-display text-[11px] font-600 text-zinc-500 uppercase tracking-widest">
+                  {selectedGames.length} Game{selectedGames.length !== 1 ? "s" : ""}
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedDate(null)}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm transition-colors"
+                style={{ background: "rgba(255,255,255,0.08)" }}
+              >✕</button>
             </div>
-            {selectedGames.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">No games on this day</div>
-            ) : (
-              selectedGames.map(g => <GameCard key={g.id} game={g} />)
-            )}
+            <div className="overflow-y-auto" style={{ maxHeight: "60vh", paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}>
+              {selectedGames.length === 0 ? (
+                <div className="p-6 text-center text-zinc-500">No games on this day</div>
+              ) : (
+                <div className="py-2">
+                  {selectedGames.map(g => <GameCard key={g.id} game={g} />)}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

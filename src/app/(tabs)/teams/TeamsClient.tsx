@@ -238,32 +238,32 @@ export default function TeamsClient() {
 
   return (
     <div className="pb-4">
-      <div className="sticky top-0 z-30 px-4 py-3 bg-[#0a0a0f]/95 backdrop-blur-md border-b border-white/10">
-        <h1 className="text-xl font-bold text-white">Teams</h1>
-        <p className="text-gray-400 text-sm mt-0.5">
+      <div className="sticky top-0 z-30 glass-header px-4 py-3">
+        <h1 className="font-display text-[26px] font-800 text-white leading-none tracking-tight uppercase">Teams</h1>
+        <p className="text-zinc-500 text-sm mt-0.5">
           Following {selectedTeamIds.length} team{selectedTeamIds.length !== 1 ? 's' : ''}
         </p>
       </div>
 
       <div className="px-4 mt-4">
-        <h2 className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-3">Pro Teams</h2>
+        <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Pro Teams</h2>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {byIds(PRO_TEAM_IDS).map(team => <TeamCard key={team.id} team={team} />)}
         </div>
       </div>
 
       <div className="px-4 mt-6">
-        <h2 className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-3">University of Washington</h2>
+        <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">University of Washington</h2>
         <UniversityCard config={UW_CONFIG} />
       </div>
 
       <div className="px-4 mt-6">
-        <h2 className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-3">Washington State</h2>
+        <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Washington State</h2>
         <UniversityCard config={WSU_CONFIG} />
       </div>
 
       <div className="px-4 mt-6">
-        <h2 className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-3">Other</h2>
+        <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Other</h2>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {byIds(OTHER_IDS).map(team => <TeamCard key={team.id} team={team} />)}
         </div>
@@ -274,3 +274,4 @@ export default function TeamsClient() {
     </div>
   )
 }
+
