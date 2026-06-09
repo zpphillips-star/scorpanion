@@ -302,22 +302,19 @@ export default function ScheduleClient() {
             const isToday = dateStr === todayStr
             const label = formatDateHeader(dateStr)
             return (
-              <div key={dateStr} ref={isToday ? todayRef : undefined}>
-                {/* Slim divider between day groups */}
-                {idx > 0 && <div className="h-2" />}
-
+              <div key={dateStr} ref={isToday ? todayRef : undefined} style={{ borderTop: idx > 0 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                 {/* Date header — TODAY is bigger and accented */}
                 {isToday ? (
                   <div
-                    className="sticky top-[116px] z-20 px-4 py-3 flex items-center gap-2.5"
-                    style={{ background: 'rgba(8,8,15,0.97)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(0,212,255,0.2)' }}
+                    className="sticky top-[116px] z-20 px-4 py-2 flex items-center gap-2.5"
+                    style={{ background: 'rgba(8,8,15,0.97)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(0,212,255,0.2)', borderTop: '2px solid rgba(0,212,255,0.3)' }}
                   >
-                    <span className="font-display text-[16px] font-800 uppercase tracking-widest text-[#00d4ff]">Today</span>
-                    <span className="relative flex h-2 w-2 flex-shrink-0">
+                    <span className="font-display text-[15px] font-800 uppercase tracking-widest text-[#00d4ff]">Today</span>
+                    <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00d4ff] opacity-60" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00d4ff]" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#00d4ff]" />
                     </span>
-                    <span className="font-display text-[12px] text-zinc-500">
+                    <span className="font-display text-[11px] text-zinc-500">
                       {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
                     </span>
                     <div className="flex-1 h-px" style={{ background: 'rgba(0,212,255,0.2)' }} />
