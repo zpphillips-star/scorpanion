@@ -228,6 +228,14 @@ export default function ScheduleClient() {
       // Small delay so the DOM has rendered
       setTimeout(() => {
         todayRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        // Nudge up so the sticky header doesn't cover the today label
+        setTimeout(() => {
+          const el = todayRef.current
+          if (el) {
+            const parent = el.closest('main') ?? window
+            if ('scrollBy' in parent) (parent as Element).scrollBy({ top: -120, behavior: 'smooth' })
+          }
+        }, 300)
       }, 150)
     }
   }, [loading, activeTeamFilter])
@@ -285,7 +293,7 @@ export default function ScheduleClient() {
 
                 {/* Sticky date header */}
                 <div
-                  className="sticky top-[53px] z-20 px-4 py-2.5 flex items-center gap-3"
+                  className="sticky top-[116px] z-20 px-4 py-2.5 flex items-center gap-3"
                   style={{ background: 'rgba(8,8,15,0.96)', backdropFilter: 'blur(8px)' }}
                 >
                   <span className={`text-[12px] uppercase tracking-widest font-bold ${isToday ? 'text-[#00d4ff]' : 'text-white'}`}>
