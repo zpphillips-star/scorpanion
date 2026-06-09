@@ -108,3 +108,14 @@ body { font-family: var(--font-geist-sans), system-ui, sans-serif; }
 /* ── Team color glow ─────────────────────────────────────────────────────── */
 .team-glow { transition: box-shadow 0.2s ease; }
 .team-glow:hover { box-shadow: 0 0 20px rgba(var(--team-r),var(--team-g),var(--team-b),0.25); }
+
+@keyframes slide-in-from-left {
+  from { transform: translateX(-100%); opacity: 0.6; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+@keyframes slide-in-from-right {
+  from { transform: translateX(100%);  opacity: 0.6; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+.animate-slide-in-left  { animation: slide-in-from-right 0.28s cubic-bezier(0.32,0.72,0,1) both; }
+.animate-slide-in-right { animation: slide-in-from-left  0.28s cubic-bezier(0.32,0.72,0,1) both; }
