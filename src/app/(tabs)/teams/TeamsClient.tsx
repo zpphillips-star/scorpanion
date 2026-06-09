@@ -79,7 +79,7 @@ export default function TeamsClient() {
   if (!loaded) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#00d4ff] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -194,35 +194,44 @@ export default function TeamsClient() {
         </div>
       </div>
 
-      {/* Sports list */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
-        {config.items.map((item, idx) => {
-          if (item.type === 'team') {
+      {/* Sports list — team cards in 2-col grid, unavailable sports as list rows */}
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        {/* Available team cards — grid */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          {config.items.filter(i => i.type === 'team').map((item) => {
+            if (item.type !== 'team') return null
             const team = SEATTLE_TEAMS.find(t => t.id === item.teamId)
             if (!team) return null
             return <TeamCard key={item.teamId} team={team} />
-          }
-          // Unavailable sport
-          return (
-            <a
-              key={idx}
-              href={item.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 rounded-xl border border-white/08 bg-white/03 hover:bg-white/06 transition-colors"
-              style={{ borderColor: 'rgba(255,255,255,0.06)', backgroundColor: 'rgba(255,255,255,0.02)' }}
-            >
-              <span className="text-2xl w-12 text-center">{item.emoji}</span>
-              <div className="flex-1 min-w-0">
-                <div className="text-gray-300 text-sm font-medium">{item.label}</div>
-                <div className="text-gray-600 text-xs mt-0.5">Schedule not available — visit official site</div>
-              </div>
-              <svg className="w-4 h-4 text-gray-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
-          )
-        })}
+          })}
+        </div>
+        {/* Unavailable sports — list */}
+        {config.items.some(i => i.type === 'unavailable') && (
+          <>
+            <p className="text-[11px] uppercase tracking-widest font-bold text-zinc-600 mb-2 mt-2">Not yet available</p>
+            <div className="space-y-1.5">
+              {config.items.filter(i => i.type === 'unavailable').map((item, idx) => {
+                if (item.type !== 'unavailable') return null
+                return (
+                  <a
+                    key={idx}
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors hover:bg-white/5"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}
+                  >
+                    <span className="text-xl w-8 text-center">{item.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-zinc-400 text-sm font-medium">{item.label}</div>
+                      <div className="text-zinc-600 text-xs">Visit official site →</div>
+                    </div>
+                  </a>
+                )
+              })}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

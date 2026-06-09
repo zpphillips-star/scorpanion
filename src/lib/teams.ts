@@ -107,12 +107,15 @@ export const SPORT_COLORS: Record<string, string> = {
 export function getTeamLogoUrl(team: SeattleTeam): string {
   if (team.logoUrl) return team.logoUrl
   switch (team.id) {
-    case 'seahawks': return 'https://a.espncdn.com/i/teamlogos/nfl/500/sea.png'
-    case 'mariners': return 'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png'
-    case 'kraken': return 'https://a.espncdn.com/i/teamlogos/nhl/500/sea.png'
-    case 'sounders': return 'https://a.espncdn.com/i/teamlogos/soccer/500/9726.png'
-    case 'reign': return 'https://a.espncdn.com/i/teamlogos/soccer/500/15363.png'
-    case 'storm': return 'https://a.espncdn.com/i/teamlogos/wnba/500/sea.png'
+    case 'seahawks':    return 'https://a.espncdn.com/i/teamlogos/nfl/500/sea.png'
+    case 'mariners':    return 'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png'
+    case 'kraken':      return 'https://a.espncdn.com/i/teamlogos/nhl/500/sea.png'
+    case 'sounders':    return 'https://a.espncdn.com/i/teamlogos/soccer/500/9726.png'
+    case 'reign':       return 'https://a.espncdn.com/i/teamlogos/soccer/500/15363.png'
+    case 'storm':       return 'https://a.espncdn.com/i/teamlogos/wnba/500/sea.png'
+    // WHL — verified real PNG logos from official WHL/leaguestat CDN
+    case 'thunderbirds': return 'https://assets.leaguestat.com/whl/logos/214.png'
+    case 'silvertips':   return 'https://assets.leaguestat.com/whl/logos/226.png'
     case 'uw-football':
     case 'uw-basketball':
     case 'uw-wbb':
@@ -120,16 +123,14 @@ export function getTeamLogoUrl(team: SeattleTeam): string {
     case 'uw-baseball':
     case 'uw-lacrosse':
     case 'uw-softball':
-    case 'uw-soccer': return 'https://a.espncdn.com/i/teamlogos/ncaa/500/264.png'
+    case 'uw-soccer':    return 'https://a.espncdn.com/i/teamlogos/ncaa/500/264.png'
+    // WSU dark variant — white Cougar on transparent bg, better on dark background
     case 'wsu-football':
     case 'wsu-mbb':
     case 'wsu-wbb':
     case 'wsu-baseball':
-    case 'wsu-volleyball': return 'https://a.espncdn.com/i/teamlogos/ncaa/500/265.png'
-    case 'seattleu': return 'https://a.espncdn.com/i/teamlogos/ncaa/500/2547.png'
-    // WHL teams - no ESPN logos, will fall back to emoji
-    case 'thunderbirds':
-    case 'silvertips':
-    default: return ''
+    case 'wsu-volleyball': return 'https://a.espncdn.com/i/teamlogos/ncaa/500-dark/265.png'
+    case 'seattleu':    return 'https://a.espncdn.com/i/teamlogos/ncaa/500/2547.png'
+    default:            return ''
   }
 }
