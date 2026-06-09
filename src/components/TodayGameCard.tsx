@@ -206,9 +206,9 @@ export function TodayGameCard({ game }: { game: Game }) {
           style={{ background: "var(--surface)", border: `1.5px solid ${color}40` }}
         >
           <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${color}, ${color}44, transparent)` }} />
-          <div className="px-4 pt-3 pb-4">
+          <div className="px-4 pt-3 pb-3">
             {/* Status row */}
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-2.5">
               {isLive ? (
                 <div className="flex items-center gap-1.5">
                   <span className="relative flex h-2 w-2">
@@ -229,20 +229,20 @@ export function TodayGameCard({ game }: { game: Game }) {
 
             {/* Face-off */}
             <div className="flex items-center gap-2">
-              <div className="flex-1 flex flex-col items-center gap-2">
-                <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={68} />
-                <div className={`font-display text-[16px] font-700 text-center ${seattleLost ? "text-zinc-500" : "text-white"}`}>{game.seattleTeam.shortName}</div>
-                {game.seattleRecord && <div className="font-display text-[11px] text-zinc-600">{formatRecord(game.seattleRecord)}</div>}
+              <div className="flex-1 flex flex-col items-center gap-1.5">
+                <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={56} />
+                <div className={`font-display text-[14px] font-700 text-center ${seattleLost ? "text-zinc-500" : "text-white"}`}>{game.seattleTeam.shortName}</div>
+                {game.seattleRecord && <div className="font-display text-[10px] text-zinc-600">{formatRecord(game.seattleRecord)}</div>}
               </div>
 
-              <div className="flex flex-col items-center gap-1 flex-shrink-0 min-w-[90px]">
+              <div className="flex flex-col items-center gap-0.5 flex-shrink-0 min-w-[80px]">
                 {hasScore ? (
                   <>
-                    <div className="font-display font-800 tabular-nums leading-none text-white" style={{ fontSize: "46px" }}>
-                      {game.seattleScore}<span className="text-zinc-600 mx-1" style={{ fontSize: "32px" }}>–</span>{game.opponentScore}
+                    <div className="font-display font-800 tabular-nums leading-none text-white" style={{ fontSize: "40px" }}>
+                      {game.seattleScore}<span className="text-zinc-600 mx-1" style={{ fontSize: "28px" }}>–</span>{game.opponentScore}
                     </div>
                     {isFt && (
-                      <span className={`font-display text-[13px] font-800 uppercase tracking-widest mt-0.5 ${seattleWon ? "text-emerald-400" : seattleLost ? "text-red-400" : "text-zinc-500"}`}>
+                      <span className={`font-display text-[12px] font-800 uppercase tracking-widest mt-0.5 ${seattleWon ? "text-emerald-400" : seattleLost ? "text-red-400" : "text-zinc-500"}`}>
                         {seattleWon ? "Win" : seattleLost ? "Loss" : "Tie"}
                       </span>
                     )}
@@ -250,24 +250,17 @@ export function TodayGameCard({ game }: { game: Game }) {
                 ) : (
                   <>
                     <span className="font-display text-[13px] font-600 text-zinc-600 uppercase tracking-widest">vs</span>
-                    <span className="font-display text-[20px] font-800 text-white text-center">{formatTime(game.kickoff)}</span>
+                    <span className="font-display text-[18px] font-800 text-white text-center">{formatTime(game.kickoff)}</span>
                   </>
                 )}
               </div>
 
-              <div className="flex-1 flex flex-col items-center gap-2">
-                <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={68} />
-                <div className={`font-display text-[16px] font-700 text-center ${seattleWon ? "text-zinc-500" : "text-white"}`}>{game.opponent.shortName || game.opponent.name}</div>
-                {game.opponentRecord && <div className="font-display text-[11px] text-zinc-600">{formatRecord(game.opponentRecord)}</div>}
+              <div className="flex-1 flex flex-col items-center gap-1.5">
+                <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={56} />
+                <div className={`font-display text-[14px] font-700 text-center ${seattleWon ? "text-zinc-500" : "text-white"}`}>{game.opponent.shortName || game.opponent.name}</div>
+                {game.opponentRecord && <div className="font-display text-[10px] text-zinc-600">{formatRecord(game.opponentRecord)}</div>}
               </div>
             </div>
-
-            {/* Venue */}
-            {game.venue?.name && (
-              <div className="mt-3 pt-3 border-t border-white/5 text-[11px] text-zinc-600 text-center truncate">
-                📍 {game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}
-              </div>
-            )}
           </div>
         </div>
       </button>

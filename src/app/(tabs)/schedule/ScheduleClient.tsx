@@ -45,9 +45,10 @@ function formatTime(iso: string): string {
 function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
   const isFt = game.status === 'ft'
   const isLive = game.status === 'live'
-  const hasScore = isFt || isLive
-  const seattleWon = hasScore && (game.seattleScore ?? 0) > (game.opponentScore ?? 0)
-  const seattleLost = hasScore && (game.seattleScore ?? 0) < (game.opponentScore ?? 0)
+  const hasActualScore = game.seattleScore !== undefined && game.opponentScore !== undefined
+  const hasScore = (isFt || isLive) && hasActualScore
+  const seattleWon = hasScore && game.seattleScore! > game.opponentScore!
+  const seattleLost = hasScore && game.seattleScore! < game.opponentScore!
   const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
 
   return (
@@ -86,6 +87,8 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
             <span className={`text-[14px] font-bold tabular-nums ${isLive ? 'text-red-400' : seattleWon ? 'text-white' : seattleLost ? 'text-zinc-400' : 'text-white'}`}>
               {game.seattleScore}–{game.opponentScore}
             </span>
+          ) : isFt ? (
+            <span className="text-[11px] font-semibold text-zinc-500">Final</span>
           ) : (
             <span className="text-[12px] font-medium text-zinc-500">vs</span>
           )}

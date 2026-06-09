@@ -323,10 +323,12 @@ function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void })
 
 // ── Recent game mini-card (horizontal scroll, tappable) ───────────────────
 function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
-  const seattleWon = (game.seattleScore ?? 0) > (game.opponentScore ?? 0)
-  const seattleLost = (game.seattleScore ?? 0) < (game.opponentScore ?? 0)
+  const hasScore = game.seattleScore !== undefined && game.opponentScore !== undefined
+  const seattleWon = hasScore && game.seattleScore! > game.opponentScore!
+  const seattleLost = hasScore && game.seattleScore! < game.opponentScore!
   const color = game.seattleTeam.primaryColor
-  const resultColor = seattleWon ? "#34d399" : seattleLost ? "#f87171" : "#9ca3af"
+  const resultColor = !hasScore ? "#52525b" : seattleWon ? "#34d399" : seattleLost ? "#f87171" : "#9ca3af"
+  const resultLabel = !hasScore ? "Final" : seattleWon ? "W" : seattleLost ? "L" : "T"
 
   return (
     <button
@@ -339,8 +341,8 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
       <div className="px-3 pt-2.5 pb-3">
         {/* W/L + date */}
         <div className="flex items-center justify-between mb-2.5">
-          <span className="font-display text-[12px] font-800 uppercase tracking-wide" style={{ color: resultColor }}>
-            {seattleWon ? "W" : seattleLost ? "L" : "T"}
+          <span className="font-display text-[11px] font-700 uppercase tracking-wide" style={{ color: resultColor }}>
+            {resultLabel}
           </span>
           <span className="text-[10px] text-zinc-600">{fmtDate(game.kickoff).replace(/,.*/, "")}</span>
         </div>
@@ -348,22 +350,21 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
         <div className="flex items-center justify-between gap-1.5">
           <div className="flex flex-col items-center gap-1 flex-1">
             <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={26} />
-            <span className={`font-display text-[14px] font-800 tabular-nums ${seattleLost ? "text-zinc-500" : "text-white"}`}>
-              {game.seattleScore ?? "–"}
+            <span className={`font-display text-[14px] font-800 tabular-nums ${seattleLost ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+              {hasScore ? game.seattleScore : "–"}
             </span>
           </div>
           <span className="font-display text-[10px] text-zinc-700 font-600 self-center pb-3">–</span>
           <div className="flex flex-col items-center gap-1 flex-1">
             <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={26} />
-            <span className={`font-display text-[14px] font-800 tabular-nums ${seattleWon ? "text-zinc-500" : "text-white"}`}>
-              {game.opponentScore ?? "–"}
+            <span className={`font-display text-[14px] font-800 tabular-nums ${seattleWon ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+              {hasScore ? game.opponentScore : "–"}
             </span>
           </div>
         </div>
-        {/* Opponent name + tap hint */}
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-[10px] text-zinc-600 truncate flex-1">vs {game.opponent.shortName || game.opponent.abbr}</span>
-          <span className="text-[9px] text-zinc-700 flex-shrink-0 ml-1">›</span>
+        {/* Opponent name */}
+        <div className="mt-2">
+          <span className="text-[10px] text-zinc-600 truncate block">vs {game.opponent.shortName || game.opponent.abbr}</span>
         </div>
       </div>
     </button>
