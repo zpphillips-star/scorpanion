@@ -58,6 +58,15 @@ export async function GET(request: NextRequest) {
 
           const seattleRecord = parseRecord(seattleComp)
           const opponentRecord = parseRecord(opponentComp)
+
+          // Parse scores — handle null, empty string, and string numbers
+          const parseScore = (val: any): number | undefined => {
+            if (val === undefined || val === null || val === '') return undefined
+            const n = Number(val)
+            return isNaN(n) ? undefined : n
+          }
+          const seattleScore = parseScore(seattleComp.score)
+          const opponentScore = parseScore(opponentComp.score)
           
           allGames.push({
             id: gameId,
@@ -79,8 +88,8 @@ export async function GET(request: NextRequest) {
               state: comp.venue?.address?.state,
             },
             status,
-            seattleScore: seattleComp.score !== undefined ? Number(seattleComp.score) : undefined,
-            opponentScore: opponentComp.score !== undefined ? Number(opponentComp.score) : undefined,
+            seattleScore,
+            opponentScore,
             sport: team.sport,
             league: team.league,
             broadcast: comp.broadcasts?.[0]?.names?.[0],

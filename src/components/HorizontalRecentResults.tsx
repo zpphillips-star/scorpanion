@@ -9,10 +9,12 @@ function fmtDate(iso: string) {
 }
 
 function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
-  const seattleWon = (game.seattleScore ?? 0) > (game.opponentScore ?? 0)
-  const seattleLost = (game.seattleScore ?? 0) < (game.opponentScore ?? 0)
+  const hasScores = game.seattleScore !== undefined && game.opponentScore !== undefined
+  const seattleWon = hasScores && game.seattleScore! > game.opponentScore!
+  const seattleLost = hasScores && game.seattleScore! < game.opponentScore!
   const color = game.seattleTeam.primaryColor
-  const resultColor = seattleWon ? "#34d399" : seattleLost ? "#f87171" : "#9ca3af"
+  const resultColor = !hasScores ? "#52525b" : seattleWon ? "#34d399" : seattleLost ? "#f87171" : "#9ca3af"
+  const resultLabel = !hasScores ? "–" : seattleWon ? "W" : seattleLost ? "L" : "T"
 
   return (
     <button
@@ -24,7 +26,7 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
       <div className="px-3 pt-2.5 pb-3">
         <div className="flex items-center justify-between mb-2.5">
           <span className="font-display text-[12px] font-800 uppercase tracking-wide" style={{ color: resultColor }}>
-            {seattleWon ? "W" : seattleLost ? "L" : "T"}
+            {resultLabel}
           </span>
           <span className="text-[10px] text-zinc-600">{fmtDate(game.kickoff)}</span>
         </div>
