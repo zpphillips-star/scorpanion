@@ -184,6 +184,7 @@ function TodayDetailSheet({ game, onClose }: { game: Game; onClose: () => void }
 /** Full-width featured card for today's games */
 export function TodayGameCard({ game }: { game: Game }) {
   const [showDetail, setShowDetail] = useState(false)
+  const [teamSheet, setTeamSheet] = useState<{ id: string; name: string; logo: string } | null>(null)
 
   const isLive = game.status === "live"
   const isFt = game.status === "ft"
@@ -197,77 +198,90 @@ export function TodayGameCard({ game }: { game: Game }) {
 
   return (
     <>
-      <button
-        className="w-full text-left active:scale-[0.985] transition-transform"
+      <div
+        className="mx-3 my-1.5 rounded-2xl overflow-hidden cursor-pointer active:scale-[0.985] transition-transform"
+        style={{ background: "var(--surface)", border: `1.5px solid ${color}40` }}
         onClick={() => setShowDetail(true)}
       >
-        <div
-          className="mx-3 my-1.5 rounded-2xl overflow-hidden"
-          style={{ background: "var(--surface)", border: `1.5px solid ${color}40` }}
-        >
-          <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${color}, ${color}44, transparent)` }} />
-          <div className="px-4 pt-3 pb-3">
-            {/* Status row */}
-            <div className="flex items-center gap-2 mb-2.5">
-              {isLive ? (
-                <div className="flex items-center gap-1.5">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
-                  </span>
-                  <span className="font-display text-[11px] font-800 text-red-400 uppercase tracking-widest">Live</span>
-                </div>
-              ) : isFt ? (
-                <span className="font-display text-[11px] font-700 text-emerald-400 uppercase tracking-widest">Final</span>
-              ) : (
-                <span className="font-display text-[11px] font-700 uppercase tracking-widest" style={{ color }}>Today</span>
-              )}
-              <span className="text-zinc-700">·</span>
-              <span className="font-display text-[11px] text-zinc-500 uppercase tracking-wide">{game.isHome ? "Home" : "Away"}</span>
-              {game.broadcast && <span className="font-display text-[11px] text-zinc-600 ml-auto">{game.broadcast}</span>}
-            </div>
+        <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${color}, ${color}44, transparent)` }} />
+        <div className="px-4 pt-3 pb-3">
+          {/* Status row */}
+          <div className="flex items-center gap-2 mb-2.5">
+            {isLive ? (
+              <div className="flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                </span>
+                <span className="font-display text-[11px] font-800 text-red-400 uppercase tracking-widest">Live</span>
+              </div>
+            ) : isFt ? (
+              <span className="font-display text-[11px] font-700 text-emerald-400 uppercase tracking-widest">Final</span>
+            ) : (
+              <span className="font-display text-[11px] font-700 uppercase tracking-widest" style={{ color }}>Today</span>
+            )}
+            <span className="text-zinc-700">·</span>
+            <span className="font-display text-[11px] text-zinc-500 uppercase tracking-wide">{game.isHome ? "Home" : "Away"}</span>
+            {game.broadcast && <span className="font-display text-[11px] text-zinc-600 ml-auto">{game.broadcast}</span>}
+          </div>
 
-            {/* Face-off */}
-            <div className="flex items-center gap-2">
-              <div className="flex-1 flex flex-col items-center gap-1.5">
+          {/* Face-off — logos are independently tappable */}
+          <div className="flex items-center gap-2">
+            {/* Seattle */}
+            <div className="flex-1 flex flex-col items-center gap-1.5">
+              <button
+                className="flex flex-col items-center gap-1.5 active:scale-90 transition-transform"
+                onClick={e => { e.stopPropagation(); setTeamSheet({ id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl }) }}
+              >
                 <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={56} />
                 <div className={`font-display text-[14px] font-700 text-center ${seattleLost ? "text-zinc-500" : "text-white"}`}>{game.seattleTeam.shortName}</div>
-                {game.seattleRecord && <div className="font-display text-[10px] text-zinc-600">{formatRecord(game.seattleRecord)}</div>}
-              </div>
+              </button>
+              {game.seattleRecord && <div className="font-display text-[10px] text-zinc-600">{formatRecord(game.seattleRecord)}</div>}
+            </div>
 
-              <div className="flex flex-col items-center gap-0.5 flex-shrink-0 min-w-[80px]">
-                {hasScore ? (
-                  <>
-                    <div className="font-display font-800 tabular-nums leading-none text-white" style={{ fontSize: "40px" }}>
-                      {game.seattleScore}<span className="text-zinc-600 mx-1" style={{ fontSize: "28px" }}>–</span>{game.opponentScore}
-                    </div>
-                    {isFt && (
-                      <span className={`font-display text-[12px] font-800 uppercase tracking-widest mt-0.5 ${seattleWon ? "text-emerald-400" : seattleLost ? "text-red-400" : "text-zinc-500"}`}>
-                        {seattleWon ? "Win" : seattleLost ? "Loss" : "Tie"}
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <span className="font-display text-[13px] font-600 text-zinc-600 uppercase tracking-widest">vs</span>
-                    <span className="font-display text-[18px] font-800 text-white text-center">{formatTime(game.kickoff)}</span>
-                  </>
-                )}
-              </div>
+            <div className="flex flex-col items-center gap-0.5 flex-shrink-0 min-w-[80px]">
+              {hasScore ? (
+                <>
+                  <div className="font-display font-800 tabular-nums leading-none text-white" style={{ fontSize: "40px" }}>
+                    {game.seattleScore}<span className="text-zinc-600 mx-1" style={{ fontSize: "28px" }}>–</span>{game.opponentScore}
+                  </div>
+                  {isFt && (
+                    <span className={`font-display text-[12px] font-800 uppercase tracking-widest mt-0.5 ${seattleWon ? "text-emerald-400" : seattleLost ? "text-red-400" : "text-zinc-500"}`}>
+                      {seattleWon ? "Win" : seattleLost ? "Loss" : "Tie"}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <>
+                  <span className="font-display text-[13px] font-600 text-zinc-600 uppercase tracking-widest">vs</span>
+                  <span className="font-display text-[18px] font-800 text-white text-center">{formatTime(game.kickoff)}</span>
+                </>
+              )}
+            </div>
 
-              <div className="flex-1 flex flex-col items-center gap-1.5">
+            {/* Opponent */}
+            <div className="flex-1 flex flex-col items-center gap-1.5">
+              <button
+                className="flex flex-col items-center gap-1.5 active:scale-90 transition-transform"
+                onClick={e => { e.stopPropagation(); setTeamSheet({ id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo }) }}
+              >
                 <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={56} />
                 <div className={`font-display text-[14px] font-700 text-center ${seattleWon ? "text-zinc-500" : "text-white"}`}>{game.opponent.shortName || game.opponent.name}</div>
-                {game.opponentRecord && <div className="font-display text-[10px] text-zinc-600">{formatRecord(game.opponentRecord)}</div>}
-              </div>
+              </button>
+              {game.opponentRecord && <div className="font-display text-[10px] text-zinc-600">{formatRecord(game.opponentRecord)}</div>}
             </div>
           </div>
         </div>
-      </button>
+      </div>
 
       {/* Detail sheet slides up — card stays in place */}
       {showDetail && (
         <TodayDetailSheet game={game} onClose={() => setShowDetail(false)} />
+      )}
+
+      {/* Team detail sheet */}
+      {teamSheet && (
+        <TeamDetailSheet teamId={teamSheet.id} teamName={teamSheet.name} teamLogo={teamSheet.logo} league={game.league} onClose={() => setTeamSheet(null)} />
       )}
     </>
   )

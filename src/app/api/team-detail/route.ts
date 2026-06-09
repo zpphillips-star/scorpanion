@@ -87,9 +87,10 @@ export async function GET(req: Request) {
       })
     }
 
-    // Standings rank — fetch standings
+    // Standings rank + full division — fetch standings
     let divisionRank: number | null = null
     let divisionName = ""
+    let divisionStandings: { abbr: string; logo: string; wins: number; losses: number; winPct: number; isThis: boolean }[] = []
     const standingsLeague = STANDINGS_LEAGUE[league]
     if (standingsLeague) {
       try {
@@ -109,6 +110,19 @@ export async function GET(req: Request) {
                 if (idx !== -1) {
                   divisionRank = idx + 1
                   divisionName = group.name ?? group.shortName ?? ""
+                  divisionStandings = entries.map((e: any, i: number) => {
+                    const w = e.stats?.find((s: any) => s.name === "wins")?.value ?? 0
+                    const l = e.stats?.find((s: any) => s.name === "losses")?.value ?? 0
+                    const pctVal = e.stats?.find((s: any) => s.name === "winPercent" || s.name === "OWP" || s.name === "pointsPercentage")?.value ?? 0
+                    return {
+                      abbr: e.team?.abbreviation ?? e.team?.shortDisplayName ?? "?",
+                      logo: e.team?.logos?.[0]?.href ?? e.team?.logo ?? "",
+                      wins: Math.round(w),
+                      losses: Math.round(l),
+                      winPct: parseFloat(pctVal),
+                      isThis: e.team?.id === teamId || String(e.team?.id) === String(teamId),
+                    }
+                  })
                   return
                 }
               }
@@ -136,6 +150,7 @@ export async function GET(req: Request) {
       upcomingGames,
       divisionRank,
       divisionName,
+      divisionStandings,
       venue: team.franchise?.venue?.fullName ?? team.venue?.fullName ?? null,
       location: team.location ?? null,
     })
