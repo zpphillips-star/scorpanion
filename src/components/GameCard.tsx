@@ -104,16 +104,16 @@ export default function GameCard({ game }: GameCardProps) {
         </svg>
       </div>
       
-      {/* Detail sheet */}
+      {/* Detail sheet — wcscores-style slide-up */}
       {open && (
         <div
           className="fixed inset-0 z-50 flex items-end"
           onClick={() => setOpen(false)}
         >
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
           <div
-            className="relative w-full rounded-t-2xl overflow-hidden lg:max-w-2xl lg:mx-auto"
-            style={{ background: '#0f0f1a' }}
+            className="relative w-full rounded-t-3xl overflow-hidden lg:max-w-2xl lg:mx-auto animate-slide-up"
+            style={{ background: '#0f0f1a', paddingBottom: 'env(safe-area-inset-bottom)' }}
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
@@ -123,12 +123,11 @@ export default function GameCard({ game }: GameCardProps) {
                 background: `linear-gradient(135deg, ${game.seattleTeam.primaryColor}cc, ${game.seattleTeam.secondaryColor}44)`,
               }}
             >
+              <div className="w-10 h-1 rounded-full bg-white/20 mx-auto mb-4" />
               <div className="flex items-center justify-between mb-1">
                 <span className="text-white/80 text-sm">{formatDate(game.kickoff)}</span>
-                <button onClick={() => setOpen(false)} className="text-white/60 hover:text-white">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                <button onClick={() => setOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 text-white text-sm hover:bg-white/20 transition-colors">
+                  ✕
                 </button>
               </div>
               <div className="flex items-center gap-4 mt-2">

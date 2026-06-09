@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { Game, ScoreUpdate } from '@/lib/types'
 import { SEATTLE_TEAMS, getTeamLogoUrl } from '@/lib/teams'
@@ -164,12 +164,21 @@ export default function ScheduleClient() {
     }
   }, [loaded, fetchSchedule])
 
+  // Adaptive polling: 2s when live, 30s otherwise (mirrors wcscores behavior)
+  const liveScoresRef = useRef(liveScores)
+  useEffect(() => { liveScoresRef.current = liveScores }, [liveScores])
+
   useEffect(() => {
     fetchLiveScores()
-    const hasLive = Object.values(liveScores).some(s => s.status === 'live')
-    const interval = setInterval(fetchLiveScores, hasLive ? 5000 : 30000)
-    return () => clearInterval(interval)
-  }, [fetchLiveScores, liveScores])
+    let interval = setInterval(fetchLiveScores, 30_000)
+    const adaptivePoller = setInterval(() => {
+      const hasLive = Object.values(liveScoresRef.current).some(s => s.status === 'live')
+      const newRate = hasLive ? 2_000 : 30_000
+      clearInterval(interval)
+      interval = setInterval(fetchLiveScores, newRate)
+    }, 5_000)
+    return () => { clearInterval(interval); clearInterval(adaptivePoller) }
+  }, [fetchLiveScores])
 
   const mergedGames = games.map(g => {
     const update = liveScores[g.id]
@@ -212,7 +221,7 @@ export default function ScheduleClient() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#00d4ff] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -256,22 +265,42 @@ export default function ScheduleClient() {
         </div>
       </div>
 
-      {/* Live Now */}
+      {/* Live Now — wcscores style live banner */}
       {liveGames.length > 0 && (
-        <div className="mx-4 mb-3 p-3 bg-red-900/20 border border-red-500/20 rounded-xl">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-            <span className="text-red-300 font-semibold text-sm">{liveGames.length} Live Game{liveGames.length !== 1 ? 's' : ''}</span>
+        <div className="relative overflow-hidden border-b border-red-500/20">
+          <div className="absolute inset-0 bg-gradient-to-r from-red-950/60 via-red-900/30 to-transparent" />
+          <div className="relative flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-2.5">
+              <div className="relative flex-shrink-0">
+                <span className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />
+                <span className="relative block w-2.5 h-2.5 rounded-full bg-red-500" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[13px] font-bold text-white leading-tight">
+                  {liveGames.length === 1 ? '1 game live' : `${liveGames.length} games live`}
+                </span>
+                <span className="text-[10px] text-red-400/80 leading-tight">Scores updating every 2s</span>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold text-red-400 bg-red-500/15 border border-red-500/25 px-2.5 py-1 rounded-full uppercase tracking-widest">
+              Live
+            </span>
           </div>
-          {liveGames.map(g => <GameCard key={g.id} game={g} />)}
+          <div className="px-2 pb-2">
+            {liveGames.map(g => <GameCard key={g.id} game={g} />)}
+          </div>
         </div>
       )}
 
       {/* Recent Results */}
       {recentGames.length > 0 && (
         <div className="mb-3">
-          <div className="px-4 py-2 flex items-center gap-2">
-            <span className="text-gray-300 text-sm font-semibold">Recent Results</span>
+          <div
+            className="sticky top-[53px] z-20 px-4 py-2.5 flex items-center gap-3"
+            style={{ background: 'rgba(10,10,15,0.96)', backdropFilter: 'blur(8px)' }}
+          >
+            <span className="text-[12px] uppercase tracking-widest font-bold text-white">Recent Results</span>
+            <div className="flex-1 h-px bg-zinc-800" />
           </div>
           {recentGames.map(g => <GameCard key={g.id} game={g} />)}
         </div>
@@ -280,9 +309,13 @@ export default function ScheduleClient() {
       {/* Today's Games */}
       {todayGames.length > 0 && (
         <div className="mb-3">
-          <div className="px-4 py-2 flex items-center gap-2">
-            <span className="text-gray-300 text-sm font-semibold">{formatDateHeader(todayStr)}</span>
-            <span className="text-[10px] bg-blue-500 text-white px-1.5 py-0.5 rounded-full font-bold uppercase">Today</span>
+          <div
+            className="sticky top-[53px] z-20 px-4 py-2.5 flex items-center gap-3"
+            style={{ background: 'rgba(10,10,15,0.96)', backdropFilter: 'blur(8px)' }}
+          >
+            <span className="text-[12px] uppercase tracking-widest font-bold text-[#00d4ff]">{formatDateHeader(todayStr)}</span>
+            <span className="text-[9px] font-bold uppercase tracking-wider text-[#00d4ff] bg-[#00d4ff]/10 px-2 py-0.5 rounded-full">Today</span>
+            <div className="flex-1 h-px bg-zinc-800" />
           </div>
           {todayGames.map(g => <GameCard key={g.id} game={g} />)}
         </div>
@@ -300,8 +333,12 @@ export default function ScheduleClient() {
       {/* Upcoming grouped by date */}
       {sortedUpcomingDates.map(dateStr => (
         <div key={dateStr}>
-          <div className="sticky top-[53px] z-20 px-4 py-2 bg-[#0a0a0f]/90 backdrop-blur-sm border-b border-white/5 flex items-center gap-2">
-            <span className="text-gray-300 text-sm font-semibold">{formatDateHeader(dateStr)}</span>
+          <div
+            className="sticky top-[53px] z-20 px-4 py-2.5 flex items-center gap-3"
+            style={{ background: 'rgba(10,10,15,0.96)', backdropFilter: 'blur(8px)' }}
+          >
+            <span className="text-[12px] uppercase tracking-widest font-bold text-white">{formatDateHeader(dateStr)}</span>
+            <div className="flex-1 h-px bg-zinc-800" />
           </div>
           {groupedUpcoming.get(dateStr)!.map(g => <GameCard key={g.id} game={g} />)}
         </div>
