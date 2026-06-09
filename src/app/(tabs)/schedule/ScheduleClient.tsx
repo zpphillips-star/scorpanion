@@ -11,18 +11,26 @@ import GameDetailSheet from '@/components/GameDetailSheet'
 
 function groupGamesByDate(games: Game[]): Map<string, Game[]> {
   const groups = new Map<string, Game[]>()
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
   for (const game of games) {
-    const d = new Date(game.kickoff)
-    const key = d.toLocaleDateString('en-CA')
+    const key = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date(game.kickoff))
     if (!groups.has(key)) groups.set(key, [])
     groups.get(key)!.push(game)
   }
   return groups
 }
 
+function getTodayStr(): string {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+  return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date())
+}
+
 function formatDateHeader(dateStr: string): string {
-  const today = new Date().toLocaleDateString('en-CA')
-  const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('en-CA')
+  const today = getTodayStr()
+  const tomorrow = (() => {
+    const d = new Date(); d.setDate(d.getDate() + 1)
+    return new Intl.DateTimeFormat('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }).format(d)
+  })()
   if (dateStr === today) return 'Today'
   if (dateStr === tomorrow) return 'Tomorrow'
   const [y, m, d] = dateStr.split('-').map(Number)
@@ -205,11 +213,21 @@ export default function ScheduleClient() {
     return mergedGames.filter(g => g.seattleTeamId === activeTeamFilter)
   })()
 
-  const todayStr = new Date().toLocaleDateString('en-CA')
+  const todayStr = getTodayStr()
   const grouped = groupGamesByDate(filteredGames)
-  // Sort: past dates first, then today, then future
   const sortedDates = [...grouped.keys()].sort()
   const hasLiveGames = filteredGames.some(g => g.status === 'live')
+
+  // Auto-scroll to today when games load
+  const todayRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!loading && todayRef.current) {
+      // Small delay so the DOM has rendered
+      setTimeout(() => {
+        todayRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 150)
+    }
+  }, [loading, activeTeamFilter])
 
   if (loading) {
     return (
@@ -258,7 +276,7 @@ export default function ScheduleClient() {
             const isToday = dateStr === todayStr
             const label = formatDateHeader(dateStr)
             return (
-              <div key={dateStr}>
+              <div key={dateStr} ref={isToday ? todayRef : undefined}>
                 {/* Spacer between day groups (WC style) */}
                 {idx > 0 && <div className="h-4" />}
 
@@ -271,9 +289,14 @@ export default function ScheduleClient() {
                     {label}
                   </span>
                   {isToday && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-[#00d4ff] bg-[#00d4ff]/10 px-2 py-0.5 rounded-full">Today</span>
+                    <>
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00d4ff] opacity-75" />
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#00d4ff]" />
+                      </span>
+                    </>
                   )}
-                  <div className="flex-1 h-px bg-zinc-800" />
+                  <div className="flex-1 h-px" style={{ background: isToday ? 'rgba(0,212,255,0.25)' : '#27272a' }} />
                 </div>
 
                 {/* Game rows */}
