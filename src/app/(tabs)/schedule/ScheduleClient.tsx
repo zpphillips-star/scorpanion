@@ -34,8 +34,7 @@ function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
-function ScheduleRow({ game, isToday, onTap }: { game: Game; isToday: boolean; onTap: () => void }) {
-  const color = game.seattleTeam.primaryColor
+function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
   const isFt = game.status === 'ft'
   const isLive = game.status === 'live'
   const hasScore = isFt || isLive
@@ -44,65 +43,58 @@ function ScheduleRow({ game, isToday, onTap }: { game: Game; isToday: boolean; o
   const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
 
   return (
-    <button
-      className="w-full text-left active:bg-white/5 transition-colors"
+    <div
+      className="flex items-center px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer select-none"
       onClick={onTap}
     >
-      <div
-        className="flex items-center px-4 py-3.5 gap-3"
-        style={{
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-          ...(isToday ? { borderLeft: `3px solid ${color}`, paddingLeft: '13px' } : {}),
-        }}
-      >
-        {/* Seattle team */}
-        <div className="flex items-center gap-2.5 flex-1 min-w-0">
-          <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={32} />
-          <span className={`font-display text-[15px] font-700 truncate ${seattleLost ? 'text-zinc-500' : 'text-white'}`}>
+      {/* Left: status/time — fixed 72px */}
+      <div className="w-[72px] flex-shrink-0 flex flex-col justify-center">
+        {isLive ? (
+          <>
+            <span className="text-[11px] font-bold tracking-widest text-red-500 uppercase">LIVE</span>
+          </>
+        ) : isFt ? (
+          <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wide">Final</span>
+        ) : (
+          <span className="text-[12px] font-medium text-zinc-300 whitespace-nowrap">
+            {formatTime(game.kickoff)}
+          </span>
+        )}
+      </div>
+
+      {/* Center: Seattle | score | opponent */}
+      <div className="flex-1 flex items-center min-w-0">
+        {/* Seattle (right-aligned) */}
+        <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
+          <span className={`text-[13px] font-semibold truncate text-right ${seattleLost ? 'text-zinc-500' : 'text-white'}`}>
             {game.seattleTeam.shortName}
           </span>
+          <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={24} className="flex-shrink-0" />
         </div>
 
-        {/* Center: score or time */}
-        <div className="flex flex-col items-center flex-shrink-0 min-w-[80px]">
+        {/* Score or vs */}
+        <div className="w-14 flex-shrink-0 text-center">
           {hasScore ? (
-            <>
-              <span className="font-display text-[20px] font-800 tabular-nums leading-none text-white">
-                <span className={seattleLost ? 'text-zinc-500' : ''}>{game.seattleScore}</span>
-                <span className="text-zinc-600 mx-1 text-[16px]">–</span>
-                <span className={seattleWon ? 'text-zinc-500' : ''}>{game.opponentScore}</span>
-              </span>
-              {isLive ? (
-                <span className="flex items-center gap-1 mt-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                  <span className="font-display text-[10px] font-700 text-red-400 uppercase tracking-widest">Live</span>
-                </span>
-              ) : (
-                <span className={`font-display text-[11px] font-700 uppercase tracking-wider mt-0.5 ${seattleWon ? 'text-emerald-400' : seattleLost ? 'text-red-400' : 'text-zinc-500'}`}>
-                  {seattleWon ? 'W' : seattleLost ? 'L' : 'T'} · Final
-                </span>
-              )}
-            </>
+            <span className={`text-[14px] font-bold tabular-nums ${isLive ? 'text-red-400' : seattleWon ? 'text-white' : seattleLost ? 'text-zinc-400' : 'text-white'}`}>
+              {game.seattleScore}–{game.opponentScore}
+            </span>
           ) : (
-            <>
-              <span className="font-display text-[13px] font-600 text-zinc-400 leading-none">vs</span>
-              <span className="font-display text-[14px] font-700 text-white mt-0.5">{formatTime(game.kickoff)}</span>
-            </>
+            <span className="text-[12px] font-medium text-zinc-500">vs</span>
           )}
         </div>
 
-        {/* Opponent */}
-        <div className="flex items-center gap-2.5 flex-1 min-w-0 justify-end">
-          <span className={`font-display text-[15px] font-700 truncate text-right ${seattleWon ? 'text-zinc-500' : 'text-white'}`}>
+        {/* Opponent (left-aligned) */}
+        <div className="flex-1 flex items-center gap-2 min-w-0">
+          {game.opponent.logo
+            ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={24} height={24} className="object-contain flex-shrink-0" />
+            : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />
+          }
+          <span className={`text-[13px] font-semibold truncate ${seattleWon ? 'text-zinc-500' : 'text-white'}`}>
             {game.opponent.shortName || game.opponent.name}
           </span>
-          {game.opponent.logo
-            ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={32} height={32} className="object-contain flex-shrink-0" />
-            : <div className="w-8 h-8 rounded-full bg-white/10 flex-shrink-0" />
-          }
         </div>
       </div>
-    </button>
+    </div>
   )
 }
 
@@ -262,32 +254,26 @@ export default function ScheduleClient() {
             <p className="text-zinc-500 text-sm">{selectedTeamIds.length === 0 ? 'Go to Teams and follow some teams.' : 'Your teams may be off-season. Check back closer to the season.'}</p>
           </div>
         ) : (
-          sortedDates.map(dateStr => {
+          sortedDates.map((dateStr, idx) => {
             const isToday = dateStr === todayStr
             const label = formatDateHeader(dateStr)
             return (
               <div key={dateStr}>
-                {/* Date header */}
+                {/* Spacer between day groups (WC style) */}
+                {idx > 0 && <div className="h-4" />}
+
+                {/* Sticky date header */}
                 <div
-                  className="sticky top-[53px] z-20 flex items-center gap-3 px-4 py-2.5"
-                  style={{
-                    background: isToday ? 'rgba(0,212,255,0.08)' : 'rgba(8,8,15,0.95)',
-                    backdropFilter: 'blur(8px)',
-                    borderBottom: isToday ? '1px solid rgba(0,212,255,0.2)' : '1px solid rgba(255,255,255,0.05)',
-                  }}
+                  className="sticky top-[53px] z-20 px-4 py-2.5 flex items-center gap-3"
+                  style={{ background: 'rgba(8,8,15,0.96)', backdropFilter: 'blur(8px)' }}
                 >
-                  <span
-                    className={`font-display uppercase tracking-widest font-800 ${isToday ? 'text-[15px]' : 'text-[12px] text-zinc-400'}`}
-                    style={isToday ? { color: 'var(--accent)' } : {}}
-                  >
+                  <span className={`text-[12px] uppercase tracking-widest font-bold ${isToday ? 'text-[#00d4ff]' : 'text-white'}`}>
                     {label}
                   </span>
                   {isToday && (
-                    <span className="relative flex h-2 w-2 ml-1">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: 'var(--accent)' }} />
-                      <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: 'var(--accent)' }} />
-                    </span>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-[#00d4ff] bg-[#00d4ff]/10 px-2 py-0.5 rounded-full">Today</span>
                   )}
+                  <div className="flex-1 h-px bg-zinc-800" />
                 </div>
 
                 {/* Game rows */}
@@ -295,7 +281,6 @@ export default function ScheduleClient() {
                   <ScheduleRow
                     key={g.id}
                     game={g}
-                    isToday={isToday}
                     onTap={() => setSelectedGame(g)}
                   />
                 ))}
