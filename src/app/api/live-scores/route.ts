@@ -6,7 +6,13 @@ export const runtime = 'edge'
 
 export async function GET() {
   // Group teams by sport+league to minimize API calls
-  const sportLeagues = [...new Set(SEATTLE_TEAMS.map(t => `${t.sport}/${t.league}`))]
+  // Filter out non-ESPN leagues (pwhl, whl, ncaa-*) that have their own APIs
+  const NON_ESPN_LEAGUES = ['pwhl', 'whl', 'ncaa-softball', 'ncaa-soccer']
+  const sportLeagues = [...new Set(
+    SEATTLE_TEAMS
+      .filter(t => t.espnId && !NON_ESPN_LEAGUES.includes(t.league))
+      .map(t => `${t.sport}/${t.league}`)
+  )]
   
   const updates: Record<string, ScoreUpdate> = {}
   

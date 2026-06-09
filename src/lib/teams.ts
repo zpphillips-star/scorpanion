@@ -7,11 +7,11 @@ export const SEATTLE_TEAMS: SeattleTeam[] = [
     primaryColor: '#002244', secondaryColor: '#69BE28', emoji: '🏈' },
   // MLB
   { id: 'mariners', name: 'Seattle Mariners', shortName: 'Mariners', abbr: 'SEA',
-    sport: 'baseball', league: 'mlb', espnId: '21',
+    sport: 'baseball', league: 'mlb', espnId: '12',
     primaryColor: '#0C2C56', secondaryColor: '#005C5C', emoji: '⚾' },
   // NHL
   { id: 'kraken', name: 'Seattle Kraken', shortName: 'Kraken', abbr: 'SEA',
-    sport: 'hockey', league: 'nhl', espnId: '55',
+    sport: 'hockey', league: 'nhl', espnId: '124292',
     primaryColor: '#001628', secondaryColor: '#99D9D9', emoji: '🏒' },
   // MLS
   { id: 'sounders', name: 'Seattle Sounders FC', shortName: 'Sounders', abbr: 'SEA',
@@ -118,13 +118,18 @@ export function getTeamLogoUrl(team: SeattleTeam): string {
     case 'uw-wbb':
     case 'uw-volleyball':
     case 'uw-baseball':
-    case 'uw-lacrosse': return 'https://a.espncdn.com/i/teamlogos/ncaa/500/264.png'
+    case 'uw-lacrosse':
+    case 'uw-softball':
+    case 'uw-soccer': return 'https://a.espncdn.com/i/teamlogos/ncaa/500/264.png'
     case 'wsu-football':
     case 'wsu-mbb':
     case 'wsu-wbb':
     case 'wsu-baseball':
     case 'wsu-volleyball': return 'https://a.espncdn.com/i/teamlogos/ncaa/500/265.png'
     case 'seattleu': return 'https://a.espncdn.com/i/teamlogos/ncaa/500/2547.png'
+    // WHL teams - no ESPN logos, will fall back to emoji
+    case 'thunderbirds':
+    case 'silvertips':
     default: return ''
   }
 }

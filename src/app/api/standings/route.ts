@@ -4,11 +4,11 @@ import { NextRequest } from 'next/server'
 export const runtime = 'edge'
 
 const LEAGUE_MAP: Record<string, { sport: string; league: string; seattleIds: string[] }> = {
-  mlb:  { sport: 'baseball',    league: 'mlb',      seattleIds: ['21'] },
-  nhl:  { sport: 'hockey',      league: 'nhl',      seattleIds: ['55'] },
+  mlb:  { sport: 'baseball',    league: 'mlb',      seattleIds: ['12'] },
+  nhl:  { sport: 'hockey',      league: 'nhl',      seattleIds: ['124292'] },
   nba:  { sport: 'basketball',  league: 'nba',      seattleIds: [] },
   wnba: { sport: 'basketball',  league: 'wnba',     seattleIds: ['14'] },
-  mls:  { sport: 'soccer',      league: 'usa.1',    seattleIds: ['9'] },
+  mls:  { sport: 'soccer',      league: 'usa.1',    seattleIds: ['9726'] },
   nfl:  { sport: 'football',    league: 'nfl',      seattleIds: ['26'] },
 }
 

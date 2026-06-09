@@ -12,7 +12,15 @@ export function useSelectedTeams() {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
-        setSelectedTeamIds(JSON.parse(stored))
+        const parsed = JSON.parse(stored)
+        // Filter out any stale team IDs that no longer exist
+        const validTeamIds = SEATTLE_TEAMS.map(t => t.id)
+        const filtered = parsed.filter((id: string) => validTeamIds.includes(id))
+        // If we filtered any out, update localStorage
+        if (filtered.length !== parsed.length) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered))
+        }
+        setSelectedTeamIds(filtered)
       } else {
         setSelectedTeamIds(SEATTLE_TEAMS.map(t => t.id))
       }
