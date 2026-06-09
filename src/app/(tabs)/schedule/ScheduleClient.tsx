@@ -223,20 +223,20 @@ export default function ScheduleClient() {
 
   // Auto-scroll to today when games load
   const todayRef = useRef<HTMLDivElement>(null)
+
+  function scrollToToday() {
+    const el = todayRef.current
+    if (!el) return
+    const main = el.closest('main')
+    if (main) {
+      const elTop = el.offsetTop - 120
+      main.scrollTo({ top: elTop, behavior: 'smooth' })
+    }
+  }
+
   useEffect(() => {
-    if (!loading && todayRef.current) {
-      // Small delay so the DOM has rendered
-      setTimeout(() => {
-        todayRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        // Nudge up so the sticky header doesn't cover the today label
-        setTimeout(() => {
-          const el = todayRef.current
-          if (el) {
-            const parent = el.closest('main') ?? window
-            if ('scrollBy' in parent) (parent as Element).scrollBy({ top: -120, behavior: 'smooth' })
-          }
-        }, 300)
-      }, 150)
+    if (!loading) {
+      setTimeout(() => scrollToToday(), 200)
     }
   }, [loading, activeTeamFilter])
 
@@ -250,7 +250,22 @@ export default function ScheduleClient() {
 
   return (
     <>
-      <PageHeader title="Schedule">
+      <PageHeader
+        title="Schedule"
+        titleAction={
+          <button
+            onClick={scrollToToday}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all active:scale-95"
+            style={{ background: "rgba(0,212,255,0.12)", border: "1px solid rgba(0,212,255,0.3)" }}
+          >
+            <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00d4ff] opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#00d4ff]" />
+            </span>
+            <span className="font-display text-[11px] font-800 uppercase tracking-wide" style={{ color: "#00d4ff" }}>Today</span>
+          </button>
+        }
+      >
         <TeamFilterBar
           selectedTeamIds={selectedTeamIds}
           activeFilter={activeTeamFilter}
@@ -288,27 +303,34 @@ export default function ScheduleClient() {
             const label = formatDateHeader(dateStr)
             return (
               <div key={dateStr} ref={isToday ? todayRef : undefined}>
-                {/* Spacer between day groups (WC style) */}
-                {idx > 0 && <div className="h-4" />}
+                {/* Slim divider between day groups */}
+                {idx > 0 && <div className="h-2" />}
 
-                {/* Sticky date header */}
-                <div
-                  className="sticky top-[116px] z-20 px-4 py-2.5 flex items-center gap-3"
-                  style={{ background: 'rgba(8,8,15,0.96)', backdropFilter: 'blur(8px)' }}
-                >
-                  <span className={`text-[12px] uppercase tracking-widest font-bold ${isToday ? 'text-[#00d4ff]' : 'text-white'}`}>
-                    {label}
-                  </span>
-                  {isToday && (
-                    <>
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00d4ff] opacity-75" />
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#00d4ff]" />
-                      </span>
-                    </>
-                  )}
-                  <div className="flex-1 h-px" style={{ background: isToday ? 'rgba(0,212,255,0.25)' : '#27272a' }} />
-                </div>
+                {/* Date header — TODAY is bigger and accented */}
+                {isToday ? (
+                  <div
+                    className="sticky top-[116px] z-20 px-4 py-3 flex items-center gap-2.5"
+                    style={{ background: 'rgba(8,8,15,0.97)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(0,212,255,0.2)' }}
+                  >
+                    <span className="font-display text-[16px] font-800 uppercase tracking-widest text-[#00d4ff]">Today</span>
+                    <span className="relative flex h-2 w-2 flex-shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00d4ff] opacity-60" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00d4ff]" />
+                    </span>
+                    <span className="font-display text-[12px] text-zinc-500">
+                      {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                    </span>
+                    <div className="flex-1 h-px" style={{ background: 'rgba(0,212,255,0.2)' }} />
+                  </div>
+                ) : (
+                  <div
+                    className="sticky top-[116px] z-20 px-4 py-2 flex items-center gap-3"
+                    style={{ background: 'rgba(8,8,15,0.96)', backdropFilter: 'blur(8px)' }}
+                  >
+                    <span className="text-[11px] uppercase tracking-widest font-bold text-zinc-400">{label}</span>
+                    <div className="flex-1 h-px bg-zinc-800" />
+                  </div>
+                )}
 
                 {/* Game rows */}
                 {grouped.get(dateStr)!.map(g => (

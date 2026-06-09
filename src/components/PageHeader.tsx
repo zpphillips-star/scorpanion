@@ -53,12 +53,13 @@ function AuthButton() {
 interface PageHeaderProps {
   title: string
   children?: React.ReactNode  // extra content below the title row (filter bars etc.)
+  titleAction?: React.ReactNode  // small action next to the title (left of auth)
 }
 
-export default function PageHeader({ title, children }: PageHeaderProps) {
+export default function PageHeader({ title, children, titleAction }: PageHeaderProps) {
   return (
     <div className="sticky top-0 z-30 glass-header">
-      {/* Logo | Title | Auth */}
+      {/* Logo | Title | Action | Auth */}
       <div className="flex items-center px-4 py-3 gap-3">
         {/* Left: scorpion logo */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -68,6 +69,9 @@ export default function PageHeader({ title, children }: PageHeaderProps) {
         <h1 className="flex-1 text-center font-display text-[22px] font-800 text-white leading-none tracking-tight uppercase">
           {title}
         </h1>
+
+        {/* Optional action slot */}
+        {titleAction && <div className="flex-shrink-0">{titleAction}</div>}
 
         {/* Right: auth */}
         <div className="flex-shrink-0">
