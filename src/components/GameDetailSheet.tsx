@@ -10,6 +10,10 @@ import UpcomingScheduleSection from "./UpcomingScheduleSection"
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
 }
+function formatRecord(r?: { wins: number; losses: number; ties?: number }): string {
+  if (!r) return ""
+  return r.ties ? `${r.wins}-${r.losses}-${r.ties}` : `${r.wins}-${r.losses}`
+}
 
 export default function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void }) {
   const [teamSheet, setTeamSheet] = useState<{ id: string; name: string; logo: string } | null>(null)
@@ -49,7 +53,8 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
               onClick={() => { onClose(); setTeamSheet({ id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl }) }}
             >
               <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={60} />
-              <span className={`font-display text-[14px] font-700 text-center leading-tight ${seattleLost ? "text-zinc-400" : "text-white"}`}>{game.seattleTeam.shortName}</span>
+              <span className={`font-display text-[15px] font-700 text-center leading-tight ${seattleLost ? "text-zinc-400" : "text-white"}`}>{game.seattleTeam.shortName}</span>
+              {game.seattleRecord && <span className="font-display text-[14px] font-700 text-zinc-300 tabular-nums">{formatRecord(game.seattleRecord)}</span>}
               <span className="text-[10px] uppercase tracking-widest text-zinc-600">{game.isHome ? "Home" : "Away"}</span>
             </button>
 
@@ -69,7 +74,8 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
               onClick={() => { onClose(); setTeamSheet({ id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo }) }}
             >
               <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={60} />
-              <span className={`font-display text-[14px] font-700 text-center leading-tight ${seattleWon ? "text-zinc-400" : "text-white"}`}>{game.opponent.shortName || game.opponent.name}</span>
+              <span className={`font-display text-[15px] font-700 text-center leading-tight ${seattleWon ? "text-zinc-400" : "text-white"}`}>{game.opponent.shortName || game.opponent.name}</span>
+              {game.opponentRecord && <span className="font-display text-[14px] font-700 text-zinc-300 tabular-nums">{formatRecord(game.opponentRecord)}</span>}
               <span className="text-[10px] uppercase tracking-widest text-zinc-600">{game.isHome ? "Away" : "Home"}</span>
             </button>
           </div>
@@ -84,7 +90,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
         {/* SECTION 2: TEAM RECORDS */}
         {(game.seattleRecord || game.opponentRecord) && (
           <div className="px-4 py-4 border-t border-white/5">
-            <div className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-600 mb-3">Season Records</div>
+            <div className="font-display text-[13px] font-700 uppercase tracking-widest text-zinc-400 mb-3">Season Records</div>
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl px-4 py-3" style={{ background: `${color}18`, border: `1px solid ${color}35` }}>
                 <div className="flex items-center gap-2 mb-2">

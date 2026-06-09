@@ -87,8 +87,8 @@ function TodayDetailSheet({ game, onClose }: { game: Game; onClose: () => void }
               onClick={() => { onClose(); setTeamSheet({ id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl }) }}
             >
               <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={60} />
-              <span className={`font-display text-[14px] font-700 text-center ${seattleLost ? "text-zinc-400" : "text-white"}`}>{game.seattleTeam.shortName}</span>
-              {game.seattleRecord && <span className="font-display text-[11px] text-zinc-600">{formatRecord(game.seattleRecord)}</span>}
+              <span className={`font-display text-[15px] font-700 text-center ${seattleLost ? "text-zinc-400" : "text-white"}`}>{game.seattleTeam.shortName}</span>
+              {game.seattleRecord && <span className="font-display text-[14px] font-700 text-zinc-300 tabular-nums">{formatRecord(game.seattleRecord)}</span>}
               <span className="font-display text-[9px] text-zinc-700 uppercase tracking-widest">{game.isHome ? "Home" : "Away"}</span>
             </button>
 
@@ -115,8 +115,8 @@ function TodayDetailSheet({ game, onClose }: { game: Game; onClose: () => void }
               onClick={() => { onClose(); setTeamSheet({ id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo }) }}
             >
               <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={60} />
-              <span className={`font-display text-[14px] font-700 text-center ${seattleWon ? "text-zinc-400" : "text-white"}`}>{game.opponent.shortName || game.opponent.name}</span>
-              {game.opponentRecord && <span className="font-display text-[11px] text-zinc-600">{formatRecord(game.opponentRecord)}</span>}
+              <span className={`font-display text-[15px] font-700 text-center ${seattleWon ? "text-zinc-400" : "text-white"}`}>{game.opponent.shortName || game.opponent.name}</span>
+              {game.opponentRecord && <span className="font-display text-[14px] font-700 text-zinc-300 tabular-nums">{formatRecord(game.opponentRecord)}</span>}
               <span className="font-display text-[9px] text-zinc-700 uppercase tracking-widest">{game.isHome ? "Away" : "Home"}</span>
             </button>
           </div>
