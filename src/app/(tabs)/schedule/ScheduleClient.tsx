@@ -304,10 +304,14 @@ export default function ScheduleClient() {
 
       {/* No games message */}
       {liveGames.length === 0 && recentGames.length === 0 && todayGames.length === 0 && sortedUpcomingDates.length === 0 && (
-        <div className="text-center py-16 text-gray-500">
-          <p className="text-4xl mb-3">🏟️</p>
-          <p>No games scheduled</p>
-          <p className="text-sm mt-1">Select teams on the Teams tab</p>
+        <div className="mx-3 mt-6 rounded-2xl overflow-hidden text-center py-10 px-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <div className="text-5xl mb-3">📅</div>
+          <div className="font-display text-[16px] font-700 text-zinc-300 uppercase tracking-wide mb-1">No games in schedule</div>
+          {selectedTeamIds.length === 0 ? (
+            <p className="text-zinc-500 text-sm">Go to the Teams tab and follow some teams.</p>
+          ) : (
+            <p className="text-zinc-500 text-sm">Your teams may be in off-season. Check back closer to the season.</p>
+          )}
         </div>
       )}
 

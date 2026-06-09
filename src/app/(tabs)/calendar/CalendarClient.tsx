@@ -289,7 +289,11 @@ export default function CalendarClient() {
             </div>
             <div className="overflow-y-auto" style={{ maxHeight: "60vh", paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}>
               {selectedGames.length === 0 ? (
-                <div className="p-6 text-center text-zinc-500">No games on this day</div>
+                <div className="p-8 text-center">
+                  <div className="text-4xl mb-3">🗓️</div>
+                  <div className="font-display text-[14px] font-700 text-zinc-400 uppercase tracking-wide">No games this day</div>
+                  <div className="text-zinc-600 text-[12px] mt-1">Try another date or check upcoming games on Home</div>
+                </div>
               ) : (
                 <div className="py-2">
                   {selectedGames.map(g => <GameCard key={g.id} game={g} />)}

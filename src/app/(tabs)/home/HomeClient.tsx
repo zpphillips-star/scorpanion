@@ -36,13 +36,107 @@ const SPORT_LABELS: Record<string, string> = {
   volleyball: "Volleyball", lacrosse: "Lacrosse", softball: "Softball", soccer: "Soccer", hockey: "Hockey",
 }
 
+// ── Off-season / no-games context ─────────────────────────────────────────
+const NEXT_SEASON: Record<string, { label: string; detail: string; icon: string }> = {
+  mlb:        { label: "Spring Training", detail: "Opens mid-February",     icon: "⚾" },
+  nfl:        { label: "Training Camp",   detail: "Opens late July",        icon: "🏈" },
+  nhl:        { label: "New Season",      detail: "Begins early October",   icon: "🏒" },
+  wnba:       { label: "New Season",      detail: "Begins mid-May",         icon: "🏀" },
+  "usa.1":    { label: "New Season",      detail: "Begins late February",   icon: "⚽" },
+  "usa.nwsl": { label: "New Season",      detail: "Begins mid-March",       icon: "⚽" },
+  "college-football": { label: "Fall Season", detail: "Begins late August", icon: "🏈" },
+  "mens-college-basketball":   { label: "New Season", detail: "Begins November", icon: "🏀" },
+  "womens-college-basketball": { label: "New Season", detail: "Begins November", icon: "🏀" },
+  whl:        { label: "New Season",      detail: "Begins late September",  icon: "🏒" },
+  pwhl:       { label: "New Season",      detail: "Begins January",         icon: "🏒" },
+}
+
+function OffSeasonCards({ teams, nextGames }: {
+  teams: typeof SEATTLE_TEAMS
+  nextGames: Record<string, Game | undefined>
+}) {
+  if (teams.length === 0) return null
+
+  return (
+    <div className="mx-3 mt-4 space-y-3">
+      {teams.map(team => {
+        const next = nextGames[team.id]
+        const seasonInfo = NEXT_SEASON[team.league]
+        const logoUrl = getTeamLogoUrl(team)
+
+        return (
+          <div
+            key={team.id}
+            className="rounded-2xl overflow-hidden"
+            style={{ background: "var(--surface)", border: `1px solid ${team.primaryColor}30` }}
+          >
+            {/* Top color bar */}
+            <div className="h-1" style={{ background: `linear-gradient(to right, ${team.primaryColor}, ${team.secondaryColor}55, transparent)` }} />
+
+            <div className="px-4 py-4 flex items-center gap-4">
+              {/* Team logo */}
+              <div className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center" style={{ background: `${team.primaryColor}20` }}>
+                <TeamLogo src={logoUrl} emoji={team.emoji} abbr={team.abbr} size={36} />
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <div className="font-display text-[15px] font-700 text-white leading-tight">{team.shortName}</div>
+
+                {next ? (
+                  <>
+                    <div className="font-display text-[11px] font-600 uppercase tracking-widest mt-0.5" style={{ color: team.primaryColor === "#001628" || team.primaryColor === "#002244" || team.primaryColor === "#0C2C56" ? "#99D9D9" : team.primaryColor }}>
+                      Next game
+                    </div>
+                    <div className="text-[13px] text-zinc-300 mt-0.5 font-semibold">
+                      {new Date(next.kickoff).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                      <span className="text-zinc-500 font-normal mx-1.5">·</span>
+                      <span className="text-zinc-400">{next.isHome ? "vs" : "@"} {next.opponent.shortName || next.opponent.abbr}</span>
+                    </div>
+                    <div className="text-[11px] text-zinc-600 mt-0.5">
+                      {new Date(next.kickoff).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZoneName: "short" })}
+                      {next.venue?.city ? ` · ${next.venue.city}` : ""}
+                    </div>
+                  </>
+                ) : seasonInfo ? (
+                  <>
+                    <div className="font-display text-[11px] font-600 uppercase tracking-widest mt-0.5 text-zinc-500">Off-season</div>
+                    <div className="text-[13px] text-zinc-400 mt-0.5">
+                      {seasonInfo.icon} {seasonInfo.label} <span className="text-zinc-600">· {seasonInfo.detail}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-[12px] text-zinc-500 mt-0.5">No games scheduled</div>
+                )}
+              </div>
+
+              {/* Days until badge */}
+              {next && (() => {
+                const days = Math.ceil((new Date(next.kickoff).getTime() - Date.now()) / 86400000)
+                return days >= 0 ? (
+                  <div className="flex-shrink-0 flex flex-col items-center justify-center w-12 h-12 rounded-xl" style={{ background: `${team.primaryColor}25`, border: `1px solid ${team.primaryColor}40` }}>
+                    <span className="font-display text-[18px] font-800 leading-none" style={{ color: team.primaryColor === "#001628" || team.primaryColor === "#0C2C56" || team.primaryColor === "#002244" ? "#99D9D9" : team.primaryColor }}>{days}</span>
+                    <span className="font-display text-[8px] font-600 text-zinc-500 uppercase tracking-wide">{days === 1 ? "day" : "days"}</span>
+                  </div>
+                ) : null
+              })()}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+
+
+interface StandingsRow { teamId: string; abbr: string; logo: string; wins: number; losses: number; winPct: number; isSeattle: boolean }
+interface Division { name: string; entries: StandingsRow[] }
+
 // ── Standings (for game detail sheet) ─────────────────────────────────────
 const STANDINGS_LEAGUE_MAP: Record<string, string> = {
   mlb: "mlb", nhl: "nhl", wnba: "wnba", "usa.1": "mls", nfl: "nfl",
 }
-
-interface StandingsRow { teamId: string; abbr: string; logo: string; wins: number; losses: number; winPct: number; isSeattle: boolean }
-interface Division { name: string; entries: StandingsRow[] }
 
 // ── Recent result detail bottom sheet ────────────────────────────────────
 function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void }) {
@@ -450,6 +544,26 @@ export default function HomeClient() {
 
   const allUpcoming = [...upcoming, ...upcomingFallback]
 
+  // For off-season cards: find next game per team across ALL games (unfiltered)
+  const followedTeams = SEATTLE_TEAMS.filter(t => selectedTeamIds.includes(t.id))
+  const nextGameByTeam: Record<string, Game | undefined> = {}
+  for (const team of followedTeams) {
+    nextGameByTeam[team.id] = allGames
+      .filter(g => g.seattleTeamId === team.id && g.status === "upcoming")
+      .sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime())[0]
+  }
+
+  // Teams that have NO upcoming games at all in the current filtered view
+  const teamsWithNoGames = (() => {
+    const activeTeamIds = activeFilter === "all"
+      ? selectedTeamIds
+      : filterMatchIds(activeFilter)
+    return followedTeams.filter(t =>
+      activeTeamIds.includes(t.id) &&
+      !allGames.some(g => g.seattleTeamId === t.id && g.status !== "ft")
+    )
+  })()
+
   const upcomingByDate: Record<string, Game[]> = {}
   for (const g of allUpcoming) {
     const d = dateStr(new Date(g.kickoff)); if (!upcomingByDate[d]) upcomingByDate[d] = []
@@ -642,11 +756,14 @@ export default function HomeClient() {
         </div>
       )}
 
-      {todayGames.length === 0 && !hasAnyLive && recent.length === 0 && (
-        <div className="mt-8 text-center px-8">
-          <span className="text-5xl block mb-3">🏟️</span>
-          <p className="font-display text-[16px] font-700 text-zinc-400 uppercase tracking-wide">No games today</p>
+      {todayGames.length === 0 && !hasAnyLive && recent.length === 0 && allUpcoming.length === 0 && (
+        <div className="mt-5 px-4 mb-2 flex items-center gap-3">
+          <span className="font-display text-[13px] font-700 text-zinc-500 uppercase tracking-widest">Off Season</span>
+          <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
         </div>
+      )}
+      {todayGames.length === 0 && !hasAnyLive && recent.length === 0 && allUpcoming.length === 0 && (
+        <OffSeasonCards teams={teamsWithNoGames.length > 0 ? teamsWithNoGames : followedTeams} nextGames={nextGameByTeam} />
       )}
 
       {/* ── Next 14 days ──────────────────────────────────────────────────── */}
@@ -672,10 +789,8 @@ export default function HomeClient() {
         </div>
       )}
 
-      {allUpcoming.length === 0 && todayGames.length === 0 && !hasAnyLive && (
-        <div className="mt-4 mx-4 p-4 rounded-2xl text-center" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-          <p className="font-display text-[13px] font-600 text-zinc-500 uppercase tracking-wider">No upcoming games scheduled</p>
-        </div>
+      {allUpcoming.length === 0 && todayGames.length > 0 && !hasAnyLive && (
+        <OffSeasonCards teams={teamsWithNoGames} nextGames={nextGameByTeam} />
       )}
 
       {/* ── Recent game detail sheet ──────────────────────────────────────── */}
