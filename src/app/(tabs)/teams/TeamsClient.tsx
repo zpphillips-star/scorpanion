@@ -89,26 +89,56 @@ export default function TeamsClient() {
     return (
       <button
         onClick={() => toggleTeam(team.id)}
-        className="relative flex flex-col items-center gap-2 p-4 rounded-xl border transition-all"
+        className="relative flex flex-col rounded-xl overflow-hidden border transition-all"
         style={{
           borderColor: selected ? team.primaryColor : 'rgba(255,255,255,0.08)',
-          backgroundColor: selected ? `${team.primaryColor}22` : 'rgba(255,255,255,0.03)',
+          boxShadow: selected ? `0 0 16px ${team.primaryColor}55` : 'none',
         }}
       >
-        {selected && (
+        {/* Jersey body */}
+        <div
+          className="relative w-full flex items-center justify-center"
+          style={{
+            height: 100,
+            background: `linear-gradient(160deg, ${team.primaryColor} 0%, ${team.primaryColor}cc 40%, ${team.secondaryColor}88 100%)`,
+          }}
+        >
+          {/* Vertical stripe detail */}
           <div
-            className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: team.primaryColor }}
-          >
-            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: `repeating-linear-gradient(90deg, transparent, transparent 8px, ${team.secondaryColor} 8px, ${team.secondaryColor} 10px)`,
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)',
+              maskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)',
+            }}
+          />
+          {/* Shoulder highlight */}
+          <div className="absolute top-0 left-0 right-0 h-6 opacity-30"
+            style={{ background: `linear-gradient(to bottom, ${team.secondaryColor}, transparent)` }}
+          />
+          {/* Team logo */}
+          <div className="relative z-10 drop-shadow-lg">
+            <TeamLogo src={getTeamLogoUrl(team)} emoji={team.emoji} abbr={team.abbr} size={52} />
           </div>
-        )}
-        <TeamLogo src={getTeamLogoUrl(team)} emoji={team.emoji} abbr={team.abbr} size={48} />
-        <div className="text-center">
-          <div className="text-white text-sm font-semibold leading-tight">{team.shortName}</div>
-          <div className="text-gray-500 text-xs mt-0.5 capitalize">{team.sport}</div>
+          {/* Selected checkmark */}
+          {selected && (
+            <div
+              className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center shadow-lg z-20"
+              style={{ backgroundColor: team.secondaryColor || '#fff' }}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke={team.primaryColor} strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          )}
+        </div>
+        {/* Name tag */}
+        <div
+          className="px-2 py-2 text-center w-full"
+          style={{ backgroundColor: selected ? `${team.primaryColor}33` : 'rgba(255,255,255,0.04)' }}
+        >
+          <div className="text-white text-xs font-bold leading-tight truncate">{team.shortName}</div>
+          <div className="text-xs mt-0.5 capitalize font-medium" style={{ color: team.primaryColor }}>{team.sport}</div>
         </div>
       </button>
     )
