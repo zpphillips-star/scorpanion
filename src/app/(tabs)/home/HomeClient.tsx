@@ -11,10 +11,22 @@ import TeamDetailSheet from "@/components/TeamDetailSheet"
 import PageHeader from "@/components/PageHeader"
 import { TodayGameCard, TodayBanner } from "@/components/TodayGameCard"
 
-function todayStr() { return new Date().toLocaleDateString("en-CA") }
-function dateStr(d: Date) { return d.toLocaleDateString("en-CA") }
-function daysAgo(n: number) { const d = new Date(); d.setDate(d.getDate() - n); return dateStr(d) }
-function daysFromNow(n: number) { const d = new Date(); d.setDate(d.getDate() + n); return dateStr(d) }
+// Use explicit timezone for all date comparisons (matches phone's local time)
+function getTimezone(): string {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone } catch { return "America/Los_Angeles" }
+}
+function todayStr(tz?: string) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: tz ?? getTimezone() }).format(new Date())
+}
+function dateStr(d: Date, tz?: string) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: tz ?? getTimezone() }).format(d)
+}
+function daysAgo(n: number, tz?: string) {
+  const d = new Date(); d.setDate(d.getDate() - n); return dateStr(d, tz)
+}
+function daysFromNow(n: number, tz?: string) {
+  const d = new Date(); d.setDate(d.getDate() + n); return dateStr(d, tz)
+}
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
 }
@@ -527,7 +539,8 @@ export default function HomeClient() {
 
   const recent = filtered.filter(g => {
     const d = dateStr(new Date(g.kickoff))
-    return g.status === "ft" && d >= cutoff3 && d <= today
+    // Exclude today — those show in the featured section
+    return g.status === "ft" && d >= cutoff3 && d < today
   }).sort((a, b) => new Date(b.kickoff).getTime() - new Date(a.kickoff).getTime()).slice(0, 12)
 
   const todayGames = filtered.filter(g => dateStr(new Date(g.kickoff)) === today)
@@ -675,13 +688,12 @@ export default function HomeClient() {
       </PageHeader>
 
       {/* ── FEATURED: Live + Today ───────────────────────────────────────── */}
-      {(liveGames.length > 0 || todayGames.filter(g => g.status !== "ft").length > 0) && (() => {
-        const featuredGames = liveGames.length > 0
-          ? liveGames
-          : todayGames.filter(g => g.status !== "ft")
+      {(liveGames.length > 0 || todayGames.length > 0) && (() => {
+        // ALL today's games — finished show score, live show pulsing, upcoming show time
+        const featuredGames = todayGames
         const hasLive = liveGames.length > 0
-        const today = new Date()
-        const dateLabel = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
+        const todayDate = new Date()
+        const dateLabel = todayDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
 
         return (
           <div className="mt-3">
