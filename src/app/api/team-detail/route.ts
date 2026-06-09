@@ -45,16 +45,19 @@ export async function GET(req: Request) {
     const ties = record?.stats?.find((s: any) => s.name === "ties")?.value
     const pct = record?.stats?.find((s: any) => s.name === "winPercent" || s.name === "OWP")?.value
 
-    // Recent form — last 5 results from schedule
+    // Recent form (last 3) + next 3 upcoming
     const schedUrl = `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/teams/${teamId}/schedule`
     const schedRes = await fetch(schedUrl, { next: { revalidate: 300 } })
-    let recentForm: { result: "W" | "L" | "T"; score: string; opponent: string; date: string }[] = []
+    let recentForm: { result: "W" | "L" | "T"; score: string; opponent: string; oppLogo: string; date: string }[] = []
+    let upcomingGames: { opponent: string; oppLogo: string; date: string; isHome: boolean; time: string }[] = []
     if (schedRes.ok) {
       const schedData = await schedRes.json()
       const events: any[] = schedData.events ?? []
       const completed = events.filter((e: any) => e.competitions?.[0]?.status?.type?.completed)
-      const last5 = completed.slice(-5)
-      recentForm = last5.map((e: any) => {
+      const upcoming = events.filter((e: any) => !e.competitions?.[0]?.status?.type?.completed && new Date(e.date) > new Date())
+      const last3 = completed.slice(-3)
+      const next3 = upcoming.slice(0, 3)
+      recentForm = last3.map((e: any) => {
         const comp = e.competitions[0]
         const myTeam = comp.competitors.find((c: any) => c.team?.id === teamId || c.id === teamId)
         const opp = comp.competitors.find((c: any) => c.team?.id !== teamId && c.id !== teamId)
@@ -64,7 +67,22 @@ export async function GET(req: Request) {
           result: myScore > oppScore ? "W" : myScore < oppScore ? "L" : "T",
           score: `${myScore}-${oppScore}`,
           opponent: opp?.team?.abbreviation ?? opp?.team?.shortDisplayName ?? "?",
+          oppLogo: opp?.team?.logos?.[0]?.href ?? opp?.team?.logo ?? "",
           date: e.date,
+        }
+      })
+      upcomingGames = next3.map((e: any) => {
+        const comp = e.competitions[0]
+        const myTeam = comp.competitors.find((c: any) => c.team?.id === teamId || c.id === teamId)
+        const opp = comp.competitors.find((c: any) => c.team?.id !== teamId && c.id !== teamId)
+        const isHome = myTeam?.homeAway === "home"
+        const date = new Date(e.date)
+        return {
+          opponent: opp?.team?.shortDisplayName ?? opp?.team?.abbreviation ?? "?",
+          oppLogo: opp?.team?.logos?.[0]?.href ?? opp?.team?.logo ?? "",
+          date: e.date,
+          isHome,
+          time: date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZoneName: "short" }),
         }
       })
     }
@@ -115,6 +133,7 @@ export async function GET(req: Request) {
       ties: ties ? Math.round(ties) : undefined,
       winPct: pct ? parseFloat(pct).toFixed(3) : undefined,
       recentForm,
+      upcomingGames,
       divisionRank,
       divisionName,
       venue: team.franchise?.venue?.fullName ?? team.venue?.fullName ?? null,
