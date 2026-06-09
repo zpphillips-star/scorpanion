@@ -620,7 +620,6 @@ export default function HomeClient() {
               const gk = getCollegeGroupKey(team.id)
               const isCollege = !!gk
               const pickerOpen = isCollege && collegePicker === gk
-              // For college: active if any sport from this group is selected
               const isActive = isCollege
                 ? filterMatchIds(team.id).includes(activeFilter) && activeFilter !== "all"
                 : activeFilter === team.id
@@ -631,7 +630,6 @@ export default function HomeClient() {
                   <button
                     onClick={() => {
                       if (isCollege) {
-                        // Toggle picker
                         setCollegePicker(pickerOpen ? null : gk)
                       } else {
                         setCollegePicker(null)
@@ -655,28 +653,17 @@ export default function HomeClient() {
                     </div>
                   </button>
 
-                  {/* College sport picker dropdown */}
                   {pickerOpen && gk && (
                     <CollegeSportPicker
                       groupKey={gk}
                       availableTeams={SEATTLE_TEAMS
                         .filter(t => getCollegeGroupKey(t.id) === gk && selectedTeamIds.includes(t.id))
-                        .map(t => ({
-                          team: t,
-                          hasGames: allGames.some(g => g.seattleTeamId === t.id),
-                        }))
+                        .map(t => ({ team: t, hasGames: allGames.some(g => g.seattleTeamId === t.id) }))
                       }
                       selectedTeamIds={selectedTeamIds}
                       activeFilter={activeFilter}
-                      onSelect={(id) => {
-                        setActiveFilter(id)
-                        recordClick(id)
-                        setCollegePicker(null)
-                      }}
-                      onSelectAll={() => {
-                        setActiveFilter(team.id) // use first variant = show all via filterMatchIds
-                        setCollegePicker(null)
-                      }}
+                      onSelect={(id) => { setActiveFilter(id); recordClick(id); setCollegePicker(null) }}
+                      onSelectAll={() => { setActiveFilter(team.id); setCollegePicker(null) }}
                       onClose={() => setCollegePicker(null)}
                     />
                   )}
@@ -687,23 +674,63 @@ export default function HomeClient() {
         </div>
       </PageHeader>
 
-      {/* ── Live now banner ──────────────────────────────────────────────── */}
-      {hasAnyLive && (
-        <div className="relative overflow-hidden mx-3 mt-3 rounded-2xl" style={{ border: "1px solid rgba(239,68,68,0.2)" }}>
-          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(239,68,68,0.1) 0%, transparent 60%)" }} />
-          <div className="relative px-4 py-2.5 flex items-center gap-3">
-            <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
-            </span>
-            <span className="font-display text-[13px] font-700 text-white uppercase tracking-wider">
-              {liveCount === 1 ? "1 game live" : `${liveCount} games live`}
-            </span>
-            <span className="text-[10px] text-red-400/70 ml-auto">Updating every 2s</span>
+      {/* ── FEATURED: Live + Today ───────────────────────────────────────── */}
+      {(liveGames.length > 0 || todayGames.filter(g => g.status !== "ft").length > 0) && (() => {
+        const featuredGames = liveGames.length > 0
+          ? liveGames
+          : todayGames.filter(g => g.status !== "ft")
+        const hasLive = liveGames.length > 0
+        const today = new Date()
+        const dateLabel = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
+
+        return (
+          <div className="mt-3">
+            {/* Section header */}
+            <div
+              className="mx-3 mb-2 px-4 py-3 rounded-2xl flex items-center gap-3"
+              style={{
+                background: hasLive
+                  ? "linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.04) 100%)"
+                  : "linear-gradient(135deg, rgba(0,212,255,0.1) 0%, rgba(0,212,255,0.04) 100%)",
+                border: hasLive ? "1.5px solid rgba(239,68,68,0.25)" : "1.5px solid rgba(0,212,255,0.25)",
+              }}
+            >
+              {hasLive ? (
+                <span className="relative flex h-3 w-3 flex-shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+                </span>
+              ) : (
+                <span className="relative flex h-3 w-3 flex-shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: "var(--accent)" }} />
+                  <span className="relative inline-flex rounded-full h-3 w-3" style={{ background: "var(--accent)" }} />
+                </span>
+              )}
+              <div className="flex-1 min-w-0">
+                <div
+                  className="font-display text-[20px] font-800 uppercase tracking-tight leading-none"
+                  style={{ color: hasLive ? "#f87171" : "var(--accent)" }}
+                >
+                  {hasLive ? "Live Now" : "Today"}
+                </div>
+                <div className="font-display text-[12px] text-zinc-500 mt-0.5">{dateLabel}</div>
+              </div>
+              <div
+                className="flex-shrink-0 font-display text-[13px] font-700 px-3 py-1.5 rounded-full"
+                style={hasLive
+                  ? { background: "rgba(239,68,68,0.12)", color: "#f87171", border: "1px solid rgba(239,68,68,0.2)" }
+                  : { background: "rgba(0,212,255,0.12)", color: "var(--accent)", border: "1px solid rgba(0,212,255,0.2)" }
+                }
+              >
+                {featuredGames.length} Game{featuredGames.length !== 1 ? "s" : ""}
+              </div>
+            </div>
+
+            {/* Featured cards */}
+            {featuredGames.map(g => <TodayGameCard key={g.id} game={g} />)}
           </div>
-          <div className="pb-2">{liveGames.map(g => <GameCard key={g.id} game={g} />)}</div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* ── Recent results (horizontal scroll, tappable) ─────────────────── */}
       {recent.length > 0 && (
@@ -723,30 +750,18 @@ export default function HomeClient() {
         </div>
       )}
 
-      {/* ── TODAY — featured full-width cards ───────────────────────────── */}
-      {todayGames.filter(g => g.status !== "ft").length > 0 && (
-        <div className="mt-3">
-          <TodayBanner
-            gameCount={todayGames.filter(g => g.status !== "ft").length}
-            hasLive={liveGames.length > 0}
-          />
-          {todayGames.filter(g => g.status !== "ft").map(g => (
-            <TodayGameCard key={g.id} game={g} />
-          ))}
-        </div>
+      {/* ── Off-season (no games anywhere) ──────────────────────────────── */}
+      {todayGames.length === 0 && !hasAnyLive && recent.length === 0 && allUpcoming.length === 0 && (
+        <>
+          <div className="mt-5 px-4 mb-2 flex items-center gap-3">
+            <span className="font-display text-[13px] font-700 text-zinc-500 uppercase tracking-widest">Off Season</span>
+            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+          </div>
+          <OffSeasonCards teams={teamsWithNoGames.length > 0 ? teamsWithNoGames : followedTeams} nextGames={nextGameByTeam} />
+        </>
       )}
 
-      {todayGames.length === 0 && !hasAnyLive && recent.length === 0 && allUpcoming.length === 0 && (
-        <div className="mt-5 px-4 mb-2 flex items-center gap-3">
-          <span className="font-display text-[13px] font-700 text-zinc-500 uppercase tracking-widest">Off Season</span>
-          <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-        </div>
-      )}
-      {todayGames.length === 0 && !hasAnyLive && recent.length === 0 && allUpcoming.length === 0 && (
-        <OffSeasonCards teams={teamsWithNoGames.length > 0 ? teamsWithNoGames : followedTeams} nextGames={nextGameByTeam} />
-      )}
-
-      {/* ── Next 14 days ──────────────────────────────────────────────────── */}
+      {/* ── Upcoming — WC compact rows ───────────────────────────────────── */}
       {upcomingDates.length > 0 && (
         <div className="mt-5">
           <div className="px-4 mb-1 flex items-center gap-3">
@@ -756,14 +771,51 @@ export default function HomeClient() {
               {upcomingFallback.length > 0 ? "Next scheduled" : "Next 14 days"}
             </span>
           </div>
-          {upcomingDates.map(ds => (
+
+          {upcomingDates.map((ds, idx) => (
             <div key={ds}>
-              <div className="sticky z-10 px-4 py-2 flex items-center gap-3" style={{ top: "112px", background: "rgba(8,8,15,0.95)", backdropFilter: "blur(12px)" }}>
-                <span className="font-display text-[11px] font-700 text-zinc-400 uppercase tracking-widest">{fmtDayHeader(ds)}</span>
-                <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-                <span className="font-display text-[10px] text-zinc-600">{upcomingByDate[ds].length} game{upcomingByDate[ds].length !== 1 ? "s" : ""}</span>
+              {idx > 0 && <div className="h-3" />}
+              {/* Date header */}
+              <div
+                className="px-4 py-2 flex items-center gap-3"
+                style={{ background: "rgba(8,8,15,0.95)", backdropFilter: "blur(8px)" }}
+              >
+                <span className="text-[12px] uppercase tracking-widest font-bold text-white">{fmtDayHeader(ds)}</span>
+                <div className="flex-1 h-px bg-zinc-800" />
               </div>
-              {upcomingByDate[ds].map(g => <GameCard key={g.id} game={g} />)}
+              {/* Compact rows */}
+              {upcomingByDate[ds].map(g => {
+                const seattleLogoUrl = getTeamLogoUrl(g.seattleTeam)
+                return (
+                  <div
+                    key={g.id}
+                    className="flex items-center px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer"
+                    onClick={() => setSelectedRecentGame(g)}
+                  >
+                    {/* Time */}
+                    <div className="w-[72px] flex-shrink-0">
+                      <span className="text-[12px] font-medium text-zinc-300 whitespace-nowrap">{fmtTime(g.kickoff)}</span>
+                    </div>
+                    {/* Seattle (right-aligned) */}
+                    <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
+                      <span className="text-[13px] font-semibold text-white truncate text-right">{g.seattleTeam.shortName}</span>
+                      <TeamLogo src={seattleLogoUrl} emoji={g.seattleTeam.emoji} abbr={g.seattleTeam.abbr} size={24} />
+                    </div>
+                    {/* vs */}
+                    <div className="w-10 flex-shrink-0 text-center">
+                      <span className="text-[12px] font-medium text-zinc-500">vs</span>
+                    </div>
+                    {/* Opponent (left-aligned) */}
+                    <div className="flex-1 flex items-center gap-2 min-w-0">
+                      {g.opponent.logo
+                        ? <img src={g.opponent.logo} alt={g.opponent.abbr} width={24} height={24} className="object-contain flex-shrink-0" />
+                        : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />
+                      }
+                      <span className="text-[13px] font-semibold text-white truncate">{g.opponent.shortName || g.opponent.name}</span>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           ))}
         </div>
