@@ -4,12 +4,10 @@ import { Game, ScoreUpdate } from '@/lib/types'
 import { SEATTLE_TEAMS, getTeamLogoUrl } from '@/lib/teams'
 import { useSelectedTeams } from '@/hooks/useSelectedTeams'
 import { useTeamClickCounts } from '@/hooks/useTeamClickCounts'
-import GameCard from '@/components/GameCard'
 import TeamLogo from '@/components/TeamLogo'
 import TeamFilterBar, { getCollegeGroupKey } from '@/components/TeamFilterBar'
 import PageHeader from '@/components/PageHeader'
-import HorizontalRecentResults from '@/components/HorizontalRecentResults'
-import { TodayGameCard, TodayBanner } from '@/components/TodayGameCard'
+import GameDetailSheet from '@/components/GameDetailSheet'
 
 function groupGamesByDate(games: Game[]): Map<string, Game[]> {
   const groups = new Map<string, Game[]>()
@@ -23,21 +21,89 @@ function groupGamesByDate(games: Game[]): Map<string, Game[]> {
 }
 
 function formatDateHeader(dateStr: string): string {
+  const today = new Date().toLocaleDateString('en-CA')
+  const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('en-CA')
+  if (dateStr === today) return 'Today'
+  if (dateStr === tomorrow) return 'Tomorrow'
   const [y, m, d] = dateStr.split('-').map(Number)
   const date = new Date(y, m - 1, d)
-  return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
-function isToday(dateStr: string): boolean {
-  return dateStr === new Date().toLocaleDateString('en-CA')
+function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
-function isWithinLastDays(dateStr: string, days: number): boolean {
-  const date = new Date(dateStr + 'T00:00:00')
-  const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - days)
-  cutoff.setHours(0, 0, 0, 0)
-  return date >= cutoff && date < new Date(new Date().toLocaleDateString('en-CA') + 'T00:00:00')
+function ScheduleRow({ game, isToday, onTap }: { game: Game; isToday: boolean; onTap: () => void }) {
+  const color = game.seattleTeam.primaryColor
+  const isFt = game.status === 'ft'
+  const isLive = game.status === 'live'
+  const hasScore = isFt || isLive
+  const seattleWon = hasScore && (game.seattleScore ?? 0) > (game.opponentScore ?? 0)
+  const seattleLost = hasScore && (game.seattleScore ?? 0) < (game.opponentScore ?? 0)
+  const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
+
+  return (
+    <button
+      className="w-full text-left active:bg-white/5 transition-colors"
+      onClick={onTap}
+    >
+      <div
+        className="flex items-center px-4 py-3.5 gap-3"
+        style={{
+          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          ...(isToday ? { borderLeft: `3px solid ${color}`, paddingLeft: '13px' } : {}),
+        }}
+      >
+        {/* Seattle team */}
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+          <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={32} />
+          <span className={`font-display text-[15px] font-700 truncate ${seattleLost ? 'text-zinc-500' : 'text-white'}`}>
+            {game.seattleTeam.shortName}
+          </span>
+        </div>
+
+        {/* Center: score or time */}
+        <div className="flex flex-col items-center flex-shrink-0 min-w-[80px]">
+          {hasScore ? (
+            <>
+              <span className="font-display text-[20px] font-800 tabular-nums leading-none text-white">
+                <span className={seattleLost ? 'text-zinc-500' : ''}>{game.seattleScore}</span>
+                <span className="text-zinc-600 mx-1 text-[16px]">–</span>
+                <span className={seattleWon ? 'text-zinc-500' : ''}>{game.opponentScore}</span>
+              </span>
+              {isLive ? (
+                <span className="flex items-center gap-1 mt-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  <span className="font-display text-[10px] font-700 text-red-400 uppercase tracking-widest">Live</span>
+                </span>
+              ) : (
+                <span className={`font-display text-[11px] font-700 uppercase tracking-wider mt-0.5 ${seattleWon ? 'text-emerald-400' : seattleLost ? 'text-red-400' : 'text-zinc-500'}`}>
+                  {seattleWon ? 'W' : seattleLost ? 'L' : 'T'} · Final
+                </span>
+              )}
+            </>
+          ) : (
+            <>
+              <span className="font-display text-[13px] font-600 text-zinc-400 leading-none">vs</span>
+              <span className="font-display text-[14px] font-700 text-white mt-0.5">{formatTime(game.kickoff)}</span>
+            </>
+          )}
+        </div>
+
+        {/* Opponent */}
+        <div className="flex items-center gap-2.5 flex-1 min-w-0 justify-end">
+          <span className={`font-display text-[15px] font-700 truncate text-right ${seattleWon ? 'text-zinc-500' : 'text-white'}`}>
+            {game.opponent.shortName || game.opponent.name}
+          </span>
+          {game.opponent.logo
+            ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={32} height={32} className="object-contain flex-shrink-0" />
+            : <div className="w-8 h-8 rounded-full bg-white/10 flex-shrink-0" />
+          }
+        </div>
+      </div>
+    </button>
+  )
 }
 
 export default function ScheduleClient() {
@@ -48,6 +114,7 @@ export default function ScheduleClient() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTeamFilter, setActiveTeamFilter] = useState<string>('all')
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null)
 
   const fetchSchedule = useCallback(async () => {
     if (!loaded || selectedTeamIds.length === 0) return
@@ -69,33 +136,22 @@ export default function ScheduleClient() {
       }
 
       if (selectedTeamIds.includes('torrent')) {
-        fetches.push(
-          fetch('/api/pwhl').then(r => {
-            if (!r.ok) return []
-            return r.json()
-          })
-        )
+        fetches.push(fetch('/api/pwhl').then(r => r.ok ? r.json() : []))
       }
 
       if (WHL_TEAM_IDS.some(id => selectedTeamIds.includes(id))) {
         fetches.push(
-          fetch('/api/whl').then(r => {
-            if (!r.ok) return []
-            return r.json() as Promise<Game[]>
-          }).then(games =>
-            games.filter(g => selectedTeamIds.includes(g.seattleTeamId))
-          )
+          fetch('/api/whl').then(r => r.ok ? r.json() as Promise<Game[]> : [])
+            .then(gs => gs.filter(g => selectedTeamIds.includes(g.seattleTeamId)))
         )
       }
 
       if (NCAA_TEAM_IDS.some(id => selectedTeamIds.includes(id))) {
         fetches.push(
-          fetch('/api/ncaa', { signal: AbortSignal.timeout(8000) }).then(r => {
-            if (!r.ok) return []
-            return r.json() as Promise<Game[]>
-          }).then(games =>
-            games.filter(g => selectedTeamIds.includes(g.seattleTeamId))
-          ).catch(() => [])
+          fetch('/api/ncaa', { signal: AbortSignal.timeout(8000) })
+            .then(r => r.ok ? r.json() as Promise<Game[]> : [])
+            .then(gs => gs.filter(g => selectedTeamIds.includes(g.seattleTeamId)))
+            .catch(() => [])
         )
       }
 
@@ -122,13 +178,9 @@ export default function ScheduleClient() {
   }, [])
 
   useEffect(() => {
-    if (loaded) {
-      setLoading(true)
-      fetchSchedule()
-    }
+    if (loaded) { setLoading(true); fetchSchedule() }
   }, [loaded, fetchSchedule])
 
-  // Adaptive polling: 2s when live, 30s otherwise (mirrors wcscores behavior)
   const liveScoresRef = useRef(liveScores)
   useEffect(() => { liveScoresRef.current = liveScores }, [liveScores])
 
@@ -137,9 +189,8 @@ export default function ScheduleClient() {
     let interval = setInterval(fetchLiveScores, 30_000)
     const adaptivePoller = setInterval(() => {
       const hasLive = Object.values(liveScoresRef.current).some(s => s.status === 'live')
-      const newRate = hasLive ? 2_000 : 30_000
       clearInterval(interval)
-      interval = setInterval(fetchLiveScores, newRate)
+      interval = setInterval(fetchLiveScores, hasLive ? 2_000 : 30_000)
     }, 5_000)
     return () => { clearInterval(interval); clearInterval(adaptivePoller) }
   }, [fetchLiveScores])
@@ -152,7 +203,6 @@ export default function ScheduleClient() {
 
   const filteredGames = (() => {
     if (activeTeamFilter === 'all') return mergedGames
-    // College group: match any sport variant
     const item = SEATTLE_TEAMS.find(t => t.id === activeTeamFilter)
     if (!item) return mergedGames
     const gk = getCollegeGroupKey(activeTeamFilter)
@@ -163,26 +213,11 @@ export default function ScheduleClient() {
     return mergedGames.filter(g => g.seattleTeamId === activeTeamFilter)
   })()
 
-  const liveGames = filteredGames.filter(g => g.status === 'live')
   const todayStr = new Date().toLocaleDateString('en-CA')
-
-  const recentGames = filteredGames.filter(g =>
-    g.status === 'ft' && isWithinLastDays(new Date(g.kickoff).toLocaleDateString('en-CA'), 3)
-  )
-
-  const todayGames = filteredGames.filter(g =>
-    g.status !== 'live' && new Date(g.kickoff).toLocaleDateString('en-CA') === todayStr
-  )
-
-  const upcomingGames = filteredGames.filter(g => {
-    const d = new Date(g.kickoff).toLocaleDateString('en-CA')
-    return g.status !== 'ft' && d > todayStr && g.status !== 'live'
-  })
-
-  const groupedUpcoming = groupGamesByDate(upcomingGames)
-  const sortedUpcomingDates = [...groupedUpcoming.keys()].sort()
-
-  const followedTeams = SEATTLE_TEAMS.filter(t => selectedTeamIds.includes(t.id))
+  const grouped = groupGamesByDate(filteredGames)
+  // Sort: past dates first, then today, then future
+  const sortedDates = [...grouped.keys()].sort()
+  const hasLiveGames = filteredGames.some(g => g.status === 'live')
 
   if (loading) {
     return (
@@ -191,83 +226,6 @@ export default function ScheduleClient() {
       </div>
     )
   }
-
-  const MainContent = () => (
-    <div className="pb-4">
-      {error && (
-        <div className="mx-4 mt-4 p-3 bg-red-900/30 border border-red-500/30 rounded-lg text-red-300 text-sm">
-          {error}
-        </div>
-      )}
-
-      {/* Live Now — wcscores style live banner */}
-      {liveGames.length > 0 && (
-        <div className="relative overflow-hidden border-b border-red-500/20">
-          <div className="absolute inset-0 bg-gradient-to-r from-red-950/60 via-red-900/30 to-transparent" />
-          <div className="relative flex items-center justify-between px-4 py-3">
-            <div className="flex items-center gap-2.5">
-              <div className="relative flex-shrink-0">
-                <span className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />
-                <span className="relative block w-2.5 h-2.5 rounded-full bg-red-500" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[13px] font-bold text-white leading-tight">
-                  {liveGames.length === 1 ? '1 game live' : `${liveGames.length} games live`}
-                </span>
-                <span className="text-[10px] text-red-400/80 leading-tight">Scores updating every 2s</span>
-              </div>
-            </div>
-            <span className="text-[10px] font-bold text-red-400 bg-red-500/15 border border-red-500/25 px-2.5 py-1 rounded-full uppercase tracking-widest">
-              Live
-            </span>
-          </div>
-          <div className="px-2 pb-2">
-            {liveGames.map(g => <GameCard key={g.id} game={g} />)}
-          </div>
-        </div>
-      )}
-
-      {/* Recent Results — horizontal scroll */}
-      {recentGames.length > 0 && (
-        <HorizontalRecentResults games={recentGames} />
-      )}
-
-      {/* Today's Games — featured */}
-      {todayGames.length > 0 && (
-        <div className="mb-3">
-          <TodayBanner gameCount={todayGames.length} hasLive={liveGames.length > 0} />
-          {todayGames.map(g => <TodayGameCard key={g.id} game={g} />)}
-        </div>
-      )}
-
-      {/* No games message */}
-      {liveGames.length === 0 && recentGames.length === 0 && todayGames.length === 0 && sortedUpcomingDates.length === 0 && (
-        <div className="mx-3 mt-6 rounded-2xl overflow-hidden text-center py-10 px-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-          <div className="text-5xl mb-3">📅</div>
-          <div className="font-display text-[16px] font-700 text-zinc-300 uppercase tracking-wide mb-1">No games in schedule</div>
-          {selectedTeamIds.length === 0 ? (
-            <p className="text-zinc-500 text-sm">Go to the Teams tab and follow some teams.</p>
-          ) : (
-            <p className="text-zinc-500 text-sm">Your teams may be in off-season. Check back closer to the season.</p>
-          )}
-        </div>
-      )}
-
-      {/* Upcoming grouped by date */}
-      {sortedUpcomingDates.map(dateStr => (
-        <div key={dateStr}>
-          <div
-            className="sticky top-[53px] z-20 px-4 py-2.5 flex items-center gap-3"
-            style={{ background: 'rgba(10,10,15,0.96)', backdropFilter: 'blur(8px)' }}
-          >
-            <span className="text-[12px] uppercase tracking-widest font-bold text-white">{formatDateHeader(dateStr)}</span>
-            <div className="flex-1 h-px bg-zinc-800" />
-          </div>
-          {groupedUpcoming.get(dateStr)!.map(g => <GameCard key={g.id} game={g} />)}
-        </div>
-      ))}
-    </div>
-  )
 
   return (
     <>
@@ -281,47 +239,75 @@ export default function ScheduleClient() {
         />
       </PageHeader>
 
-      {/* Desktop: 2/3 + 1/3 sidebar layout */}
-      <div className="lg:flex lg:gap-0">
-        <div className="lg:flex-1 lg:min-w-0">
-          <MainContent />
-        </div>
+      <div className="pb-24">
+        {error && (
+          <div className="mx-4 mt-4 p-3 bg-red-900/30 border border-red-500/30 rounded-lg text-red-300 text-sm">{error}</div>
+        )}
 
-        {/* Desktop sidebar: My Teams */}
-        <div className="hidden lg:block lg:w-72 xl:w-80 border-l border-white/10 shrink-0">
-          <div className="sticky top-[61px] p-4">
-            <h2 className="text-white font-semibold text-sm mb-3 uppercase tracking-wider">My Teams</h2>
-            <div className="space-y-2">
-              {followedTeams.map(team => {
-                const teamGames = mergedGames.filter(g => g.seattleTeamId === team.id)
-                const latestGame = teamGames.filter(g => g.status === 'ft').slice(-1)[0]
-                const record = latestGame?.seattleRecord
-                return (
-                  <button
-                    key={team.id}
-                    onClick={() => setActiveTeamFilter(activeTeamFilter === team.id ? 'all' : team.id)}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left"
-                    style={{
-                      borderColor: activeTeamFilter === team.id ? team.primaryColor : 'rgba(255,255,255,0.08)',
-                      backgroundColor: activeTeamFilter === team.id ? `${team.primaryColor}22` : 'rgba(255,255,255,0.03)',
-                    }}
-                  >
-                    <TeamLogo src={getTeamLogoUrl(team)} emoji={team.emoji} abbr={team.abbr} size={32} />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-white text-sm font-medium truncate">{team.shortName}</div>
-                      {record ? (
-                        <div className="text-gray-400 text-xs">{record.wins}-{record.losses}{record.ties ? `-${record.ties}` : ''}</div>
-                      ) : (
-                        <div className="text-gray-600 text-xs capitalize">{team.sport}</div>
-                      )}
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
+        {/* Live banner */}
+        {hasLiveGames && (
+          <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-red-500/20 bg-red-950/30">
+            <span className="relative flex h-2 w-2 flex-shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+            </span>
+            <span className="font-display text-[12px] font-700 text-red-400 uppercase tracking-widest">Games in progress — updating live</span>
           </div>
-        </div>
+        )}
+
+        {filteredGames.length === 0 ? (
+          <div className="mx-3 mt-6 rounded-2xl text-center py-10 px-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <div className="text-5xl mb-3">📅</div>
+            <div className="font-display text-[16px] font-700 text-zinc-300 uppercase tracking-wide mb-1">No games scheduled</div>
+            <p className="text-zinc-500 text-sm">{selectedTeamIds.length === 0 ? 'Go to Teams and follow some teams.' : 'Your teams may be off-season. Check back closer to the season.'}</p>
+          </div>
+        ) : (
+          sortedDates.map(dateStr => {
+            const isToday = dateStr === todayStr
+            const label = formatDateHeader(dateStr)
+            return (
+              <div key={dateStr}>
+                {/* Date header */}
+                <div
+                  className="sticky top-[53px] z-20 flex items-center gap-3 px-4 py-2.5"
+                  style={{
+                    background: isToday ? 'rgba(0,212,255,0.08)' : 'rgba(8,8,15,0.95)',
+                    backdropFilter: 'blur(8px)',
+                    borderBottom: isToday ? '1px solid rgba(0,212,255,0.2)' : '1px solid rgba(255,255,255,0.05)',
+                  }}
+                >
+                  <span
+                    className={`font-display uppercase tracking-widest font-800 ${isToday ? 'text-[15px]' : 'text-[12px] text-zinc-400'}`}
+                    style={isToday ? { color: 'var(--accent)' } : {}}
+                  >
+                    {label}
+                  </span>
+                  {isToday && (
+                    <span className="relative flex h-2 w-2 ml-1">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: 'var(--accent)' }} />
+                      <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: 'var(--accent)' }} />
+                    </span>
+                  )}
+                </div>
+
+                {/* Game rows */}
+                {grouped.get(dateStr)!.map(g => (
+                  <ScheduleRow
+                    key={g.id}
+                    game={g}
+                    isToday={isToday}
+                    onTap={() => setSelectedGame(g)}
+                  />
+                ))}
+              </div>
+            )
+          })
+        )}
       </div>
+
+      {selectedGame && (
+        <GameDetailSheet game={selectedGame} onClose={() => setSelectedGame(null)} />
+      )}
     </>
   )
 }
