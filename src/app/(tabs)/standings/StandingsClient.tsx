@@ -37,12 +37,12 @@ const TEAM_TO_LEAGUE: Record<string, string> = {
 
 // League display info
 const LEAGUE_INFO: Record<string, { label: string; logo: string; color: string }> = {
-  mlb:  { label: "MLB",  logo: "https://a.espncdn.com/i/teamlogos/mlb/500/sea.png",  color: "#005C5C" },
-  nhl:  { label: "NHL",  logo: "https://a.espncdn.com/i/teamlogos/nhl/500/sea.png",  color: "#99D9D9" },
-  wnba: { label: "WNBA", logo: "https://a.espncdn.com/i/teamlogos/wnba/500/sea.png", color: "#2C5235" },
-  mls:  { label: "MLS",  logo: "https://a.espncdn.com/i/teamlogos/soccer/500/9726.png", color: "#5D9732" },
-  nfl:  { label: "NFL",  logo: "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png",  color: "#002244" },
-  nba:  { label: "NBA",  logo: "https://a.espncdn.com/i/leaguelogos/nba/500/46.png", color: "#1d428a" },
+  mlb:  { label: "MLB",  logo: "https://a.espncdn.com/i/teamlogos/leagues/500/mlb.png",  color: "#005C5C" },
+  nhl:  { label: "NHL",  logo: "https://a.espncdn.com/i/teamlogos/leagues/500/nhl.png",  color: "#99D9D9" },
+  wnba: { label: "WNBA", logo: "https://a.espncdn.com/i/teamlogos/leagues/500/wnba.png", color: "#f9a000" },
+  mls:  { label: "MLS",  logo: "https://a.espncdn.com/i/teamlogos/leagues/500/mls.png",  color: "#5D9732" },
+  nfl:  { label: "NFL",  logo: "https://a.espncdn.com/i/teamlogos/leagues/500/nfl.png",  color: "#013369" },
+  nba:  { label: "NBA",  logo: "https://a.espncdn.com/i/teamlogos/leagues/500/nba.png",  color: "#1d428a" },
 }
 
 // Supported leagues for standings API
@@ -506,14 +506,12 @@ export default function StandingsClient() {
           <h1 className="font-display text-[26px] font-800 text-white leading-none tracking-tight uppercase">Standings</h1>
         </div>
 
-        {/* Team logo filter bar */}
+        {/* League logo filter bar */}
         <div className="relative overflow-x-auto no-scrollbar px-4 pb-3 pt-1">
           <div className="flex gap-3 min-w-max">
             {availableLeagues.map(({ leagueId, teamId }) => {
-              const team = SEATTLE_TEAMS.find(t => t.id === teamId)!
               const info = LEAGUE_INFO[leagueId]
               const active = activeLeague === leagueId
-              const clicks = teamClickCounts[teamId] || 0
               return (
                 <button
                   key={leagueId}
@@ -521,15 +519,28 @@ export default function StandingsClient() {
                   className="flex-shrink-0 flex flex-col items-center gap-1"
                 >
                   <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center transition-all overflow-hidden p-1"
+                    className="w-12 h-12 rounded-full flex items-center justify-center transition-all overflow-hidden"
                     style={{
-                      background: active ? `${info?.color || team.primaryColor}30` : "var(--surface-2)",
-                      border: `2px solid ${active ? (info?.color || team.primaryColor) : "rgba(255,255,255,0.1)"}`,
-                      boxShadow: active ? `0 0 14px ${info?.color || team.primaryColor}55` : "none",
-                      opacity: !active && activeLeague ? 0.5 : 1,
+                      background: active ? `${info?.color}25` : "var(--surface-2)",
+                      border: `2px solid ${active ? info?.color : "rgba(255,255,255,0.1)"}`,
+                      boxShadow: active ? `0 0 14px ${info?.color}55` : "none",
+                      opacity: !active && activeLeague ? 0.45 : 1,
+                      padding: "6px",
                     }}
                   >
-                    <TeamLogo src={getTeamLogoUrl(team)} emoji={team.emoji} abbr={team.abbr} size={32} />
+                    {info?.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={info.logo}
+                        alt={info.label}
+                        width={34}
+                        height={34}
+                        className="object-contain w-full h-full"
+                        style={{ filter: active ? "none" : "grayscale(0.3) brightness(0.9)" }}
+                      />
+                    ) : (
+                      <span className="font-display text-[11px] font-800 text-zinc-400">{leagueId.toUpperCase()}</span>
+                    )}
                   </div>
                   <span className="font-display text-[9px] font-700 uppercase tracking-widest" style={{ color: active ? (info?.color || "var(--accent)") : "#4b5563" }}>
                     {info?.label || leagueId.toUpperCase()}
