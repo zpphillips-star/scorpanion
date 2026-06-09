@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation'
-export default function Home() {
-  redirect('/schedule')
-}
+import { redirect } from "next/navigation"
+export default function Root() { redirect("/home") }
+
