@@ -9,6 +9,7 @@ import TeamLogo from "@/components/TeamLogo"
 import BoxScore from "@/components/BoxScore"
 import TeamDetailSheet from "@/components/TeamDetailSheet"
 import PageHeader from "@/components/PageHeader"
+import { TodayGameCard, TodayBanner } from "@/components/TodayGameCard"
 
 function todayStr() { return new Date().toLocaleDateString("en-CA") }
 function dateStr(d: Date) { return d.toLocaleDateString("en-CA") }
@@ -722,21 +723,16 @@ export default function HomeClient() {
         </div>
       )}
 
-      {/* ── Today ────────────────────────────────────────────────────────── */}
+      {/* ── TODAY — featured full-width cards ───────────────────────────── */}
       {todayGames.filter(g => g.status !== "ft").length > 0 && (
-        <div className="mt-5">
-          {/* Bold "TODAY" banner */}
-          <div className="mx-3 mb-2 rounded-xl px-4 py-2.5 flex items-center gap-3" style={{ background: "linear-gradient(135deg, rgba(0,212,255,0.12) 0%, rgba(0,212,255,0.04) 100%)", border: "1px solid rgba(0,212,255,0.2)" }}>
-            <span className="relative flex h-2 w-2 flex-shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: "var(--accent)" }} />
-              <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "var(--accent)" }} />
-            </span>
-            <span className="font-display text-[14px] font-800 uppercase tracking-widest" style={{ color: "var(--accent)" }}>Today</span>
-            <span className="font-display text-[11px] font-600 text-zinc-500 ml-auto">
-              {new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
-            </span>
-          </div>
-          {todayGames.filter(g => g.status !== "ft").map(g => <GameCard key={g.id} game={g} />)}
+        <div className="mt-3">
+          <TodayBanner
+            gameCount={todayGames.filter(g => g.status !== "ft").length}
+            hasLive={liveGames.length > 0}
+          />
+          {todayGames.filter(g => g.status !== "ft").map(g => (
+            <TodayGameCard key={g.id} game={g} />
+          ))}
         </div>
       )}
 

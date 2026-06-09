@@ -9,6 +9,7 @@ import TeamLogo from '@/components/TeamLogo'
 import TeamFilterBar, { getCollegeGroupKey } from '@/components/TeamFilterBar'
 import PageHeader from '@/components/PageHeader'
 import HorizontalRecentResults from '@/components/HorizontalRecentResults'
+import { TodayGameCard, TodayBanner } from '@/components/TodayGameCard'
 
 function groupGamesByDate(games: Game[]): Map<string, Game[]> {
   const groups = new Map<string, Game[]>()
@@ -231,18 +232,11 @@ export default function ScheduleClient() {
         <HorizontalRecentResults games={recentGames} />
       )}
 
-      {/* Today's Games */}
+      {/* Today's Games — featured */}
       {todayGames.length > 0 && (
         <div className="mb-3">
-          <div
-            className="sticky top-[53px] z-20 px-4 py-2.5 flex items-center gap-3"
-            style={{ background: 'rgba(10,10,15,0.96)', backdropFilter: 'blur(8px)' }}
-          >
-            <span className="text-[12px] uppercase tracking-widest font-bold text-[#00d4ff]">{formatDateHeader(todayStr)}</span>
-            <span className="text-[9px] font-bold uppercase tracking-wider text-[#00d4ff] bg-[#00d4ff]/10 px-2 py-0.5 rounded-full">Today</span>
-            <div className="flex-1 h-px bg-zinc-800" />
-          </div>
-          {todayGames.map(g => <GameCard key={g.id} game={g} />)}
+          <TodayBanner gameCount={todayGames.length} hasLive={liveGames.length > 0} />
+          {todayGames.map(g => <TodayGameCard key={g.id} game={g} />)}
         </div>
       )}
 
