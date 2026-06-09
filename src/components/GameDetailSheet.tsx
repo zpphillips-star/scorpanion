@@ -1,41 +1,23 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Game } from "@/lib/types"
 import { getTeamLogoUrl } from "@/lib/teams"
 import TeamLogo from "./TeamLogo"
 import BoxScore from "./BoxScore"
 import TeamDetailSheet from "./TeamDetailSheet"
-
-interface StandingsRow { teamId: string; abbr: string; logo: string; wins: number; losses: number; winPct: number; isSeattle: boolean }
-interface Division { name: string; entries: StandingsRow[] }
-
-const STANDINGS_LEAGUE_MAP: Record<string, string> = {
-  mlb: "mlb", nhl: "nhl", wnba: "wnba", "usa.1": "mls", nfl: "nfl",
-}
+import UpcomingScheduleSection from "./UpcomingScheduleSection"
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
 }
 
 export default function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void }) {
-  const [standings, setStandings] = useState<Division[]>([])
   const [teamSheet, setTeamSheet] = useState<{ id: string; name: string; logo: string } | null>(null)
   const seattleWon = (game.seattleScore ?? 0) > (game.opponentScore ?? 0)
   const seattleLost = (game.seattleScore ?? 0) < (game.opponentScore ?? 0)
   const color = game.seattleTeam.primaryColor
   const canShowBoxScore = !!game.id && game.league !== "whl" && game.league !== "pwhl"
   const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
-
-  const leagueKey = STANDINGS_LEAGUE_MAP[game.league]
-  useEffect(() => {
-    if (!leagueKey) return
-    fetch(`/api/standings?league=${leagueKey}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.divisions) setStandings(d.divisions) })
-      .catch(() => {})
-  }, [leagueKey])
-
-  const seattleDivision = standings.find(div => div.entries.some(e => e.isSeattle))
 
   return (
     <>
@@ -136,30 +118,8 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
           </div>
         )}
 
-        {/* SECTION 3: DIVISION STANDINGS */}
-        {seattleDivision && (
-          <div className="px-4 pb-6 border-t border-white/5">
-            <div className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-600 mt-4 mb-3">{seattleDivision.name} Standings</div>
-            <div className="space-y-1">
-              {seattleDivision.entries.map((e, i) => (
-                <div
-                  key={e.teamId}
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl"
-                  style={{ background: e.isSeattle ? `${color}20` : "var(--surface-2)", border: `1px solid ${e.isSeattle ? color + "40" : "var(--border)"}` }}
-                >
-                  <span className="font-display text-[12px] font-700 text-zinc-600 w-5 text-center flex-shrink-0">{i + 1}</span>
-                  {e.logo
-                    ? <img src={e.logo} alt={e.abbr} width={22} height={22} className="object-contain flex-shrink-0" />
-                    : <span className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />
-                  }
-                  <span className={`font-display text-[13px] font-700 flex-1 ${e.isSeattle ? "text-white" : "text-zinc-300"}`}>{e.abbr}</span>
-                  <span className="font-display text-[13px] font-700 text-zinc-300 tabular-nums">{e.wins}–{e.losses}</span>
-                  <span className="font-display text-[11px] text-zinc-600 w-10 text-right tabular-nums">.{String(Math.round(e.winPct * 1000)).padStart(3, "0")}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* SECTION 3: UPCOMING SCHEDULE — both teams side by side */}
+        <UpcomingScheduleSection game={game} />
       </div>
 
       {teamSheet && (

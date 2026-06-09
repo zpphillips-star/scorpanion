@@ -5,6 +5,7 @@ import { getTeamLogoUrl } from "@/lib/teams"
 import TeamLogo from "./TeamLogo"
 import BoxScore from "./BoxScore"
 import TeamDetailSheet from "./TeamDetailSheet"
+import UpcomingScheduleSection from "./UpcomingScheduleSection"
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZoneName: "short" })
@@ -141,7 +142,6 @@ function TodayDetailSheet({ game, onClose }: { game: Game; onClose: () => void }
                 <div className="font-display text-[26px] font-800 text-white tabular-nums leading-none">
                   {game.seattleRecord ? `${game.seattleRecord.wins}–${game.seattleRecord.losses}` : "–"}
                 </div>
-                {game.seattleRecord && <div className="text-[10px] text-zinc-500 mt-1">{((game.seattleRecord.wins / Math.max(game.seattleRecord.wins + game.seattleRecord.losses, 1)) * 100).toFixed(1)}% win rate</div>}
               </div>
               <div className="rounded-2xl px-4 py-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
                 <div className="flex items-center gap-2 mb-1.5">
@@ -151,32 +151,15 @@ function TodayDetailSheet({ game, onClose }: { game: Game; onClose: () => void }
                 <div className="font-display text-[26px] font-800 text-zinc-300 tabular-nums leading-none">
                   {game.opponentRecord ? `${game.opponentRecord.wins}–${game.opponentRecord.losses}` : "–"}
                 </div>
-                {game.opponentRecord && <div className="text-[10px] text-zinc-500 mt-1">{((game.opponentRecord.wins / Math.max(game.opponentRecord.wins + game.opponentRecord.losses, 1)) * 100).toFixed(1)}% win rate</div>}
               </div>
             </div>
           </div>
         )}
 
-        {/* Division standings */}
-        {seattleDivision && (
-          <div className="px-4 pb-6 border-t border-white/5">
-            <div className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-600 mt-4 mb-3">{seattleDivision.name} Standings</div>
-            <div className="space-y-1">
-              {seattleDivision.entries.map((e, i) => (
-                <div key={e.teamId} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl"
-                  style={{ background: e.isSeattle ? `${color}20` : "var(--surface-2)", border: `1px solid ${e.isSeattle ? color + "40" : "var(--border)"}` }}>
-                  <span className="font-display text-[12px] font-700 text-zinc-600 w-5 text-center flex-shrink-0">{i + 1}</span>
-                  {e.logo ? <img src={e.logo} alt={e.abbr} width={22} height={22} className="object-contain flex-shrink-0" /> : <span className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />}
-                  <span className={`font-display text-[13px] font-700 flex-1 ${e.isSeattle ? "text-white" : "text-zinc-300"}`}>{e.abbr}</span>
-                  <span className="font-display text-[13px] font-700 text-zinc-300 tabular-nums">{e.wins}–{e.losses}</span>
-                  <span className="font-display text-[11px] text-zinc-600 w-10 text-right tabular-nums">.{String(Math.round(e.winPct * 1000)).padStart(3, "0")}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Upcoming schedule — both teams side by side */}
+        <UpcomingScheduleSection game={game} />
 
-        {/* Buy Tickets floating badge for upcoming pro games */}
+        {/* Buy Tickets for upcoming pro games */}
         {PRO_TEAM_IDS.includes(game.seattleTeamId) && isUp && (
           <div className="px-5 pb-5 border-t border-white/5 pt-4">
             <a
