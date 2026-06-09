@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import Link from 'next/link'
 import { Game, ScoreUpdate } from '@/lib/types'
 import { SEATTLE_TEAMS, getTeamLogoUrl } from '@/lib/teams'
 import { useSelectedTeams } from '@/hooks/useSelectedTeams'
@@ -8,6 +7,8 @@ import { useTeamClickCounts } from '@/hooks/useTeamClickCounts'
 import GameCard from '@/components/GameCard'
 import TeamLogo from '@/components/TeamLogo'
 import TeamFilterBar, { getCollegeGroupKey } from '@/components/TeamFilterBar'
+import PageHeader from '@/components/PageHeader'
+import HorizontalRecentResults from '@/components/HorizontalRecentResults'
 
 function groupGamesByDate(games: Game[]): Map<string, Game[]> {
   const groups = new Map<string, Game[]>()
@@ -36,45 +37,6 @@ function isWithinLastDays(dateStr: string, days: number): boolean {
   cutoff.setDate(cutoff.getDate() - days)
   cutoff.setHours(0, 0, 0, 0)
   return date >= cutoff && date < new Date(new Date().toLocaleDateString('en-CA') + 'T00:00:00')
-}
-
-function AuthButton() {
-  const [user, setUser] = useState<{ email?: string } | null>(null)
-  const [checked, setChecked] = useState(false)
-
-  useEffect(() => {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-      setChecked(true)
-      return
-    }
-    import('@/lib/supabase').then(({ createClient }) => {
-      const supabase = createClient()
-      supabase.auth.getUser().then(({ data }) => {
-        setUser(data.user ? { email: data.user.email } : null)
-        setChecked(true)
-      })
-    })
-  }, [])
-
-  if (!checked) return null
-
-  if (user) {
-    return (
-      <Link href="/auth/login" className="w-8 h-8 rounded-full bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-blue-400 text-sm font-bold hover:bg-blue-600/50 transition-colors" title={user.email}>
-        {user.email?.[0]?.toUpperCase() ?? '?'}
-      </Link>
-    )
-  }
-
-  return (
-    <Link href="/auth/login" className="text-xs text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1">
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-      Sign in
-    </Link>
-  )
 }
 
 export default function ScheduleClient() {
@@ -237,15 +199,6 @@ export default function ScheduleClient() {
         </div>
       )}
 
-      {/* Team logo filter bar */}
-      <TeamFilterBar
-        selectedTeamIds={selectedTeamIds}
-        activeFilter={activeTeamFilter}
-        onFilterChange={setActiveTeamFilter}
-        teamClickCounts={teamClickCounts}
-        recordClick={recordTeamClick}
-      />
-
       {/* Live Now — wcscores style live banner */}
       {liveGames.length > 0 && (
         <div className="relative overflow-hidden border-b border-red-500/20">
@@ -273,18 +226,9 @@ export default function ScheduleClient() {
         </div>
       )}
 
-      {/* Recent Results */}
+      {/* Recent Results — horizontal scroll */}
       {recentGames.length > 0 && (
-        <div className="mb-3">
-          <div
-            className="sticky top-[53px] z-20 px-4 py-2.5 flex items-center gap-3"
-            style={{ background: 'rgba(10,10,15,0.96)', backdropFilter: 'blur(8px)' }}
-          >
-            <span className="text-[12px] uppercase tracking-widest font-bold text-white">Recent Results</span>
-            <div className="flex-1 h-px bg-zinc-800" />
-          </div>
-          {recentGames.map(g => <GameCard key={g.id} game={g} />)}
-        </div>
+        <HorizontalRecentResults games={recentGames} />
       )}
 
       {/* Today's Games */}
@@ -333,12 +277,15 @@ export default function ScheduleClient() {
 
   return (
     <>
-      <div className="sticky top-0 z-30 glass-header px-4 py-3 flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-[26px] font-800 text-white leading-none tracking-tight uppercase">Schedule</h1>
-        </div>
-        <AuthButton />
-      </div>
+      <PageHeader title="Schedule">
+        <TeamFilterBar
+          selectedTeamIds={selectedTeamIds}
+          activeFilter={activeTeamFilter}
+          onFilterChange={setActiveTeamFilter}
+          teamClickCounts={teamClickCounts}
+          recordClick={recordTeamClick}
+        />
+      </PageHeader>
 
       {/* Desktop: 2/3 + 1/3 sidebar layout */}
       <div className="lg:flex lg:gap-0">

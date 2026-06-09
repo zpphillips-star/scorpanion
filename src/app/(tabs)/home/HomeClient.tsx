@@ -8,6 +8,7 @@ import GameCard from "@/components/GameCard"
 import TeamLogo from "@/components/TeamLogo"
 import BoxScore from "@/components/BoxScore"
 import TeamDetailSheet from "@/components/TeamDetailSheet"
+import PageHeader from "@/components/PageHeader"
 
 function todayStr() { return new Date().toLocaleDateString("en-CA") }
 function dateStr(d: Date) { return d.toLocaleDateString("en-CA") }
@@ -596,25 +597,8 @@ export default function HomeClient() {
   return (
     <div style={{ paddingBottom: "1rem" }}>
       {/* ── Sticky header ───────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-30 glass-header">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/scorpion-mono.png" alt="Scorpanion" width={28} height={28} className="object-contain" />
-            <h1 className="font-display text-[26px] font-800 text-white leading-none uppercase tracking-tight">Scorpanion</h1>
-          </div>
-          {hasAnyLive && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)" }}>
-              <span className="relative flex h-2 w-2 flex-shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
-              </span>
-              <span className="font-display text-[11px] font-700 text-red-400 uppercase tracking-widest">{liveCount} Live</span>
-            </div>
-          )}
-        </div>
-
-        {/* ── Team logo filter bar ─────────────────────────────────────── */}
+      <PageHeader title="Home">
+        {/* ── Team logo filter bar ─────────────────────────────────── */}
         <div className="relative overflow-x-auto no-scrollbar px-4 pb-3">
           <div className="flex gap-3 min-w-max">
             {/* ALL */}
@@ -700,7 +684,7 @@ export default function HomeClient() {
             })}
           </div>
         </div>
-      </div>
+      </PageHeader>
 
       {/* ── Live now banner ──────────────────────────────────────────────── */}
       {hasAnyLive && (
