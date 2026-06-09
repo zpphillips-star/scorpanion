@@ -96,7 +96,8 @@ export default function BottomNav() {
                     : "0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
                 }}
               >
-                <span className="text-[22px] leading-none" style={{ filter: homeActive ? "none" : "grayscale(0.3)" }}>🦂</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/scorpion-logo.png" alt="Home" width={26} height={26} className="object-contain" style={{ filter: homeActive ? "none" : "brightness(0.5)" }} />
               </div>
               <span
                 className="text-[10px] font-semibold mt-1 transition-colors"
@@ -127,7 +128,8 @@ export default function BottomNav() {
               border: homeActive ? "2px solid var(--accent)" : "2px solid var(--border)",
             }}
           >
-            <span className="text-[16px] leading-none">🦂</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/scorpion-logo.png" alt="Home" width={22} height={22} className="object-contain" />
           </div>
         </Link>
 

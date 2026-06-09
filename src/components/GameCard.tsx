@@ -135,13 +135,35 @@ export default function GameCard({ game }: GameCardProps) {
       {open && (
         <>
           <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-40" onClick={() => setOpen(false)} />
+          {/* Outer wrapper: overflow-visible so floating button can stick out above */}
           <div
-            className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-2xl lg:mx-auto rounded-t-3xl overflow-hidden animate-slide-up"
-            style={{ background: "var(--surface)", paddingBottom: "env(safe-area-inset-bottom)" }}
+            className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-2xl lg:mx-auto animate-slide-up"
+            style={{ overflow: "visible" }}
             onClick={e => e.stopPropagation()}
           >
-            {/* Drag handle */}
-            <div className="w-10 h-1 rounded-full bg-white/15 mx-auto mt-3 mb-1" />
+            {/* ── Floating Buy Tickets badge — overlaps dark overlay above ── */}
+            {PRO_TEAM_IDS.includes(game.seattleTeamId) && isUp && (
+              <a
+                href={`https://gametime.com/search?q=${encodeURIComponent(game.seattleTeam.name)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                className="absolute left-1/2 -translate-x-1/2 -top-7 z-10 flex flex-col items-center justify-center w-[72px] h-[72px] rounded-full font-display text-[10px] font-800 uppercase tracking-wide text-white text-center leading-tight transition-transform active:scale-95 hover:scale-105"
+                style={{
+                  background: `radial-gradient(circle at 40% 35%, ${seattleColor}, ${seattleColor}bb)`,
+                  boxShadow: `0 0 28px ${seattleColor}77, 0 6px 20px rgba(0,0,0,0.6)`,
+                  border: "2.5px solid rgba(255,255,255,0.25)",
+                }}
+              >
+                <span className="text-[20px] leading-none mb-0.5">🎟</span>
+                <span>Buy<br />Tickets</span>
+              </a>
+            )}
+
+            {/* Inner sheet: overflow-hidden keeps rounded corners and clips content */}
+            <div className="rounded-t-3xl overflow-hidden" style={{ background: "var(--surface)", paddingBottom: "env(safe-area-inset-bottom)" }}>
+              {/* Drag handle */}
+              <div className="w-10 h-1 rounded-full bg-white/15 mx-auto mt-3 mb-1" />
 
             {/* Sheet header — team colors gradient */}
             <div
@@ -226,20 +248,9 @@ export default function GameCard({ game }: GameCardProps) {
                   <span>{formatGameTime(game.kickoff)}</span>
                 </div>
               )}
-              {PRO_TEAM_IDS.includes(game.seattleTeamId) && isUp && (
-                <a
-                  href={`https://gametime.com/search?q=${encodeURIComponent(game.seattleTeam.name)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={e => e.stopPropagation()}
-                  className="flex items-center gap-2.5 text-[#00d4ff] text-sm font-semibold hover:underline"
-                >
-                  <span className="text-base">🎟</span>
-                  <span>Buy tickets on Gametime</span>
-                </a>
-              )}
             </div>
-          </div>
+            </div>{/* end inner sheet */}
+          </div>{/* end outer wrapper */}
         </>
       )}
     </>

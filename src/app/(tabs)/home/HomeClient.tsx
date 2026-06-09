@@ -420,7 +420,8 @@ export default function HomeClient() {
   if (selectedTeamIds.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100dvh-8rem)] px-8 text-center gap-4">
-        <span className="text-6xl">🦂</span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/scorpion-logo.png" alt="Scorpanion" width={72} height={72} className="object-contain" />
         <h2 className="font-display text-[28px] font-800 text-white uppercase tracking-tight">No teams selected</h2>
         <p className="text-zinc-500 text-sm">Go to the Teams tab and follow the teams you want to track.</p>
       </div>
@@ -433,7 +434,8 @@ export default function HomeClient() {
       <div className="sticky top-0 z-30 glass-header">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <span className="text-[22px] leading-none">🦂</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/scorpion-logo.png" alt="Scorpanion" width={28} height={28} className="object-contain" />
             <h1 className="font-display text-[26px] font-800 text-white leading-none uppercase tracking-tight">Scorpanion</h1>
           </div>
           {hasAnyLive && (
@@ -574,12 +576,16 @@ export default function HomeClient() {
       {/* ── Today ────────────────────────────────────────────────────────── */}
       {todayGames.filter(g => g.status !== "ft").length > 0 && (
         <div className="mt-5">
-          <div className="px-4 mb-2 flex items-center gap-3">
-            <span className="font-display text-[13px] font-700 uppercase tracking-widest" style={{ color: "var(--accent)" }}>Today</span>
-            <span className="font-display text-[9px] font-700 uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: "var(--accent-dim)", color: "var(--accent)" }}>
+          {/* Bold "TODAY" banner */}
+          <div className="mx-3 mb-2 rounded-xl px-4 py-2.5 flex items-center gap-3" style={{ background: "linear-gradient(135deg, rgba(0,212,255,0.12) 0%, rgba(0,212,255,0.04) 100%)", border: "1px solid rgba(0,212,255,0.2)" }}>
+            <span className="relative flex h-2 w-2 flex-shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: "var(--accent)" }} />
+              <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "var(--accent)" }} />
+            </span>
+            <span className="font-display text-[14px] font-800 uppercase tracking-widest" style={{ color: "var(--accent)" }}>Today</span>
+            <span className="font-display text-[11px] font-600 text-zinc-500 ml-auto">
               {new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
             </span>
-            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
           </div>
           {todayGames.filter(g => g.status !== "ft").map(g => <GameCard key={g.id} game={g} />)}
         </div>
@@ -596,7 +602,7 @@ export default function HomeClient() {
       {upcomingDates.length > 0 && (
         <div className="mt-5">
           <div className="px-4 mb-1 flex items-center gap-3">
-            <span className="font-display text-[13px] font-700 text-zinc-400 uppercase tracking-widest">Upcoming</span>
+            <span className="font-display text-[13px] font-700 text-zinc-300 uppercase tracking-widest">Upcoming</span>
             <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
             <span className="font-display text-[10px] text-zinc-600 uppercase tracking-wider">
               {upcomingFallback.length > 0 ? "Next scheduled" : "Next 14 days"}
