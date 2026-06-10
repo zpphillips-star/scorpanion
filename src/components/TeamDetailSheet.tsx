@@ -119,47 +119,45 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
               <div className="font-display text-[11px] font-800 uppercase tracking-widest text-zinc-400">Last 3 Games</div>
               <div className="flex-1 h-px bg-white/5" />
             </div>
-            <div className="space-y-2">
+            <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
               {[...data.recentForm].reverse().map((g, i) => {
                 const win = g.result === "W"
                 const loss = g.result === "L"
                 const rc = win ? "#34d399" : loss ? "#f87171" : "#9ca3af"
-                // away on top, home on bottom
                 const awayAbbr = g.isHome ? g.opponent : (data.abbr ?? "SEA")
                 const awayLogo = g.isHome ? g.oppLogo : logo
                 const awayScore = g.isHome ? g.oppScore : g.myScore
                 const homeAbbr = g.isHome ? (data.abbr ?? "SEA") : g.opponent
                 const homeLogo = g.isHome ? logo : g.oppLogo
                 const homeScore = g.isHome ? g.myScore : g.oppScore
-                const seattleWon = win
                 return (
                   <div
                     key={i}
-                    className="rounded-2xl overflow-hidden"
-                    style={{ background: "var(--surface-2)", border: `1px solid ${rc}25` }}
+                    className="flex-shrink-0 rounded-2xl overflow-hidden"
+                    style={{ background: "var(--surface-2)", border: `1px solid ${rc}28`, minWidth: "140px", width: "140px" }}
                   >
                     {/* Away row */}
-                    <div className="flex items-center px-3.5 pt-3 pb-1.5 gap-2.5">
+                    <div className="flex items-center px-3 pt-3 pb-1.5 gap-2">
                       {awayLogo
-                        ? <img src={awayLogo} alt={awayAbbr} width={22} height={22} className="object-contain flex-shrink-0" />
+                        ? <img src={awayLogo} alt={awayAbbr} width={20} height={20} className="object-contain flex-shrink-0" />
                         : <div className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />
                       }
-                      <span className={`flex-1 font-display text-[14px] font-600 ${!seattleWon && !g.isHome ? "text-white" : seattleWon && !g.isHome ? "text-white" : "text-zinc-400"}`}>{awayAbbr}</span>
-                      <span className={`font-display text-[18px] font-800 tabular-nums ${awayScore > homeScore ? "text-white" : "text-zinc-500"}`}>{awayScore}</span>
+                      <span className="flex-1 font-display text-[13px] font-600 text-zinc-300 truncate">{awayAbbr}</span>
+                      <span className={`font-display text-[17px] font-800 tabular-nums ${awayScore > homeScore ? "text-white" : "text-zinc-500"}`}>{awayScore}</span>
                     </div>
                     {/* Home row */}
-                    <div className="flex items-center px-3.5 pb-2.5 pt-1.5 gap-2.5 border-t border-white/5">
+                    <div className="flex items-center px-3 pb-2.5 pt-1 gap-2 border-t border-white/5">
                       {homeLogo
-                        ? <img src={homeLogo} alt={homeAbbr} width={22} height={22} className="object-contain flex-shrink-0" />
+                        ? <img src={homeLogo} alt={homeAbbr} width={20} height={20} className="object-contain flex-shrink-0" />
                         : <div className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />
                       }
-                      <span className={`flex-1 font-display text-[14px] font-600 ${homeScore > awayScore ? "text-white" : "text-zinc-400"}`}>{homeAbbr}</span>
-                      <span className={`font-display text-[18px] font-800 tabular-nums ${homeScore > awayScore ? "text-white" : "text-zinc-500"}`}>{homeScore}</span>
+                      <span className="flex-1 font-display text-[13px] font-600 text-zinc-300 truncate">{homeAbbr}</span>
+                      <span className={`font-display text-[17px] font-800 tabular-nums ${homeScore > awayScore ? "text-white" : "text-zinc-500"}`}>{homeScore}</span>
                     </div>
-                    {/* Footer: result + date */}
-                    <div className="flex items-center justify-between px-3.5 py-1.5 border-t border-white/5" style={{ background: "rgba(0,0,0,0.2)" }}>
+                    {/* Footer */}
+                    <div className="flex items-center justify-between px-3 py-1.5 border-t border-white/5" style={{ background: "rgba(0,0,0,0.25)" }}>
                       <span className="font-display text-[11px] font-800 uppercase tracking-wide" style={{ color: rc }}>
-                        {g.result === "W" ? "Win" : g.result === "L" ? "Loss" : "Tie"}
+                        {win ? "W" : loss ? "L" : "T"}
                       </span>
                       <span className="font-display text-[10px] text-zinc-600">{fmtShortDate(g.date)}</span>
                     </div>
