@@ -52,6 +52,8 @@ export interface Game {
   broadcast?: string
   seattleRecord?: TeamRecord
   opponentRecord?: TeamRecord
+  clock?: string
+  period?: string
 }
 
 export interface ScoreUpdate {

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Game, ScoreUpdate } from '@/lib/types'
 import { SEATTLE_TEAMS, getTeamLogoUrl } from '@/lib/teams'
 import { useSelectedTeams } from '@/hooks/useSelectedTeams'
@@ -42,6 +42,63 @@ function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
+function DateStrip({
+  sortedDates, todayStr, onSelect,
+}: { sortedDates: string[]; todayStr: string; onSelect: (d: string) => void }) {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const stripRef = useRef<HTMLDivElement>(null)
+  const todayBtnRef = useRef<HTMLButtonElement>(null)
+
+  const stripDates = useMemo(() => {
+    const dates: string[] = []
+    for (let i = -7; i <= 21; i++) {
+      const d = new Date()
+      d.setDate(d.getDate() + i)
+      dates.push(new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(d))
+    }
+    return dates
+  }, [tz])
+
+  useEffect(() => {
+    if (todayBtnRef.current && stripRef.current) {
+      const btn = todayBtnRef.current
+      const strip = stripRef.current
+      strip.scrollLeft = btn.offsetLeft - strip.offsetWidth / 2 + btn.offsetWidth / 2
+    }
+  }, [])
+
+  return (
+    <div ref={stripRef} className="overflow-x-auto no-scrollbar px-3 pb-2 pt-0.5 border-t border-zinc-800/60">
+      <div className="flex gap-0.5 min-w-max">
+        {stripDates.map(dateStr => {
+          const isToday = dateStr === todayStr
+          const hasGames = sortedDates.includes(dateStr)
+          const [y, m, d] = dateStr.split('-').map(Number)
+          const dayLetter = new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 1)
+          return (
+            <button
+              key={dateStr}
+              ref={isToday ? todayBtnRef : undefined}
+              onClick={() => onSelect(dateStr)}
+              disabled={!hasGames}
+              className="flex flex-col items-center px-2.5 py-1.5 rounded-xl flex-shrink-0 min-w-[38px] transition-all active:scale-95"
+              style={{
+                background: isToday ? 'rgba(0,212,255,0.15)' : 'transparent',
+                border: isToday ? '1px solid rgba(0,212,255,0.35)' : '1px solid transparent',
+                opacity: hasGames || isToday ? 1 : 0.22,
+              }}
+            >
+              <span className="text-[9px] font-bold uppercase tracking-wide leading-tight" style={{ color: isToday ? '#00d4ff' : '#52525b' }}>{dayLetter}</span>
+              <span className="text-[15px] font-bold leading-tight" style={{ color: isToday ? '#00d4ff' : hasGames ? '#e4e4e7' : '#3f3f46' }}>{d}</span>
+              <div className="w-1 h-1 rounded-full mt-0.5" style={{ background: isToday ? '#00d4ff' : hasGames ? '#52525b' : 'transparent' }} />
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
   const isFt = game.status === 'ft'
   const isLive = game.status === 'live'
@@ -51,21 +108,44 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
   const seattleLost = hasScore && game.seattleScore! < game.opponentScore!
   const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
 
+  function liveDetail() {
+    const p = game.period ? Number(game.period) : null
+    const clk = game.clock
+    if (game.sport === 'baseball' && p) {
+      const half = p % 2 === 1 ? '▲' : '▼'
+      const inn = Math.ceil(p / 2)
+      return `${half}${inn}${clk ? ' · ' + clk : ''}`
+    }
+    if (game.sport === 'basketball' && p) return clk ? `Q${p} ${clk}` : `Q${p}`
+    if (game.sport === 'hockey' && p) { const l = ['1st','2nd','3rd','OT'][p-1]||`P${p}`; return clk ? `${l} ${clk}` : l }
+    if (game.sport === 'football' && p) { const l = ['1st','2nd','3rd','4th','OT'][p-1]||`Q${p}`; return clk ? `${l} ${clk}` : l }
+    if (game.sport === 'soccer') return clk ? `${clk}′` : 'Live'
+    return clk || ''
+  }
+
   return (
     <div
-      className="flex items-center px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer select-none"
+      className="flex items-center px-4 py-3.5 border-b border-zinc-800/40 hover:bg-white/[0.03] active:bg-white/[0.05] transition-colors cursor-pointer select-none"
+      style={isLive ? { background: "rgba(239,68,68,0.05)" } : undefined}
       onClick={onTap}
     >
-      {/* Left: status/time — fixed 72px */}
-      <div className="w-[72px] flex-shrink-0 flex flex-col justify-center">
+      {/* Left: status/time — fixed 80px */}
+      <div className="w-[80px] flex-shrink-0 flex flex-col justify-center gap-0.5">
         {isLive ? (
           <>
-            <span className="text-[11px] font-bold tracking-widest text-red-500 uppercase">LIVE</span>
+            <div className="flex items-center gap-1">
+              <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
+              </span>
+              <span className="text-[11px] font-bold tracking-widest text-red-400 uppercase leading-tight">Live</span>
+            </div>
+            {liveDetail() && <span className="text-[10px] text-red-400/70 leading-tight font-medium">{liveDetail()}</span>}
           </>
         ) : isFt ? (
-          <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wide">Final</span>
+          <span className="text-[12px] font-semibold text-zinc-500 uppercase tracking-wide">Final</span>
         ) : (
-          <span className="text-[12px] font-medium text-zinc-300 whitespace-nowrap">
+          <span className="text-[13px] font-medium text-zinc-300 whitespace-nowrap">
             {formatTime(game.kickoff)}
           </span>
         )}
@@ -75,32 +155,30 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
       <div className="flex-1 flex items-center min-w-0">
         {/* Seattle (right-aligned) */}
         <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
-          <span className={`text-[13px] font-semibold truncate text-right ${seattleLost ? 'text-zinc-500' : 'text-white'}`}>
+          <span className={`text-[14px] font-semibold truncate text-right ${seattleLost ? 'text-zinc-500' : 'text-white'}`}>
             {game.seattleTeam.shortName}
           </span>
-          <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={24} className="flex-shrink-0" />
+          <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={26} className="flex-shrink-0" />
         </div>
 
         {/* Score or vs */}
-        <div className="w-14 flex-shrink-0 text-center">
+        <div className="w-16 flex-shrink-0 text-center">
           {hasScore ? (
-            <span className={`text-[14px] font-bold tabular-nums ${isLive ? 'text-red-400' : seattleWon ? 'text-white' : seattleLost ? 'text-zinc-400' : 'text-white'}`}>
+            <span className={`text-[15px] font-bold tabular-nums ${isLive ? 'text-red-300' : seattleWon ? 'text-white' : seattleLost ? 'text-zinc-400' : 'text-white'}`}>
               {game.seattleScore}–{game.opponentScore}
             </span>
-          ) : isFt ? (
-            <span className="text-[11px] font-semibold text-zinc-500">Final</span>
           ) : (
-            <span className="text-[12px] font-medium text-zinc-500">vs</span>
+            <span className="text-[13px] font-medium text-zinc-500">vs</span>
           )}
         </div>
 
         {/* Opponent (left-aligned) */}
         <div className="flex-1 flex items-center gap-2 min-w-0">
           {game.opponent.logo
-            ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={24} height={24} className="object-contain flex-shrink-0" />
+            ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={26} height={26} className="object-contain flex-shrink-0" />
             : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />
           }
-          <span className={`text-[13px] font-semibold truncate ${seattleWon ? 'text-zinc-500' : 'text-white'}`}>
+          <span className={`text-[14px] font-semibold truncate ${seattleWon ? 'text-zinc-500' : 'text-white'}`}>
             {game.opponent.shortName || game.opponent.name}
           </span>
         </div>
@@ -201,7 +279,7 @@ export default function ScheduleClient() {
   const mergedGames = games.map(g => {
     const update = liveScores[g.id]
     if (!update) return g
-    return { ...g, status: update.status, seattleScore: update.seattleScore, opponentScore: update.opponentScore }
+    return { ...g, status: update.status, seattleScore: update.seattleScore, opponentScore: update.opponentScore, clock: update.clock, period: update.period }
   })
 
   const filteredGames = (() => {
@@ -221,17 +299,20 @@ export default function ScheduleClient() {
   const sortedDates = [...grouped.keys()].sort()
   const hasLiveGames = filteredGames.some(g => g.status === 'live')
 
-  // Auto-scroll to today when games load
-  const todayRef = useRef<HTMLDivElement>(null)
+  // Refs for date section jumping
+  const dateRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
-  function scrollToToday() {
-    const el = todayRef.current
+  function scrollToDate(dateStr: string) {
+    const el = dateRefs.current[dateStr]
     if (!el) return
     const main = el.closest('main')
     if (main) {
-      const elTop = el.offsetTop - 120
-      main.scrollTo({ top: elTop, behavior: 'smooth' })
+      main.scrollTo({ top: el.offsetTop - 175, behavior: 'smooth' })
     }
+  }
+
+  function scrollToToday() {
+    scrollToDate(todayStr)
   }
 
   useEffect(() => {
@@ -273,6 +354,7 @@ export default function ScheduleClient() {
           teamClickCounts={teamClickCounts}
           recordClick={recordTeamClick}
         />
+        <DateStrip sortedDates={sortedDates} todayStr={todayStr} onSelect={scrollToDate} />
       </PageHeader>
 
       <div className="pb-24">
@@ -302,11 +384,11 @@ export default function ScheduleClient() {
             const isToday = dateStr === todayStr
             const label = formatDateHeader(dateStr)
             return (
-              <div key={dateStr} ref={isToday ? todayRef : undefined} style={{ borderTop: idx > 0 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+              <div key={dateStr} ref={el => { dateRefs.current[dateStr] = el }} style={{ borderTop: idx > 0 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                 {/* Date header — TODAY is bigger and accented */}
                 {isToday ? (
                   <div
-                    className="sticky top-[116px] z-20 px-4 py-2 flex items-center gap-2.5"
+                    className="sticky top-[172px] z-20 px-4 py-2 flex items-center gap-2.5"
                     style={{ background: 'rgba(8,8,15,0.97)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(0,212,255,0.2)', borderTop: '2px solid rgba(0,212,255,0.3)' }}
                   >
                     <span className="font-display text-[15px] font-800 uppercase tracking-widest text-[#00d4ff]">Today</span>
@@ -321,11 +403,11 @@ export default function ScheduleClient() {
                   </div>
                 ) : (
                   <div
-                    className="sticky top-[116px] z-20 px-4 py-2 flex items-center gap-3"
-                    style={{ background: 'rgba(8,8,15,0.96)', backdropFilter: 'blur(8px)' }}
+                    className="sticky top-[172px] z-20 px-4 py-2.5 flex items-center gap-3"
+                    style={{ background: 'rgba(8,8,15,0.97)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
                   >
-                    <span className="text-[11px] uppercase tracking-widest font-bold text-zinc-400">{label}</span>
-                    <div className="flex-1 h-px bg-zinc-800" />
+                    <span className="text-[13px] uppercase tracking-widest font-bold text-zinc-300">{label}</span>
+                    <div className="flex-1 h-px bg-zinc-700/50" />
                   </div>
                 )}
 

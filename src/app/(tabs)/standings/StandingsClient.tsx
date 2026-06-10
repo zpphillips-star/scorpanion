@@ -181,52 +181,100 @@ function ScopePicker({
 }
 
 function DivisionTable({ division, seattleColor }: { division: Division; seattleColor: string }) {
+  const hasTies = division.entries.some(e => (e.ties ?? 0) > 0)
+  const bgBase = 'rgba(8,8,15,1)'
+
   return (
-    <div className="mb-3">
+    <div className="mb-4">
+      {/* Division header */}
       <div className="px-4 py-2.5 flex items-center gap-3" style={{ background: "var(--surface-2)" }}>
         <span className="font-display text-[11px] font-700 text-zinc-400 uppercase tracking-widest">{division.name}</span>
         <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
       </div>
-      <div className="grid px-4 py-1.5" style={{ gridTemplateColumns: "1fr 36px 36px 52px 40px" }}>
-        <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider">Team</span>
-        <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">W</span>
-        <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">L</span>
-        <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">PCT</span>
-        <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">GB</span>
-      </div>
-      {division.entries.map((entry, idx) => (
-        <div
-          key={entry.teamId}
-          className="relative grid px-4 py-2.5 transition-colors hover:bg-white/3"
-          style={{
-            gridTemplateColumns: "1fr 36px 36px 52px 40px",
-            borderTop: "1px solid var(--border)",
-            background: entry.isSeattle ? `${seattleColor}14` : "transparent",
-          }}
-        >
-          {entry.isSeattle && (
-            <span className="absolute left-0 top-0 bottom-0 w-[3px] rounded-r-full" style={{ background: seattleColor }} />
-          )}
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="font-display text-[11px] font-600 text-zinc-600 w-4 text-center flex-shrink-0">{idx + 1}</span>
-            <TeamLogoImg src={entry.logo} abbr={entry.abbr} />
-            <div className="min-w-0">
-              <div className={`font-display text-[14px] font-700 leading-tight truncate ${entry.isSeattle ? "text-white" : "text-zinc-200"}`}>
-                {entry.teamName}
-              </div>
-              {entry.isSeattle && (
-                <div className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: seattleColor }}>▲ Seattle</div>
+
+      {/* ESPN-style: sticky team col + horizontal scroll for stats */}
+      <div className="overflow-x-auto no-scrollbar">
+        <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: hasTies ? '340px' : '280px' }}>
+          <thead>
+            <tr>
+              {/* Sticky team header */}
+              <th
+                className="sticky left-0 z-10 px-4 py-1.5 text-left"
+                style={{ background: 'var(--surface-2)', minWidth: '160px' }}
+              >
+                <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider">Team</span>
+              </th>
+              <th className="px-3 py-1.5 text-center" style={{ background: 'var(--surface-2)', minWidth: '36px' }}>
+                <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider">W</span>
+              </th>
+              <th className="px-3 py-1.5 text-center" style={{ background: 'var(--surface-2)', minWidth: '36px' }}>
+                <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider">L</span>
+              </th>
+              {hasTies && (
+                <th className="px-3 py-1.5 text-center" style={{ background: 'var(--surface-2)', minWidth: '36px' }}>
+                  <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider">T</span>
+                </th>
               )}
-            </div>
-          </div>
-          <span className="font-display text-[14px] font-700 text-white text-center self-center tabular-nums">{entry.wins}</span>
-          <span className="font-display text-[14px] font-600 text-zinc-400 text-center self-center tabular-nums">{entry.losses}</span>
-          <span className="font-display text-[13px] font-500 text-zinc-400 text-center self-center tabular-nums">{formatPct(entry.winPct)}</span>
-          <span className="font-display text-[13px] font-500 text-zinc-500 text-center self-center tabular-nums">
-            {entry.gamesBehind === 0 || entry.gamesBehind === "0" || entry.gamesBehind === "-" ? "—" : entry.gamesBehind}
-          </span>
-        </div>
-      ))}
+              <th className="px-3 py-1.5 text-center" style={{ background: 'var(--surface-2)', minWidth: '52px' }}>
+                <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider">PCT</span>
+              </th>
+              <th className="px-3 py-1.5 text-center" style={{ background: 'var(--surface-2)', minWidth: '40px' }}>
+                <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider">GB</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {division.entries.map((entry, idx) => {
+              const rowBg = entry.isSeattle ? `${seattleColor}14` : 'transparent'
+              const stickyBg = entry.isSeattle ? `color-mix(in srgb, ${seattleColor} 8%, ${bgBase})` : bgBase
+              return (
+                <tr key={entry.teamId} style={{ borderTop: '1px solid var(--border)' }}>
+                  {/* Sticky team cell */}
+                  <td
+                    className="sticky left-0 z-10 px-4 py-2.5"
+                    style={{ background: stickyBg, minWidth: '160px' }}
+                  >
+                    <div className="relative flex items-center gap-2.5">
+                      {entry.isSeattle && (
+                        <span className="absolute -left-4 top-0 bottom-0 w-[3px] rounded-r-full" style={{ background: seattleColor }} />
+                      )}
+                      <span className="font-display text-[11px] font-600 text-zinc-600 w-4 text-center flex-shrink-0">{idx + 1}</span>
+                      <TeamLogoImg src={entry.logo} abbr={entry.abbr} />
+                      <div className="min-w-0">
+                        <div className={`font-display text-[14px] font-700 leading-tight truncate ${entry.isSeattle ? "text-white" : "text-zinc-200"}`}>
+                          {entry.teamName}
+                        </div>
+                        {entry.isSeattle && (
+                          <div className="text-[9px] font-semibold uppercase tracking-widest" style={{ color: seattleColor }}>▲ SEA</div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2.5 text-center" style={{ background: rowBg }}>
+                    <span className="font-display text-[14px] font-700 text-white tabular-nums">{entry.wins}</span>
+                  </td>
+                  <td className="px-3 py-2.5 text-center" style={{ background: rowBg }}>
+                    <span className="font-display text-[14px] font-600 text-zinc-400 tabular-nums">{entry.losses}</span>
+                  </td>
+                  {hasTies && (
+                    <td className="px-3 py-2.5 text-center" style={{ background: rowBg }}>
+                      <span className="font-display text-[14px] font-600 text-zinc-500 tabular-nums">{entry.ties ?? 0}</span>
+                    </td>
+                  )}
+                  <td className="px-3 py-2.5 text-center" style={{ background: rowBg }}>
+                    <span className="font-display text-[13px] font-500 text-zinc-400 tabular-nums">{formatPct(entry.winPct)}</span>
+                  </td>
+                  <td className="px-3 py-2.5 text-center" style={{ background: rowBg }}>
+                    <span className="font-display text-[13px] font-500 text-zinc-500 tabular-nums">
+                      {entry.gamesBehind === 0 || entry.gamesBehind === "0" || entry.gamesBehind === "-" ? "—" : entry.gamesBehind}
+                    </span>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
