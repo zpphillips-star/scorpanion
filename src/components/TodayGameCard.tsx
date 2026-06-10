@@ -239,11 +239,13 @@ export function TodayGameCard({ game }: { game: Game }) {
               {game.seattleRecord && <div className="font-display text-[10px] text-zinc-600">{formatRecord(game.seattleRecord)}</div>}
             </div>
 
-            <div className="flex flex-col items-center gap-0.5 flex-shrink-0 min-w-[80px]">
+            <div className="flex flex-col items-center gap-0.5 flex-shrink-0 min-w-[100px]">
               {hasScore ? (
                 <>
-                  <div className="font-display font-800 tabular-nums leading-none text-white" style={{ fontSize: "40px" }}>
-                    {game.seattleScore}<span className="text-zinc-600 mx-1" style={{ fontSize: "28px" }}>–</span>{game.opponentScore}
+                  <div className="font-display font-800 tabular-nums leading-none text-white flex items-baseline gap-2" style={{ fontSize: "40px" }}>
+                    <span className={seattleLost ? "text-zinc-400" : ""}>{game.seattleScore}</span>
+                    <span className="text-zinc-600" style={{ fontSize: "26px" }}>–</span>
+                    <span className={seattleWon ? "text-zinc-400" : ""}>{game.opponentScore}</span>
                   </div>
                   {isFt && (
                     <span className={`font-display text-[12px] font-800 uppercase tracking-widest mt-0.5 ${seattleWon ? "text-emerald-400" : seattleLost ? "text-red-400" : "text-zinc-500"}`}>
