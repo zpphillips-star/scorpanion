@@ -185,8 +185,6 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
       </div>
     </div>
   )
-    </div>
-  )
 }
 
 export default function ScheduleClient() {
