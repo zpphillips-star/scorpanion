@@ -48,7 +48,7 @@ export async function GET(req: Request) {
     // Recent form (last 3) + next 3 upcoming
     const schedUrl = `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/teams/${teamId}/schedule`
     const schedRes = await fetch(schedUrl, { next: { revalidate: 300 } })
-    let recentForm: { result: "W" | "L" | "T"; score: string; opponent: string; oppLogo: string; date: string }[] = []
+    let recentForm: { result: "W" | "L" | "T"; myScore: number; oppScore: number; isHome: boolean; opponent: string; oppLogo: string; date: string }[] = []
     let upcomingGames: { opponent: string; oppLogo: string; date: string; isHome: boolean; time: string }[] = []
     if (schedRes.ok) {
       const schedData = await schedRes.json()
