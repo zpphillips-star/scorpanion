@@ -307,7 +307,7 @@ export default function ScheduleClient() {
     if (!el) return
     const main = el.closest('main')
     if (main) {
-      main.scrollTo({ top: el.offsetTop - 175, behavior: 'smooth' })
+      main.scrollTo({ top: el.offsetTop - 120, behavior: 'smooth' })
     }
   }
 
@@ -354,7 +354,6 @@ export default function ScheduleClient() {
           teamClickCounts={teamClickCounts}
           recordClick={recordTeamClick}
         />
-        <DateStrip sortedDates={sortedDates} todayStr={todayStr} onSelect={scrollToDate} />
       </PageHeader>
 
       <div className="pb-24">
@@ -384,11 +383,11 @@ export default function ScheduleClient() {
             const isToday = dateStr === todayStr
             const label = formatDateHeader(dateStr)
             return (
-              <div key={dateStr} ref={el => { dateRefs.current[dateStr] = el }} style={{ borderTop: idx > 0 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+              <div key={dateStr} ref={el => { dateRefs.current[dateStr] = el }} className={idx > 0 ? 'mt-4' : ''}>
                 {/* Date header — TODAY is bigger and accented */}
                 {isToday ? (
                   <div
-                    className="sticky top-[172px] z-20 px-4 py-2 flex items-center gap-2.5"
+                    className="sticky top-[116px] z-20 px-4 py-2 flex items-center gap-2.5"
                     style={{ background: 'rgba(8,8,15,0.97)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(0,212,255,0.2)', borderTop: '2px solid rgba(0,212,255,0.3)' }}
                   >
                     <span className="font-display text-[15px] font-800 uppercase tracking-widest text-[#00d4ff]">Today</span>
@@ -403,7 +402,7 @@ export default function ScheduleClient() {
                   </div>
                 ) : (
                   <div
-                    className="sticky top-[172px] z-20 px-4 py-2.5 flex items-center gap-3"
+                    className="sticky top-[116px] z-20 px-4 py-2.5 flex items-center gap-3"
                     style={{ background: 'rgba(8,8,15,0.97)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
                   >
                     <span className="text-[13px] uppercase tracking-widest font-bold text-zinc-300">{label}</span>
