@@ -9,7 +9,7 @@ interface TeamDetailData {
   id: string; name: string; shortName: string; abbr: string; logo: string
   color: string; altColor: string
   wins: number; losses: number; ties?: number; winPct?: string
-  recentForm: { result: "W" | "L" | "T"; score: string; opponent: string; oppLogo: string; date: string }[]
+  recentForm: { result: "W" | "L" | "T"; myScore: number; oppScore: number; isHome: boolean; opponent: string; oppLogo: string; date: string }[]
   upcomingGames: { opponent: string; oppLogo: string; date: string; isHome: boolean; time: string }[]
   divisionRank: number | null; divisionName: string
   divisionStandings: StandingRow[]
@@ -119,32 +119,50 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
               <div className="font-display text-[11px] font-800 uppercase tracking-widest text-zinc-400">Last 3 Games</div>
               <div className="flex-1 h-px bg-white/5" />
             </div>
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="space-y-2">
               {[...data.recentForm].reverse().map((g, i) => {
                 const win = g.result === "W"
                 const loss = g.result === "L"
                 const rc = win ? "#34d399" : loss ? "#f87171" : "#9ca3af"
-                const rbg = win ? "rgba(52,211,153,0.1)" : loss ? "rgba(248,113,113,0.1)" : "rgba(156,163,175,0.06)"
+                // away on top, home on bottom
+                const awayAbbr = g.isHome ? g.opponent : (data.abbr ?? "SEA")
+                const awayLogo = g.isHome ? g.oppLogo : logo
+                const awayScore = g.isHome ? g.oppScore : g.myScore
+                const homeAbbr = g.isHome ? (data.abbr ?? "SEA") : g.opponent
+                const homeLogo = g.isHome ? logo : g.oppLogo
+                const homeScore = g.isHome ? g.myScore : g.oppScore
+                const seattleWon = win
                 return (
                   <div
                     key={i}
-                    className="rounded-2xl flex flex-col items-center py-3.5 px-2 gap-2"
-                    style={{ background: "var(--surface-2)", border: `1px solid ${rc}28` }}
+                    className="rounded-2xl overflow-hidden"
+                    style={{ background: "var(--surface-2)", border: `1px solid ${rc}25` }}
                   >
-                    {/* W/L badge */}
-                    <span
-                      className="font-display text-[15px] font-800 w-9 h-9 rounded-full flex items-center justify-center"
-                      style={{ color: rc, background: rbg }}
-                    >{g.result}</span>
-                    {/* Opponent logo */}
-                    {g.oppLogo
-                      ? <img src={g.oppLogo} alt={g.opponent} width={30} height={30} className="object-contain" />
-                      : <div className="w-8 h-8 rounded-full bg-white/8 flex items-center justify-center font-display text-[9px] text-zinc-500">{g.opponent.slice(0,3)}</div>
-                    }
-                    {/* Score */}
-                    <span className="font-display text-[14px] font-800 text-white tabular-nums leading-none">{g.score}</span>
-                    {/* Date */}
-                    <span className="font-display text-[9px] text-zinc-600 text-center leading-tight">{fmtShortDate(g.date)}</span>
+                    {/* Away row */}
+                    <div className="flex items-center px-3.5 pt-3 pb-1.5 gap-2.5">
+                      {awayLogo
+                        ? <img src={awayLogo} alt={awayAbbr} width={22} height={22} className="object-contain flex-shrink-0" />
+                        : <div className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />
+                      }
+                      <span className={`flex-1 font-display text-[14px] font-600 ${!seattleWon && !g.isHome ? "text-white" : seattleWon && !g.isHome ? "text-white" : "text-zinc-400"}`}>{awayAbbr}</span>
+                      <span className={`font-display text-[18px] font-800 tabular-nums ${awayScore > homeScore ? "text-white" : "text-zinc-500"}`}>{awayScore}</span>
+                    </div>
+                    {/* Home row */}
+                    <div className="flex items-center px-3.5 pb-2.5 pt-1.5 gap-2.5 border-t border-white/5">
+                      {homeLogo
+                        ? <img src={homeLogo} alt={homeAbbr} width={22} height={22} className="object-contain flex-shrink-0" />
+                        : <div className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />
+                      }
+                      <span className={`flex-1 font-display text-[14px] font-600 ${homeScore > awayScore ? "text-white" : "text-zinc-400"}`}>{homeAbbr}</span>
+                      <span className={`font-display text-[18px] font-800 tabular-nums ${homeScore > awayScore ? "text-white" : "text-zinc-500"}`}>{homeScore}</span>
+                    </div>
+                    {/* Footer: result + date */}
+                    <div className="flex items-center justify-between px-3.5 py-1.5 border-t border-white/5" style={{ background: "rgba(0,0,0,0.2)" }}>
+                      <span className="font-display text-[11px] font-800 uppercase tracking-wide" style={{ color: rc }}>
+                        {g.result === "W" ? "Win" : g.result === "L" ? "Loss" : "Tie"}
+                      </span>
+                      <span className="font-display text-[10px] text-zinc-600">{fmtShortDate(g.date)}</span>
+                    </div>
                   </div>
                 )
               })}
@@ -177,7 +195,9 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                     <div className="font-display text-[11px] text-zinc-500 mt-0.5">{fmtDay(g.date)}</div>
                   </div>
                   <div className="flex-shrink-0 text-right">
-                    <div className="font-display text-[13px] font-700 text-zinc-200">{g.time}</div>
+                    <div className="font-display text-[13px] font-700 text-zinc-200">
+                      {new Date(g.time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
+                    </div>
                     <div
                       className="font-display text-[9px] font-700 uppercase tracking-wide mt-0.5 px-1.5 py-0.5 rounded-full inline-block"
                       style={{ color: g.isHome ? color : "var(--text-muted)", background: g.isHome ? `${color}18` : "transparent" }}

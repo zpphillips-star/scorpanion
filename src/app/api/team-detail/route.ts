@@ -61,11 +61,22 @@ export async function GET(req: Request) {
         const comp = e.competitions[0]
         const myTeam = comp.competitors.find((c: any) => c.team?.id === teamId || c.id === teamId)
         const opp = comp.competitors.find((c: any) => c.team?.id !== teamId && c.id !== teamId)
-        const myScore = parseFloat(myTeam?.score ?? "0")
-        const oppScore = parseFloat(opp?.score ?? "0")
+        // score can be a string "4", a number 4, or an object {value:4, displayValue:"4"}
+        const parseScore = (s: any): number => {
+          if (s === null || s === undefined) return 0
+          if (typeof s === "number") return s
+          if (typeof s === "string") return parseFloat(s) || 0
+          if (typeof s === "object") return parseFloat(s.value ?? s.displayValue ?? "0") || 0
+          return 0
+        }
+        const myScore = parseScore(myTeam?.score)
+        const oppScore = parseScore(opp?.score)
+        const isHome = myTeam?.homeAway === "home"
         return {
           result: myScore > oppScore ? "W" : myScore < oppScore ? "L" : "T",
-          score: `${myScore}-${oppScore}`,
+          myScore,
+          oppScore,
+          isHome,
           opponent: opp?.team?.abbreviation ?? opp?.team?.shortDisplayName ?? "?",
           oppLogo: opp?.team?.logos?.[0]?.href ?? opp?.team?.logo ?? "",
           date: e.date,
@@ -76,13 +87,12 @@ export async function GET(req: Request) {
         const myTeam = comp.competitors.find((c: any) => c.team?.id === teamId || c.id === teamId)
         const opp = comp.competitors.find((c: any) => c.team?.id !== teamId && c.id !== teamId)
         const isHome = myTeam?.homeAway === "home"
-        const date = new Date(e.date)
         return {
           opponent: opp?.team?.shortDisplayName ?? opp?.team?.abbreviation ?? "?",
           oppLogo: opp?.team?.logos?.[0]?.href ?? opp?.team?.logo ?? "",
           date: e.date,
           isHome,
-          time: date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZoneName: "short" }),
+          time: e.date,  // raw ISO — format client-side to use local TZ
         }
       })
     }
