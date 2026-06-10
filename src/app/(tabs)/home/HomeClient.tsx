@@ -713,7 +713,7 @@ export default function HomeClient() {
         const dateLabel = todayDate.toLocaleDateString("en-US", { month: "long", day: "numeric" })
 
         return (
-          <div className="mt-5">
+          <div className="mt-8">
             {/* Section header — same style as Recent/Upcoming */}
             <div className="flex items-center gap-3 px-4 mb-2">
               {hasLive && (
@@ -751,7 +751,7 @@ export default function HomeClient() {
 
       {/* ── Upcoming — WC compact rows ───────────────────────────────────── */}
       {upcomingDates.length > 0 && (
-        <div className="mt-5">
+        <div className="mt-8">
           <div className="px-4 mb-1 flex items-center gap-3">
             <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Upcoming</span>
             <div className="flex-1 h-px bg-zinc-800" />
