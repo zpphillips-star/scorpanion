@@ -119,7 +119,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
               <div className="font-display text-[11px] font-800 uppercase tracking-widest text-zinc-400">Last 3 Games</div>
               <div className="flex-1 h-px bg-white/5" />
             </div>
-            <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+            <div className="grid grid-cols-3 gap-2">
               {[...data.recentForm].reverse().map((g, i) => {
                 const win = g.result === "W"
                 const loss = g.result === "L"
@@ -133,33 +133,31 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                 return (
                   <div
                     key={i}
-                    className="flex-shrink-0 rounded-2xl overflow-hidden"
-                    style={{ background: "var(--surface-2)", border: `1px solid ${rc}28`, minWidth: "140px", width: "140px" }}
+                    className="rounded-2xl overflow-hidden"
+                    style={{ background: "var(--surface-2)", border: `1px solid ${rc}28` }}
                   >
                     {/* Away row */}
-                    <div className="flex items-center px-3 pt-3 pb-1.5 gap-2">
+                    <div className="flex items-center px-2.5 pt-2.5 pb-1 gap-1.5">
                       {awayLogo
-                        ? <img src={awayLogo} alt={awayAbbr} width={20} height={20} className="object-contain flex-shrink-0" />
-                        : <div className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />
+                        ? <img src={awayLogo} alt={awayAbbr} width={18} height={18} className="object-contain flex-shrink-0" />
+                        : <div className="w-4 h-4 rounded-full bg-white/10 flex-shrink-0" />
                       }
-                      <span className="flex-1 font-display text-[13px] font-600 text-zinc-300 truncate">{awayAbbr}</span>
-                      <span className={`font-display text-[17px] font-800 tabular-nums ${awayScore > homeScore ? "text-white" : "text-zinc-500"}`}>{awayScore}</span>
+                      <span className="flex-1 font-display text-[12px] font-600 text-zinc-300 truncate">{awayAbbr}</span>
+                      <span className={`font-display text-[16px] font-800 tabular-nums ${awayScore > homeScore ? "text-white" : "text-zinc-500"}`}>{awayScore}</span>
                     </div>
                     {/* Home row */}
-                    <div className="flex items-center px-3 pb-2.5 pt-1 gap-2 border-t border-white/5">
+                    <div className="flex items-center px-2.5 pb-2 pt-1 gap-1.5 border-t border-white/5">
                       {homeLogo
-                        ? <img src={homeLogo} alt={homeAbbr} width={20} height={20} className="object-contain flex-shrink-0" />
-                        : <div className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />
+                        ? <img src={homeLogo} alt={homeAbbr} width={18} height={18} className="object-contain flex-shrink-0" />
+                        : <div className="w-4 h-4 rounded-full bg-white/10 flex-shrink-0" />
                       }
-                      <span className="flex-1 font-display text-[13px] font-600 text-zinc-300 truncate">{homeAbbr}</span>
-                      <span className={`font-display text-[17px] font-800 tabular-nums ${homeScore > awayScore ? "text-white" : "text-zinc-500"}`}>{homeScore}</span>
+                      <span className="flex-1 font-display text-[12px] font-600 text-zinc-300 truncate">{homeAbbr}</span>
+                      <span className={`font-display text-[16px] font-800 tabular-nums ${homeScore > awayScore ? "text-white" : "text-zinc-500"}`}>{homeScore}</span>
                     </div>
                     {/* Footer */}
-                    <div className="flex items-center justify-between px-3 py-1.5 border-t border-white/5" style={{ background: "rgba(0,0,0,0.25)" }}>
-                      <span className="font-display text-[11px] font-800 uppercase tracking-wide" style={{ color: rc }}>
-                        {win ? "W" : loss ? "L" : "T"}
-                      </span>
-                      <span className="font-display text-[10px] text-zinc-600">{fmtShortDate(g.date)}</span>
+                    <div className="flex items-center justify-between px-2.5 py-1 border-t border-white/5" style={{ background: "rgba(0,0,0,0.25)" }}>
+                      <span className="font-display text-[10px] font-800 uppercase" style={{ color: rc }}>{win ? "W" : loss ? "L" : "T"}</span>
+                      <span className="font-display text-[9px] text-zinc-600">{fmtShortDate(g.date)}</span>
                     </div>
                   </div>
                 )
