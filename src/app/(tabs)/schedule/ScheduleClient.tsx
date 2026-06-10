@@ -125,12 +125,12 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
 
   return (
     <div
-      className="flex items-center px-4 py-3.5 border-b border-zinc-800/40 hover:bg-white/[0.03] active:bg-white/[0.05] transition-colors cursor-pointer select-none"
+      className="flex items-center px-4 py-2.5 border-b border-zinc-800/35 hover:bg-white/[0.03] active:bg-white/[0.05] transition-colors cursor-pointer select-none"
       style={isLive ? { background: "rgba(239,68,68,0.05)" } : undefined}
       onClick={onTap}
     >
-      {/* Left: status/time — fixed 80px */}
-      <div className="w-[80px] flex-shrink-0 flex flex-col justify-center gap-0.5">
+      {/* Left: status/time — fixed 64px */}
+      <div className="w-[64px] flex-shrink-0 flex flex-col justify-center gap-0.5">
         {isLive ? (
           <>
             <div className="flex items-center gap-1">
@@ -138,51 +138,53 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
               </span>
-              <span className="text-[11px] font-bold tracking-widest text-red-400 uppercase leading-tight">Live</span>
+              <span className="text-[11px] font-bold text-red-400 uppercase leading-tight">Live</span>
             </div>
-            {liveDetail() && <span className="text-[10px] text-red-400/70 leading-tight font-medium">{liveDetail()}</span>}
+            {liveDetail() && <span className="text-[10px] text-red-400/60 leading-tight">{liveDetail()}</span>}
           </>
         ) : isFt ? (
-          <span className="text-[12px] font-semibold text-zinc-500 uppercase tracking-wide">Final</span>
+          <span className="text-[11px] text-zinc-500 uppercase tracking-wide">Final</span>
         ) : (
-          <span className="text-[13px] font-medium text-zinc-300 whitespace-nowrap">
+          <span className="text-[12px] font-medium text-zinc-300 whitespace-nowrap">
             {formatTime(game.kickoff)}
           </span>
         )}
       </div>
 
-      {/* Center: Seattle | score | opponent */}
-      <div className="flex-1 flex items-center min-w-0">
-        {/* Seattle (right-aligned) */}
-        <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
-          <span className={`text-[14px] font-semibold truncate text-right ${seattleLost ? 'text-zinc-500' : 'text-white'}`}>
-            {game.seattleTeam.shortName}
-          </span>
-          <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={26} className="flex-shrink-0" />
-        </div>
-
-        {/* Score or vs */}
-        <div className="w-16 flex-shrink-0 text-center">
-          {hasScore ? (
-            <span className={`text-[15px] font-bold tabular-nums ${isLive ? 'text-red-300' : seattleWon ? 'text-white' : seattleLost ? 'text-zinc-400' : 'text-white'}`}>
-              {game.seattleScore}–{game.opponentScore}
-            </span>
-          ) : (
-            <span className="text-[13px] font-medium text-zinc-500">vs</span>
-          )}
-        </div>
-
-        {/* Opponent (left-aligned) */}
-        <div className="flex-1 flex items-center gap-2 min-w-0">
-          {game.opponent.logo
-            ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={26} height={26} className="object-contain flex-shrink-0" />
-            : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />
-          }
-          <span className={`text-[14px] font-semibold truncate ${seattleWon ? 'text-zinc-500' : 'text-white'}`}>
-            {game.opponent.shortName || game.opponent.name}
-          </span>
-        </div>
+      {/* Seattle team — logo + abbr */}
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={24} />
+        <span className={`text-[13px] font-bold w-[30px] ${seattleLost ? 'text-zinc-500' : 'text-white'}`}>
+          {game.seattleTeam.abbr}
+        </span>
       </div>
+
+      {/* Score or vs — center */}
+      <div className="w-14 flex-shrink-0 text-center">
+        {hasScore ? (
+          <span className={`text-[14px] font-bold tabular-nums ${isLive ? 'text-red-300' : seattleWon ? 'text-white' : seattleLost ? 'text-zinc-400' : 'text-white'}`}>
+            {game.seattleScore}–{game.opponentScore}
+          </span>
+        ) : (
+          <span className="text-[11px] text-zinc-600">vs</span>
+        )}
+      </div>
+
+      {/* Opponent — logo + abbr + broadcast right */}
+      <div className="flex-1 flex items-center gap-1.5 min-w-0">
+        {game.opponent.logo
+          ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={24} height={24} className="object-contain flex-shrink-0" />
+          : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />
+        }
+        <span className={`text-[13px] font-bold flex-shrink-0 ${seattleWon ? 'text-zinc-500' : 'text-white'}`}>
+          {game.opponent.abbr || game.opponent.shortName}
+        </span>
+        {game.broadcast && !isFt && !isLive && (
+          <span className="text-[10px] text-zinc-600 truncate ml-auto">{game.broadcast}</span>
+        )}
+      </div>
+    </div>
+  )
     </div>
   )
 }
