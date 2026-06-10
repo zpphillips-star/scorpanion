@@ -75,26 +75,25 @@ export default function UpcomingScheduleSection({ game }: Props) {
       <div className="grid grid-cols-2 gap-3">
         {/* Seattle column */}
         <div>
-          {/* Column header */}
-          <div className="flex items-center gap-2 mb-3 pb-2.5" style={{ borderBottom: `2px solid ${color}40` }}>
+          <div className="flex items-center gap-2 mb-3 pb-2.5" style={{ borderBottom: `2px solid ${color}50` }}>
             <TeamLogo src={seaLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={20} />
-            <span className="font-display text-[14px] font-700 text-white truncate">{game.seattleTeam.shortName}</span>
+            <span className="font-display text-[13px] font-700 text-white truncate">{game.seattleTeam.shortName}</span>
           </div>
           {seaGames.length === 0 ? (
             <div className="text-[13px] text-zinc-600 py-2">No upcoming games</div>
           ) : (
-            <div className="space-y-3.5">
+            <div className="space-y-2">
               {seaGames.map((g, i) => (
-                <div key={i} className="flex flex-col gap-0.5">
+                <div key={i} className="rounded-xl px-2.5 py-2" style={{ background: "var(--surface-2)", border: "1px solid rgba(255,255,255,0.06)" }}>
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="font-display text-[12px] font-600 text-zinc-500 flex-shrink-0">{g.isHome ? "vs" : "@"}</span>
+                    <span className="font-display text-[11px] font-700 text-zinc-400 flex-shrink-0 w-5 text-center">{g.isHome ? "vs" : "@"}</span>
                     {g.oppLogo
-                      ? <img src={g.oppLogo} alt={g.opponent} width={16} height={16} className="object-contain flex-shrink-0" />
+                      ? <img src={g.oppLogo} alt={g.opponent} width={18} height={18} className="object-contain flex-shrink-0" />
                       : null
                     }
-                    <span className="font-display text-[14px] font-700 text-white truncate">{g.opponent}</span>
+                    <span className="font-display text-[13px] font-700 text-white truncate">{g.opponent}</span>
                   </div>
-                  <span className="font-display text-[12px] font-600 text-zinc-500">{fmtShortDate(g.date)}</span>
+                  <div className="font-display text-[11px] text-zinc-500 mt-0.5 pl-6">{fmtShortDate(g.date)}</div>
                 </div>
               ))}
             </div>
@@ -103,29 +102,28 @@ export default function UpcomingScheduleSection({ game }: Props) {
 
         {/* Opponent column */}
         <div>
-          {/* Column header */}
-          <div className="flex items-center gap-2 mb-3 pb-2.5" style={{ borderBottom: "2px solid rgba(255,255,255,0.1)" }}>
+          <div className="flex items-center gap-2 mb-3 pb-2.5" style={{ borderBottom: "2px solid rgba(255,255,255,0.15)" }}>
             {game.opponent.logo
               ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={20} height={20} className="object-contain" />
               : <div className="w-5 h-5 rounded-full bg-white/10" />
             }
-            <span className="font-display text-[14px] font-700 text-zinc-300 truncate">{game.opponent.shortName || game.opponent.name}</span>
+            <span className="font-display text-[13px] font-700 text-white truncate">{game.opponent.shortName || game.opponent.name}</span>
           </div>
           {oppGames.length === 0 ? (
             <div className="text-[13px] text-zinc-600 py-2">No upcoming games</div>
           ) : (
-            <div className="space-y-3.5">
+            <div className="space-y-2">
               {oppGames.map((g, i) => (
-                <div key={i} className="flex flex-col gap-0.5">
+                <div key={i} className="rounded-xl px-2.5 py-2" style={{ background: "var(--surface-2)", border: "1px solid rgba(255,255,255,0.06)" }}>
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="font-display text-[12px] font-600 text-zinc-500 flex-shrink-0">{g.isHome ? "vs" : "@"}</span>
+                    <span className="font-display text-[11px] font-700 text-zinc-400 flex-shrink-0 w-5 text-center">{g.isHome ? "vs" : "@"}</span>
                     {g.oppLogo
-                      ? <img src={g.oppLogo} alt={g.opponent} width={16} height={16} className="object-contain flex-shrink-0" />
+                      ? <img src={g.oppLogo} alt={g.opponent} width={18} height={18} className="object-contain flex-shrink-0" />
                       : null
                     }
-                    <span className="font-display text-[14px] font-600 text-zinc-300 truncate">{g.opponent}</span>
+                    <span className="font-display text-[13px] font-700 text-white truncate">{g.opponent}</span>
                   </div>
-                  <span className="font-display text-[12px] font-600 text-zinc-500">{fmtShortDate(g.date)}</span>
+                  <div className="font-display text-[11px] text-zinc-500 mt-0.5 pl-6">{fmtShortDate(g.date)}</div>
                 </div>
               ))}
             </div>
