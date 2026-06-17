@@ -211,15 +211,14 @@ function getColDefs(leagueId: string, entries: StandingsEntry[]): ColDef[] {
         { key: 'l',   label: 'L',   getValue: e => e.losses, minWidth: 36 },
         { key: 'pts', label: 'PTS', getValue: e => e.points ?? 0, minWidth: 40, bold: true },
       ]
-    case 'nfl': {
-      const cols: ColDef[] = [
+    case 'nfl':
+      // Always show T column so all divisions have identical columns (0 when no ties)
+      return [
         { key: 'w',   label: 'W',   getValue: e => e.wins, minWidth: 36, bold: true },
         { key: 'l',   label: 'L',   getValue: e => e.losses, minWidth: 36 },
+        { key: 't',   label: 'T',   getValue: e => e.ties ?? 0, minWidth: 36, muted: true },
+        { key: 'pct', label: 'PCT', getValue: e => formatPct(e.winPct), minWidth: 52, small: true },
       ]
-      if (hasTies) cols.push({ key: 't', label: 'T', getValue: e => e.ties ?? 0, minWidth: 36, muted: true })
-      cols.push({ key: 'pct', label: 'PCT', getValue: e => formatPct(e.winPct), minWidth: 52, small: true })
-      return cols
-    }
     default: // mlb, nba, wnba
       return [
         { key: 'w',   label: 'W',   getValue: e => e.wins, minWidth: 36, bold: true },
