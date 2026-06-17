@@ -327,12 +327,12 @@ function parseHierarchy(
   return { conferences, divisions: divisionsFlat }
 }
 
-function getSeasonInfo(data: any, leagueId: string): SeasonInfo {
-  const season = data.season || data.leagues?.[0]?.season || {}
+function getSeasonInfo(standingsData: any, leagueId: string, scoreboard: any): SeasonInfo {
+  const season = standingsData.season || standingsData.leagues?.[0]?.season || {}
   const year: number = season.year || new Date().getFullYear()
 
-  // ESPN can return season.type as a plain number (2) OR as an object { id: 4, name: "Off Season" }
-  const rawType = season.type
+  // Prefer scoreboard season.type — it's more accurate than standings (standings often omits type)
+  const rawType = scoreboard?.season?.type ?? season.type
   const typeId: number = typeof rawType === 'object' && rawType !== null
     ? Number(rawType.id ?? rawType.type ?? 2)
     : Number(rawType ?? 2)
@@ -343,12 +343,23 @@ function getSeasonInfo(data: any, leagueId: string): SeasonInfo {
   else if (typeId === 3) status = 'playoffs'
   else if (typeId === 4) status = 'offseason'
 
+  // If playoffs but no live/upcoming events → season is actually complete
+  if (status === 'playoffs') {
+    const events: any[] = scoreboard?.events || []
+    const now = Date.now()
+    const hasActiveOrFuture = events.some((e: any) => {
+      const stateType = e.status?.type?.state || ''
+      const eventDate = new Date(e.date || 0).getTime()
+      return stateType === 'in' || stateType === 'pre' || eventDate > now
+    })
+    if (!hasActiveOrFuture) status = 'offseason'
+  }
+
   const label: string = season.displayName || season.name || `${year} Season`
 
   let nextStartApprox: string | null = null
   if (status === 'offseason') {
     const month = NEXT_SEASON_MONTH[leagueId] || 'Fall'
-    // Sports that restart in the fall: October NHL/NBA — if we're Jan-Jun same year; if Jul-Dec next year
     const currentMonth = new Date().getMonth()
     const nextYear = currentMonth >= 6 ? year + 1 : year
     nextStartApprox = `${month} ${nextYear}`
@@ -367,12 +378,18 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const url = `https://site.api.espn.com/apis/v2/sports/${mapping.sport}/${mapping.league}/standings`
-    const res = await fetch(url, { next: { revalidate: 300 } })
-    if (!res.ok) throw new Error('ESPN request failed')
-    const data = await res.json()
+    const standingsUrl = `https://site.api.espn.com/apis/v2/sports/${mapping.sport}/${mapping.league}/standings`
+    const scoreboardUrl = `https://site.api.espn.com/apis/site/v2/sports/${mapping.sport}/${mapping.league}/scoreboard`
 
-    const season = getSeasonInfo(data, leagueId)
+    const [standingsRes, scoreboardRes] = await Promise.all([
+      fetch(standingsUrl, { next: { revalidate: 300 } }),
+      fetch(scoreboardUrl, { next: { revalidate: 300 } }),
+    ])
+    if (!standingsRes.ok) throw new Error('ESPN standings request failed')
+    const data = await standingsRes.json()
+    const scoreboard = scoreboardRes.ok ? await scoreboardRes.json() : null
+
+    const season = getSeasonInfo(data, leagueId, scoreboard)
     const { conferences, divisions } = parseHierarchy(data, mapping.seattleIds, leagueId)
 
     // Find Seattle's division and conference names
