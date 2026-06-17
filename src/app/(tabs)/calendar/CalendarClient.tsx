@@ -1,12 +1,14 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Game } from '@/lib/types'
-import { SEATTLE_TEAMS, getTeamLogoUrl } from '@/lib/teams'
+import { getTeamLogoUrl } from '@/lib/teams'
 import { useSelectedTeams } from '@/hooks/useSelectedTeams'
 import { useTeamClickCounts } from '@/hooks/useTeamClickCounts'
 import GameCard from '@/components/GameCard'
+import GameDetailSheet from '@/components/GameDetailSheet'
 import TeamFilterBar, { getCollegeGroupKey } from '@/components/TeamFilterBar'
 import TeamLogo from '@/components/TeamLogo'
+import PageHeader from '@/components/PageHeader'
 
 const DOW = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
@@ -19,6 +21,7 @@ export default function CalendarClient() {
   const [games, setGames] = useState<Game[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [activeFilter, setActiveFilter] = useState('all')
 
   const now = new Date()
@@ -59,7 +62,10 @@ export default function CalendarClient() {
   })()
 
   const selectedGames = selectedDate
-    ? filteredGames.filter(g => new Date(g.kickoff).toLocaleDateString('en-CA') === selectedDate)
+    ? filteredGames.filter(g => {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+        return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date(g.kickoff)) === selectedDate
+      })
     : []
 
   function navigate(dir: 'prev' | 'next') {
@@ -93,12 +99,14 @@ export default function CalendarClient() {
   const firstDay = getFirstDay(viewYear, viewMonth)
   const monthName = new Date(viewYear, viewMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 
-  // Map date → games + team colors
+  // Map date → games + team colors (timezone-aware)
   const gamesByDay = new Map<string, { count: number; colors: string[]; logos: { src: string; emoji: string; abbr: string }[] }>()
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
   for (const g of filteredGames) {
     const d = new Date(g.kickoff)
-    if (d.getFullYear() === viewYear && d.getMonth() === viewMonth) {
-      const key = d.toLocaleDateString('en-CA')
+    const key = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(d)
+    const [ky, km] = key.split('-').map(Number)
+    if (ky === viewYear && km - 1 === viewMonth) {
       if (!gamesByDay.has(key)) gamesByDay.set(key, { count: 0, colors: [], logos: [] })
       const e = gamesByDay.get(key)!
       e.count++
@@ -117,13 +125,9 @@ export default function CalendarClient() {
   const slideClass = slideDir === 'left' ? 'animate-slide-in-left' : slideDir === 'right' ? 'animate-slide-in-right' : ''
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-68px)] overflow-hidden">
-
-      {/* Sticky header */}
-      <div className="flex-shrink-0 glass-header">
-        <div className="px-4 py-2.5 flex items-center justify-between">
-          <h1 className="font-display text-[24px] font-800 text-white leading-none tracking-tight uppercase">Calendar</h1>
-        </div>
+    <>
+      {/* ── Sticky header (same as Schedule/Home) ─────────────────────── */}
+      <PageHeader title="Calendar">
         <TeamFilterBar
           selectedTeamIds={selectedTeamIds}
           activeFilter={activeFilter}
@@ -131,15 +135,16 @@ export default function CalendarClient() {
           teamClickCounts={teamClickCounts}
           recordClick={recordClick}
         />
-      </div>
+      </PageHeader>
 
       {loading ? (
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex items-center justify-center py-20">
           <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
         </div>
       ) : (
         <div
-          className="flex-1 flex flex-col overflow-hidden select-none"
+          className="select-none flex flex-col"
+          style={{ height: 'calc(100dvh - 128px - 5rem)' }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -154,9 +159,7 @@ export default function CalendarClient() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <div className="text-center">
-              <div className="font-display text-[20px] font-800 text-white uppercase tracking-tight leading-none">{monthName}</div>
-            </div>
+            <div className="font-display text-[20px] font-800 text-white uppercase tracking-tight leading-none">{monthName}</div>
             <button
               onClick={() => navigate('next')}
               className="w-9 h-9 flex items-center justify-center rounded-full transition-colors active:bg-white/10"
@@ -188,24 +191,15 @@ export default function CalendarClient() {
               return (
                 <button
                   key={ds}
-                  onClick={() => { if (hasGames || isToday) { setSelectedDate(ds) } }}
+                  onClick={() => { if (hasGames || isToday) setSelectedDate(ds === selectedDate ? null : ds) }}
                   className={`relative flex flex-col items-center justify-start pt-1.5 rounded-xl transition-all active:scale-95 ${
-                    isSelected
-                      ? 'ring-2 ring-[#00d4ff]'
-                      : hasGames
-                      ? 'cursor-pointer active:bg-white/10'
-                      : 'cursor-default'
+                    isSelected ? 'ring-2 ring-[#00d4ff]' : hasGames ? 'cursor-pointer active:bg-white/10' : 'cursor-default'
                   }`}
                   style={{
-                    background: isSelected
-                      ? 'rgba(0,212,255,0.12)'
-                      : hasGames
-                      ? 'var(--surface)'
-                      : 'transparent',
+                    background: isSelected ? 'rgba(0,212,255,0.12)' : hasGames ? 'var(--surface)' : 'transparent',
                     border: hasGames && !isSelected ? '1px solid var(--border)' : isSelected ? 'none' : '1px solid transparent',
                   }}
                 >
-                  {/* Day number */}
                   <span
                     className={`font-display text-[15px] font-700 leading-none w-7 h-7 flex items-center justify-center rounded-full flex-shrink-0 ${
                       isToday ? 'font-800' : hasGames ? 'text-white' : 'text-zinc-600'
@@ -214,8 +208,6 @@ export default function CalendarClient() {
                   >
                     {day}
                   </span>
-
-                  {/* Team color dots */}
                   {hasGames && (
                     <div className="flex gap-0.5 mt-1 flex-wrap justify-center px-1">
                       {entry!.colors.slice(0, 3).map((color, i) => (
@@ -223,8 +215,6 @@ export default function CalendarClient() {
                       ))}
                     </div>
                   )}
-
-                  {/* Game count badge for 2+ */}
                   {hasGames && entry!.count > 1 && (
                     <span className="font-display text-[9px] font-700 text-zinc-500 mt-0.5">{entry!.count}</span>
                   )}
@@ -232,53 +222,49 @@ export default function CalendarClient() {
               )
             })}
           </div>
+
+          {/* ── Day game list (inline below grid when date selected) ──── */}
+          {selectedDate && selectedGames.length > 0 && (
+            <div
+              className="flex-shrink-0 border-t animate-slide-up overflow-y-auto"
+              style={{ borderColor: 'var(--border)', background: 'var(--surface)', maxHeight: '38dvh', paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
+            >
+              <div className="px-5 py-3 flex items-center justify-between sticky top-0" style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
+                <div>
+                  <div className="font-display text-[16px] font-800 text-white uppercase tracking-tight">
+                    {new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                  </div>
+                  <div className="font-display text-[10px] font-600 text-zinc-500 uppercase tracking-widest">
+                    {selectedGames.length} Game{selectedGames.length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+                <button onClick={() => setSelectedDate(null)} className="w-7 h-7 rounded-full flex items-center justify-center text-zinc-400 text-sm" style={{ background: 'rgba(255,255,255,0.08)' }}>✕</button>
+              </div>
+              <div className="py-2">
+                {selectedGames.map(g => (
+                  <div key={g.id} onClick={() => setSelectedGame(g)} className="cursor-pointer">
+                    <GameCard game={g} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Empty day */}
+          {selectedDate && selectedGames.length === 0 && (
+            <div className="flex-shrink-0 border-t py-6 text-center animate-slide-up" style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}>
+              <div className="text-3xl mb-2">🗓️</div>
+              <div className="font-display text-[13px] font-700 text-zinc-400 uppercase tracking-wide">No games this day</div>
+              <button onClick={() => setSelectedDate(null)} className="mt-3 text-[11px] text-zinc-500 underline">Dismiss</button>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Day game sheet */}
-      {selectedDate && (
-        <div className="fixed inset-0 z-50 flex items-end" onClick={() => setSelectedDate(null)}>
-          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
-          <div
-            className="relative w-full rounded-t-3xl max-h-[78dvh] overflow-hidden lg:max-w-2xl lg:mx-auto animate-slide-up"
-            style={{ background: 'var(--surface)' }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="w-10 h-1 rounded-full bg-white/15 mx-auto mt-3 mb-0" />
-            <div
-              className="sticky top-0 px-5 py-3.5 flex items-center justify-between"
-              style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}
-            >
-              <div>
-                <div className="font-display text-[18px] font-800 text-white uppercase tracking-tight">
-                  {new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-                </div>
-                <div className="font-display text-[11px] font-600 text-zinc-500 uppercase tracking-widest">
-                  {selectedGames.length} Game{selectedGames.length !== 1 ? 's' : ''}
-                </div>
-              </div>
-              <button
-                onClick={() => setSelectedDate(null)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm"
-                style={{ background: 'rgba(255,255,255,0.08)' }}
-              >✕</button>
-            </div>
-            <div className="overflow-y-auto" style={{ maxHeight: '65dvh', paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}>
-              {selectedGames.length === 0 ? (
-                <div className="p-8 text-center">
-                  <div className="text-4xl mb-3">🗓️</div>
-                  <div className="font-display text-[14px] font-700 text-zinc-400 uppercase tracking-wide">No games this day</div>
-                  <div className="text-zinc-600 text-[12px] mt-1">Try another date or check upcoming games on Home</div>
-                </div>
-              ) : (
-                <div className="py-2">
-                  {selectedGames.map(g => <GameCard key={g.id} game={g} />)}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+      {/* ── Game detail sheet (same as everywhere else) ────────────────── */}
+      {selectedGame && (
+        <GameDetailSheet game={selectedGame} onClose={() => setSelectedGame(null)} />
       )}
-    </div>
+    </>
   )
 }

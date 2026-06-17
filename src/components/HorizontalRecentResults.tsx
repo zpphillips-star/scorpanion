@@ -30,25 +30,43 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
           </span>
           <span className="text-[10px] text-zinc-600">{fmtDate(game.kickoff)}</span>
         </div>
-        <div className="flex items-center justify-between gap-1.5">
-          <div className="flex flex-col items-center gap-1 flex-1">
-            <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={26} />
-            <span className={`font-display text-[14px] font-800 tabular-nums ${seattleLost ? "text-zinc-500" : "text-white"}`}>
-              {game.seattleScore ?? "–"}
-            </span>
-          </div>
-          <span className="font-display text-[10px] text-zinc-700 font-600 self-center pb-3">–</span>
-          <div className="flex flex-col items-center gap-1 flex-1">
-            <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={26} />
-            <span className={`font-display text-[14px] font-800 tabular-nums ${seattleWon ? "text-zinc-500" : "text-white"}`}>
-              {game.opponentScore ?? "–"}
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-[10px] text-zinc-600 truncate flex-1">vs {game.opponent.shortName || game.opponent.abbr}</span>
-          <span className="text-[9px] text-zinc-700 flex-shrink-0 ml-1">›</span>
-        </div>
+        {/* AWAY on left, HOME on right */}
+        {(() => {
+          const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
+          const leftLogo = game.isHome ? game.opponent.logo : seattleLogoUrl
+          const leftEmoji = game.isHome ? "🏟️" : game.seattleTeam.emoji
+          const leftAbbr = game.isHome ? game.opponent.abbr : game.seattleTeam.abbr
+          const leftScore = game.isHome ? game.opponentScore : game.seattleScore
+          const leftDimmed = game.isHome ? seattleWon : seattleLost
+          const rightLogo = game.isHome ? seattleLogoUrl : game.opponent.logo
+          const rightEmoji = game.isHome ? game.seattleTeam.emoji : "🏟️"
+          const rightAbbr = game.isHome ? game.seattleTeam.abbr : game.opponent.abbr
+          const rightScore = game.isHome ? game.seattleScore : game.opponentScore
+          const rightDimmed = game.isHome ? seattleLost : seattleWon
+          return (
+            <>
+              <div className="flex items-center justify-between gap-1.5">
+                <div className="flex flex-col items-center gap-1 flex-1">
+                  <TeamLogo src={leftLogo} emoji={leftEmoji} abbr={leftAbbr} size={26} />
+                  <span className={`font-display text-[14px] font-800 tabular-nums ${leftDimmed ? "text-zinc-500" : "text-white"}`}>
+                    {leftScore ?? "–"}
+                  </span>
+                </div>
+                <span className="font-display text-[10px] text-zinc-700 font-600 self-center pb-3">–</span>
+                <div className="flex flex-col items-center gap-1 flex-1">
+                  <TeamLogo src={rightLogo} emoji={rightEmoji} abbr={rightAbbr} size={26} />
+                  <span className={`font-display text-[14px] font-800 tabular-nums ${rightDimmed ? "text-zinc-500" : "text-white"}`}>
+                    {rightScore ?? "–"}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-[10px] text-zinc-600 truncate flex-1">{game.isHome ? "vs" : "@"} {game.opponent.shortName || game.opponent.abbr}</span>
+                <span className="text-[9px] text-zinc-700 flex-shrink-0 ml-1">›</span>
+              </div>
+            </>
+          )
+        })()}
       </div>
     </button>
   )

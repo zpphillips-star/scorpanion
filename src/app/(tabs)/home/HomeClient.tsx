@@ -198,35 +198,41 @@ function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void })
             {game.venue?.city && <span className="text-[11px] text-zinc-500 ml-auto">📍 {game.venue.city}</span>}
           </div>
 
-          {/* Logos + big score */}
+          {/* Logos + big score — AWAY (left) vs HOME (right) */}
           <div className="flex items-center justify-between gap-3">
+            {/* Left = AWAY */}
             <button
               className="flex-1 flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
-              onClick={() => { onClose(); setTeamSheet({ id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl }) }}
+              onClick={() => { onClose(); setTeamSheet(game.isHome ? { id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo } : { id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl }) }}
             >
-              <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={60} />
-              <span className={`font-display text-[14px] font-700 text-center leading-tight ${seattleLost ? "text-zinc-400" : "text-white"}`}>{game.seattleTeam.shortName}</span>
-              <span className="text-[10px] uppercase tracking-widest text-zinc-600">{game.isHome ? "Home" : "Away"}</span>
+              <TeamLogo src={game.isHome ? game.opponent.logo : seattleLogoUrl} emoji={game.isHome ? "🏟️" : game.seattleTeam.emoji} abbr={game.isHome ? game.opponent.abbr : game.seattleTeam.abbr} size={60} />
+              <span className={`font-display text-[14px] font-700 text-center leading-tight ${game.isHome ? (seattleWon ? "text-zinc-400" : "text-white") : (seattleLost ? "text-zinc-400" : "text-white")}`}>
+                {game.isHome ? (game.opponent.shortName || game.opponent.name) : game.seattleTeam.shortName}
+              </span>
+              <span className="text-[10px] uppercase tracking-widest text-zinc-600">Away</span>
             </button>
 
             <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
               <div className="font-display font-800 tabular-nums text-[48px] leading-none text-white">
-                <span className={seattleLost ? "text-zinc-400" : ""}>{game.seattleScore}</span>
+                <span className={game.isHome ? (seattleWon ? "text-zinc-400" : "") : (seattleLost ? "text-zinc-400" : "")}>{game.isHome ? game.opponentScore : game.seattleScore}</span>
                 <span className="text-zinc-600 text-[32px] mx-1.5">–</span>
-                <span className={seattleWon ? "text-zinc-400" : ""}>{game.opponentScore}</span>
+                <span className={game.isHome ? (seattleLost ? "text-zinc-400" : "") : (seattleWon ? "text-zinc-400" : "")}>{game.isHome ? game.seattleScore : game.opponentScore}</span>
               </div>
               <span className={`font-display text-[13px] font-800 uppercase tracking-widest ${seattleWon ? "text-emerald-400" : seattleLost ? "text-red-400" : "text-zinc-500"}`}>
                 {seattleWon ? "Win" : seattleLost ? "Loss" : "Tie"}
               </span>
             </div>
 
+            {/* Right = HOME */}
             <button
               className="flex-1 flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
-              onClick={() => { onClose(); setTeamSheet({ id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo }) }}
+              onClick={() => { onClose(); setTeamSheet(game.isHome ? { id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl } : { id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo }) }}
             >
-              <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={60} />
-              <span className={`font-display text-[14px] font-700 text-center leading-tight ${seattleWon ? "text-zinc-400" : "text-white"}`}>{game.opponent.shortName || game.opponent.name}</span>
-              <span className="text-[10px] uppercase tracking-widest text-zinc-600">{game.isHome ? "Away" : "Home"}</span>
+              <TeamLogo src={game.isHome ? seattleLogoUrl : game.opponent.logo} emoji={game.isHome ? game.seattleTeam.emoji : "🏟️"} abbr={game.isHome ? game.seattleTeam.abbr : game.opponent.abbr} size={60} />
+              <span className={`font-display text-[14px] font-700 text-center leading-tight ${game.isHome ? (seattleLost ? "text-zinc-400" : "text-white") : (seattleWon ? "text-zinc-400" : "text-white")}`}>
+                {game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)}
+              </span>
+              <span className="text-[10px] uppercase tracking-widest text-zinc-600">Home</span>
             </button>
           </div>
 

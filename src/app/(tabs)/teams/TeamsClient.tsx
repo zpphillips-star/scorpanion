@@ -1,10 +1,13 @@
 'use client'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import { SEATTLE_TEAMS, getTeamLogoUrl } from '@/lib/teams'
 import { useSelectedTeams } from '@/hooks/useSelectedTeams'
 import TeamLogo from '@/components/TeamLogo'
 import { SeattleTeam } from '@/lib/types'
+import USCanadaMap from '@/components/USCanadaMap'
+import StateTeamsSheet from '@/components/StateTeamsSheet'
+import { ALL_PRO_TEAMS } from '@/lib/allProTeams'
 
 const PRO_TEAM_IDS = ['seahawks', 'mariners', 'kraken', 'sounders', 'storm', 'reign', 'torrent', 'thunderbirds', 'silvertips']
 const OTHER_IDS = ['seattleu']
@@ -75,6 +78,13 @@ const WSU_CONFIG: DrillDownConfig = {
 export default function TeamsClient() {
   const { selectedTeamIds, toggleTeam, loaded } = useSelectedTeams()
   const [drillDown, setDrillDown] = useState<DrillDownConfig | null>(null)
+  const [selectedMapState, setSelectedMapState] = useState<string | null>(null)
+
+  const teamsPerState = useMemo(() => {
+    const map: Record<string, number> = {}
+    ALL_PRO_TEAMS.forEach(t => { map[t.state] = (map[t.state] || 0) + 1 })
+    return map
+  }, [])
 
   if (!loaded) {
     return (
@@ -89,57 +99,24 @@ export default function TeamsClient() {
     return (
       <button
         onClick={() => toggleTeam(team.id)}
-        className="relative flex flex-col rounded-xl overflow-hidden border transition-all"
+        className="relative flex flex-col items-center gap-2 p-3 rounded-2xl transition-all active:scale-95"
         style={{
-          borderColor: selected ? team.primaryColor : 'rgba(255,255,255,0.08)',
-          boxShadow: selected ? `0 0 16px ${team.primaryColor}55` : 'none',
+          background: selected ? `${team.primaryColor}22` : 'rgba(255,255,255,0.04)',
+          border: `2px solid ${selected ? team.primaryColor : 'rgba(255,255,255,0.08)'}`,
+          boxShadow: selected ? `0 0 14px ${team.primaryColor}44` : 'none',
         }}
       >
-        {/* Jersey body */}
-        <div
-          className="relative w-full flex items-center justify-center"
-          style={{
-            height: 100,
-            background: `linear-gradient(160deg, ${team.primaryColor} 0%, ${team.primaryColor}cc 40%, ${team.secondaryColor}88 100%)`,
-          }}
-        >
-          {/* Vertical stripe detail */}
+        <TeamLogo src={getTeamLogoUrl(team)} emoji={team.emoji} abbr={team.abbr} size={44} />
+        {selected && (
           <div
-            className="absolute inset-0 opacity-20"
-            style={{
-              backgroundImage: `repeating-linear-gradient(90deg, transparent, transparent 8px, ${team.secondaryColor} 8px, ${team.secondaryColor} 10px)`,
-              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)',
-              maskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)',
-            }}
-          />
-          {/* Shoulder highlight */}
-          <div className="absolute top-0 left-0 right-0 h-6 opacity-30"
-            style={{ background: `linear-gradient(to bottom, ${team.secondaryColor}, transparent)` }}
-          />
-          {/* Team logo */}
-          <div className="relative z-10 drop-shadow-lg">
-            <TeamLogo src={getTeamLogoUrl(team)} emoji={team.emoji} abbr={team.abbr} size={52} />
+            className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: team.primaryColor }}
+          >
+            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
           </div>
-          {/* Selected checkmark */}
-          {selected && (
-            <div
-              className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center shadow-lg z-20"
-              style={{ backgroundColor: team.secondaryColor || '#fff' }}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke={team.primaryColor} strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-          )}
-        </div>
-        {/* Name tag */}
-        <div
-          className="px-2 py-2 text-center w-full"
-          style={{ backgroundColor: selected ? `${team.primaryColor}33` : 'rgba(255,255,255,0.04)' }}
-        >
-          <div className="text-white text-xs font-bold leading-tight truncate">{team.shortName}</div>
-          <div className="text-xs mt-0.5 capitalize font-medium" style={{ color: team.primaryColor }}>{team.sport}</div>
-        </div>
+        )}
       </button>
     )
   }
@@ -246,8 +223,25 @@ export default function TeamsClient() {
       </div>
 
       <div className="px-4 mt-4">
+        <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-1">Discover by Location 🗺️</h2>
+        <p className="text-zinc-600 text-[11px] mb-3">Tap a state or province to see its pro teams</p>
+        <USCanadaMap
+          selectedState={selectedMapState}
+          onStateSelect={(abbr) => setSelectedMapState(abbr)}
+          teamsPerState={teamsPerState}
+        />
+      </div>
+
+      {selectedMapState && (
+        <StateTeamsSheet
+          stateAbbr={selectedMapState}
+          onClose={() => setSelectedMapState(null)}
+        />
+      )}
+
+      <div className="px-4 mt-4">
         <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Pro Teams</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 lg:grid-cols-6 gap-3">
           {byIds(PRO_TEAM_IDS).map(team => <TeamCard key={team.id} team={team} />)}
         </div>
       </div>
@@ -264,7 +258,7 @@ export default function TeamsClient() {
 
       <div className="px-4 mt-6">
         <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Other</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 lg:grid-cols-6 gap-3">
           {byIds(OTHER_IDS).map(team => <TeamCard key={team.id} team={team} />)}
         </div>
       </div>

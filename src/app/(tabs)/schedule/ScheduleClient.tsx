@@ -125,12 +125,12 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
 
   return (
     <div
-      className="flex items-center px-4 py-2.5 border-b border-zinc-800/35 hover:bg-white/[0.03] active:bg-white/[0.05] transition-colors cursor-pointer select-none"
+      className="flex items-center px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer select-none"
       style={isLive ? { background: "rgba(239,68,68,0.05)" } : undefined}
       onClick={onTap}
     >
-      {/* Left: status/time — fixed 64px */}
-      <div className="w-[64px] flex-shrink-0 flex flex-col justify-center gap-0.5">
+      {/* Left: status/time — fixed 72px */}
+      <div className="w-[72px] flex-shrink-0 flex flex-col justify-center gap-0.5">
         {isLive ? (
           <>
             <div className="flex items-center gap-1">
@@ -151,37 +151,41 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
         )}
       </div>
 
-      {/* Seattle team — logo + abbr */}
-      <div className="flex items-center gap-1.5 flex-shrink-0">
-        <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={24} />
-        <span className={`text-[13px] font-bold w-[30px] ${seattleLost ? 'text-zinc-500' : 'text-white'}`}>
-          {game.seattleTeam.abbr}
+      {/* Left = AWAY team */}
+      <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
+        <span className={`text-[13px] font-semibold truncate text-right ${game.isHome ? (seattleWon ? 'text-zinc-500' : 'text-white') : (seattleLost ? 'text-zinc-500' : 'text-white')}`}>
+          {game.isHome ? (game.opponent.shortName || game.opponent.name) : game.seattleTeam.shortName}
         </span>
+        {game.isHome
+          ? (game.opponent.logo
+              ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={24} height={24} className="object-contain flex-shrink-0" />
+              : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />)
+          : <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={24} />
+        }
       </div>
 
       {/* Score or vs — center */}
       <div className="w-14 flex-shrink-0 text-center">
         {hasScore ? (
-          <span className={`text-[14px] font-bold tabular-nums ${isLive ? 'text-red-300' : seattleWon ? 'text-white' : seattleLost ? 'text-zinc-400' : 'text-white'}`}>
-            {game.seattleScore}–{game.opponentScore}
+          <span className={`text-[14px] font-bold tabular-nums ${isLive ? 'text-red-300' : 'text-white'}`}>
+            {game.isHome ? game.opponentScore : game.seattleScore}–{game.isHome ? game.seattleScore : game.opponentScore}
           </span>
         ) : (
-          <span className="text-[11px] text-zinc-600">vs</span>
+          <span className="text-[12px] font-medium text-zinc-500">vs</span>
         )}
       </div>
 
-      {/* Opponent — logo + abbr + broadcast right */}
-      <div className="flex-1 flex items-center gap-1.5 min-w-0">
-        {game.opponent.logo
-          ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={24} height={24} className="object-contain flex-shrink-0" />
-          : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />
+      {/* Right = HOME team */}
+      <div className="flex-1 flex items-center gap-2 min-w-0">
+        {game.isHome
+          ? <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={24} />
+          : (game.opponent.logo
+              ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={24} height={24} className="object-contain flex-shrink-0" />
+              : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />)
         }
-        <span className={`text-[13px] font-bold flex-shrink-0 ${seattleWon ? 'text-zinc-500' : 'text-white'}`}>
-          {game.opponent.abbr || game.opponent.shortName}
+        <span className={`text-[13px] font-semibold truncate ${game.isHome ? (seattleLost ? 'text-zinc-500' : 'text-white') : (seattleWon ? 'text-zinc-500' : 'text-white')}`}>
+          {game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)}
         </span>
-        {game.broadcast && !isFt && !isLive && (
-          <span className="text-[10px] text-zinc-600 truncate ml-auto">{game.broadcast}</span>
-        )}
       </div>
     </div>
   )
@@ -383,7 +387,8 @@ export default function ScheduleClient() {
             const isToday = dateStr === todayStr
             const label = formatDateHeader(dateStr)
             return (
-              <div key={dateStr} ref={el => { dateRefs.current[dateStr] = el }} className={idx > 0 ? 'mt-4' : ''}>
+              <div key={dateStr} ref={el => { dateRefs.current[dateStr] = el }}>
+                {idx > 0 && <div className="h-3" />}
                 {/* Date header — TODAY is bigger and accented */}
                 {isToday ? (
                   <div
@@ -402,11 +407,11 @@ export default function ScheduleClient() {
                   </div>
                 ) : (
                   <div
-                    className="sticky top-[116px] z-20 px-4 py-2.5 flex items-center gap-3"
-                    style={{ background: 'rgba(8,8,15,0.97)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+                    className="sticky top-[116px] z-20 px-4 py-2 flex items-center gap-3"
+                    style={{ background: 'rgba(8,8,15,0.97)', backdropFilter: 'blur(8px)' }}
                   >
-                    <span className="text-[13px] uppercase tracking-widest font-bold text-zinc-300">{label}</span>
-                    <div className="flex-1 h-px bg-zinc-700/50" />
+                    <span className="text-[12px] uppercase tracking-widest font-bold text-white">{label}</span>
+                    <div className="flex-1 h-px bg-zinc-800" />
                   </div>
                 )}
 
