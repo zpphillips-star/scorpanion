@@ -330,7 +330,13 @@ function parseHierarchy(
 function getSeasonInfo(data: any, leagueId: string): SeasonInfo {
   const season = data.season || data.leagues?.[0]?.season || {}
   const year: number = season.year || new Date().getFullYear()
-  const typeId: number = season.type ?? 2
+
+  // ESPN can return season.type as a plain number (2) OR as an object { id: 4, name: "Off Season" }
+  const rawType = season.type
+  const typeId: number = typeof rawType === 'object' && rawType !== null
+    ? Number(rawType.id ?? rawType.type ?? 2)
+    : Number(rawType ?? 2)
+
   // ESPN: 1=preseason, 2=regular, 3=postseason, 4=offseason
   let status: SeasonInfo['status'] = 'regular'
   if (typeId === 1) status = 'preseason'
@@ -342,8 +348,9 @@ function getSeasonInfo(data: any, leagueId: string): SeasonInfo {
   let nextStartApprox: string | null = null
   if (status === 'offseason') {
     const month = NEXT_SEASON_MONTH[leagueId] || 'Fall'
-    // If off-season and we're past summer, next season is next year
-    const nextYear = new Date().getMonth() >= 6 ? year + 1 : year
+    // Sports that restart in the fall: October NHL/NBA — if we're Jan-Jun same year; if Jul-Dec next year
+    const currentMonth = new Date().getMonth()
+    const nextYear = currentMonth >= 6 ? year + 1 : year
     nextStartApprox = `${month} ${nextYear}`
   }
 

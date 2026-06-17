@@ -8,6 +8,76 @@ import TeamLogo from '@/components/TeamLogo'
 import TeamFilterBar, { getCollegeGroupKey } from '@/components/TeamFilterBar'
 import PageHeader from '@/components/PageHeader'
 import GameDetailSheet from '@/components/GameDetailSheet'
+import { SEASON_START_MONTH, LEAGUE_DISPLAY } from '@/lib/seasonStatus'
+
+// Map league ID to canonical standings-API key (for leagues that have standings)
+const STANDINGS_LEAGUE_KEY: Record<string, string> = {
+  nhl: 'nhl', nba: 'nba', mlb: 'mlb', wnba: 'wnba', nfl: 'nfl', 'usa.1': 'mls',
+}
+
+interface SeasonInfo { status: string; nextStartApprox: string | null; label: string }
+
+function getApproxNextSeason(leagueId: string): string | null {
+  const month = SEASON_START_MONTH[leagueId]
+  if (!month) return null
+  const now = new Date()
+  const m = now.getMonth() // 0-indexed
+  // Fall-start leagues (NHL, NBA, NFL, WHL): year increments after June
+  const fallStart = ['nhl', 'nba', 'nfl', 'whl', 'college-football',
+    'mens-college-basketball', 'womens-college-basketball']
+  const year = fallStart.includes(leagueId) && m >= 6 ? now.getFullYear() + 1 : now.getFullYear()
+  return `${month} ${year}`
+}
+
+function OffseasonEmptyState({ leagues }: { leagues: string[] }) {
+  if (leagues.length === 0) return null
+  return (
+    <div className="space-y-4 mx-3 mt-6">
+      {leagues.map(league => {
+        const display = LEAGUE_DISPLAY[league]
+        const name = display?.name ?? league.toUpperCase()
+        const emoji = display?.emoji ?? '🏟️'
+        const next = getApproxNextSeason(league)
+        return (
+          <div key={league} className="rounded-2xl text-center py-10 px-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <div className="text-5xl mb-3">{emoji}</div>
+            <div className="font-display text-[16px] font-700 text-zinc-300 uppercase tracking-wide mb-1">{name} Offseason</div>
+            <p className="text-zinc-500 text-sm">The season has concluded.</p>
+            {next && (
+              <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+                <span className="text-[12px]">📅</span>
+                <span className="text-[12px] text-zinc-400">Next season begins <span className="text-white font-semibold">{next}</span></span>
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function OffseasonBanner({ leagues }: { leagues: string[] }) {
+  if (leagues.length === 0) return null
+  return (
+    <div className="space-y-2 mx-3 mt-3">
+      {leagues.map(league => {
+        const display = LEAGUE_DISPLAY[league]
+        const name = display?.name ?? league.toUpperCase()
+        const emoji = display?.emoji ?? '🏟️'
+        const next = getApproxNextSeason(league)
+        return (
+          <div key={league} className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <span className="text-xl">{emoji}</span>
+            <div className="min-w-0 flex-1">
+              <div className="font-display text-[12px] font-700 text-zinc-300 uppercase tracking-widest">{name} — Season Complete</div>
+              {next && <div className="font-display text-[11px] text-zinc-500 mt-0.5">Next season begins <span className="text-zinc-300">{next}</span></div>}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 function groupGamesByDate(games: Game[]): Map<string, Game[]> {
   const groups = new Map<string, Game[]>()
@@ -200,6 +270,7 @@ export default function ScheduleClient() {
   const [error, setError] = useState<string | null>(null)
   const [activeTeamFilter, setActiveTeamFilter] = useState<string>('all')
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
+  const [seasonInfoByLeague, setSeasonInfoByLeague] = useState<Record<string, SeasonInfo>>({})
 
   const fetchSchedule = useCallback(async () => {
     if (!loaded || selectedTeamIds.length === 0) return
@@ -298,10 +369,90 @@ export default function ScheduleClient() {
     return mergedGames.filter(g => g.seattleTeamId === activeTeamFilter)
   })()
 
+  // Detect leagues that have no upcoming games (all games are final or schedule is empty)
+  // We only check leagues that have a standings API (NHL, NBA, NFL, etc.)
+  const offseasonLeagues = useMemo(() => {
+    // Which team IDs are visible in the current filter?
+    const visibleTeamIds: string[] = activeTeamFilter === 'all'
+      ? selectedTeamIds
+      : (() => {
+          const item = SEATTLE_TEAMS.find(t => t.id === activeTeamFilter)
+          if (!item) return [activeTeamFilter]
+          const gk = getCollegeGroupKey(activeTeamFilter)
+          if (gk) return SEATTLE_TEAMS.filter(t => getCollegeGroupKey(t.id) === gk).map(t => t.id)
+          return [activeTeamFilter]
+        })()
+
+    const seenLeagues = new Set<string>()
+    const result: string[] = []
+    for (const teamId of visibleTeamIds) {
+      const team = SEATTLE_TEAMS.find(t => t.id === teamId)
+      if (!team || !STANDINGS_LEAGUE_KEY[team.league]) continue
+      if (seenLeagues.has(team.league)) continue
+      seenLeagues.add(team.league)
+
+      const hasUpcoming = mergedGames.some(g => g.seattleTeamId === teamId && g.status !== 'ft')
+      if (!hasUpcoming) result.push(team.league)
+    }
+    return result
+  }, [activeTeamFilter, selectedTeamIds, mergedGames])
+
+  // Fetch season status from standings API for leagues with no upcoming games
+  useEffect(() => {
+    if (offseasonLeagues.length === 0) return
+    const leaguesToFetch = offseasonLeagues
+      .map(l => STANDINGS_LEAGUE_KEY[l])
+      .filter(Boolean)
+      .filter(k => !seasonInfoByLeague[k])
+
+    if (leaguesToFetch.length === 0) return
+
+    Promise.all(leaguesToFetch.map(async key => {
+      try {
+        const res = await fetch(`/api/standings?league=${key}`)
+        if (!res.ok) return null
+        const d = await res.json()
+        return d.season ? { key, season: d.season as SeasonInfo } : null
+      } catch { return null }
+    })).then(results => {
+      const updates: Record<string, SeasonInfo> = {}
+      for (const r of results) { if (r) updates[r.key] = r.season }
+      if (Object.keys(updates).length > 0) {
+        setSeasonInfoByLeague(prev => ({ ...prev, ...updates }))
+      }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offseasonLeagues])
+
+  // Leagues confirmed as offseason by standings API (or inferred from empty schedule)
+  const confirmedOffseasonLeagues = useMemo(() => {
+    return offseasonLeagues.filter(league => {
+      const key = STANDINGS_LEAGUE_KEY[league]
+      const info = key ? seasonInfoByLeague[key] : undefined
+      // If standings API confirms offseason or playoffs, treat as season-concluded
+      if (info) return info.status === 'offseason' || info.status === 'playoffs'
+      // If no API data yet but the team has past games and no upcoming, assume offseason
+      const team = SEATTLE_TEAMS.find(t => t.league === league && selectedTeamIds.includes(t.id))
+      if (!team) return false
+      return mergedGames.some(g => g.seattleTeamId === team.id && g.status === 'ft')
+    })
+  }, [offseasonLeagues, seasonInfoByLeague, mergedGames, selectedTeamIds])
+
+  // Build per-league display info for offseason banners/empty states
+  const offseasonDisplayLeagues = useMemo(() => {
+    return confirmedOffseasonLeagues.map(league => {
+      const key = STANDINGS_LEAGUE_KEY[league]
+      const seasonInfo = key ? seasonInfoByLeague[key] : undefined
+      const nextStart = seasonInfo?.nextStartApprox ?? getApproxNextSeason(league)
+      return { league, nextStart }
+    })
+  }, [confirmedOffseasonLeagues, seasonInfoByLeague])
+
   const todayStr = getTodayStr()
   const grouped = groupGamesByDate(filteredGames)
   const sortedDates = [...grouped.keys()].sort()
   const hasLiveGames = filteredGames.some(g => g.status === 'live')
+  const hasUpcomingInFilter = filteredGames.some(g => g.status !== 'ft')
 
   // Refs for date section jumping
   const dateRefs = useRef<Record<string, HTMLDivElement | null>>({})
@@ -376,12 +527,23 @@ export default function ScheduleClient() {
           </div>
         )}
 
+        {/* Offseason banner: season concluded but past games exist */}
+        {!hasUpcomingInFilter && filteredGames.length > 0 && offseasonDisplayLeagues.length > 0 && (
+          <OffseasonBanner leagues={offseasonDisplayLeagues.map(l => l.league)} />
+        )}
+
         {filteredGames.length === 0 ? (
-          <div className="mx-3 mt-6 rounded-2xl text-center py-10 px-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-            <div className="text-5xl mb-3">📅</div>
-            <div className="font-display text-[16px] font-700 text-zinc-300 uppercase tracking-wide mb-1">No games scheduled</div>
-            <p className="text-zinc-500 text-sm">{selectedTeamIds.length === 0 ? 'Go to Teams and follow some teams.' : 'Your teams may be off-season. Check back closer to the season.'}</p>
-          </div>
+          offseasonDisplayLeagues.length > 0 ? (
+            // Per-league offseason empty state
+            <OffseasonEmptyState leagues={offseasonDisplayLeagues.map(l => l.league)} />
+          ) : (
+            // Generic empty state
+            <div className="mx-3 mt-6 rounded-2xl text-center py-10 px-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <div className="text-5xl mb-3">📅</div>
+              <div className="font-display text-[16px] font-700 text-zinc-300 uppercase tracking-wide mb-1">No games scheduled</div>
+              <p className="text-zinc-500 text-sm">{selectedTeamIds.length === 0 ? 'Go to Teams and follow some teams.' : 'Your teams may be off-season. Check back closer to the season.'}</p>
+            </div>
+          )
         ) : (
           sortedDates.map((dateStr, idx) => {
             const isToday = dateStr === todayStr
