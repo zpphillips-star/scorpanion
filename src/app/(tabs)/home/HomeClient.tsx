@@ -159,7 +159,9 @@ function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void })
   const seattleWon = (game.seattleScore ?? 0) > (game.opponentScore ?? 0)
   const seattleLost = (game.seattleScore ?? 0) < (game.opponentScore ?? 0)
   const color = game.seattleTeam.primaryColor
-  const canShowBoxScore = !!game.id && game.league !== "whl" && game.league !== "pwhl"
+  const isLive = game.status === "live"
+  const isFt = game.status === "ft"
+  const canShowBoxScore = (isLive || isFt) && !!game.id && game.league !== "whl" && game.league !== "pwhl"
   const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
 
   const leagueKey = STANDINGS_LEAGUE_MAP[game.league]

@@ -38,7 +38,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
   const seattleWon = hasScore && (game.seattleScore ?? 0) > (game.opponentScore ?? 0)
   const seattleLost = hasScore && (game.seattleScore ?? 0) < (game.opponentScore ?? 0)
   const color = game.seattleTeam.primaryColor
-  const canShowBoxScore = !!game.id && game.league !== "whl" && game.league !== "pwhl"
+  const canShowBoxScore = (isLive || isFt) && !!game.id && game.league !== "whl" && game.league !== "pwhl"
   const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
   const liveDetail = isLive ? getLiveDetail(game) : ""
 
