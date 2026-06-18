@@ -3,12 +3,40 @@ import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import { SEATTLE_TEAMS, getTeamLogoUrl } from '@/lib/teams'
 import { useSelectedTeams } from '@/hooks/useSelectedTeams'
+import { useFollowedOtherTeams } from '@/hooks/useFollowedOtherTeams'
 import TeamLogo from '@/components/TeamLogo'
 import { SeattleTeam } from '@/lib/types'
 import USCanadaMap from '@/components/USCanadaMap'
 import StateTeamsSheet from '@/components/StateTeamsSheet'
-import { ALL_PRO_TEAMS } from '@/lib/allProTeams'
+import TeamDetailSheet from '@/components/TeamDetailSheet'
+import { ALL_PRO_TEAMS, ProTeam } from '@/lib/allProTeams'
 
+// ── Sport filter tabs ────────────────────────────────────────────────────────
+const SPORT_TABS = [
+  { id: 'ALL',  label: 'All' },
+  { id: 'NFL',  label: 'NFL' },
+  { id: 'NBA',  label: 'NBA' },
+  { id: 'NHL',  label: 'NHL' },
+  { id: 'MLB',  label: 'MLB' },
+  { id: 'WNBA', label: 'WNBA' },
+  { id: 'MLS',  label: 'MLS' },
+  { id: 'NWSL', label: 'NWSL' },
+] as const
+type SportTab = typeof SPORT_TABS[number]['id']
+
+// Map ProTeam.league → team-detail route league param
+function toDetailLeague(league: string): string {
+  const map: Record<string, string> = {
+    NFL: 'nfl', NBA: 'nba', NHL: 'nhl', MLB: 'mlb',
+    WNBA: 'wnba', MLS: 'mls', NWSL: 'usa.nwsl',
+  }
+  return map[league] ?? league.toLowerCase()
+}
+
+// Seattle teams have state = 'WA'
+const SEATTLE_STATE = 'WA'
+
+// ── Seattle-only team IDs (for the existing "My Teams" section) ──────────────
 const PRO_TEAM_IDS = ['seahawks', 'mariners', 'kraken', 'sounders', 'storm', 'reign', 'torrent', 'thunderbirds', 'silvertips']
 const OTHER_IDS = ['seattleu']
 
@@ -75,16 +103,44 @@ const WSU_CONFIG: DrillDownConfig = {
   unavailableLink: 'https://wsucougars.com',
 }
 
+// ── Shared league badge colours ───────────────────────────────────────────────
+const LEAGUE_BADGE: Record<string, string> = {
+  NFL: '#013369', NBA: '#006BB6', NHL: '#010101',
+  MLB: '#002D72', WNBA: '#FF6900', MLS: '#002B5C', NWSL: '#00A9E0',
+}
+
 export default function TeamsClient() {
   const { selectedTeamIds, toggleTeam, loaded } = useSelectedTeams()
+  const { followedIds, toggleFollow } = useFollowedOtherTeams()
   const [drillDown, setDrillDown] = useState<DrillDownConfig | null>(null)
   const [selectedMapState, setSelectedMapState] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<SportTab>('ALL')
+  const [detailTeam, setDetailTeam] = useState<{ team: ProTeam; detailLeague: string } | null>(null)
 
   const teamsPerState = useMemo(() => {
     const map: Record<string, number> = {}
     ALL_PRO_TEAMS.forEach(t => { map[t.state] = (map[t.state] || 0) + 1 })
     return map
   }, [])
+
+  // Filter + sort teams: followed first, then Seattle, then alphabetical
+  const filteredTeams = useMemo(() => {
+    const base = activeTab === 'ALL'
+      ? ALL_PRO_TEAMS
+      : ALL_PRO_TEAMS.filter(t => t.league === activeTab)
+    return [...base].sort((a, b) => {
+      const aF = followedIds.includes(a.id)
+      const bF = followedIds.includes(b.id)
+      if (aF !== bF) return aF ? -1 : 1
+      const aS = a.state === SEATTLE_STATE
+      const bS = b.state === SEATTLE_STATE
+      if (aS !== bS) return aS ? -1 : 1
+      return a.name.localeCompare(b.name)
+    })
+  }, [activeTab, followedIds])
+
+  const proFollowedCount = followedIds.filter(id => ALL_PRO_TEAMS.some(t => t.id === id)).length
+  const totalFollowed = selectedTeamIds.length + proFollowedCount
 
   if (!loaded) {
     return (
@@ -94,7 +150,8 @@ export default function TeamsClient() {
     )
   }
 
-  const TeamCard = ({ team }: { team: SeattleTeam }) => {
+  // ── Seattle local-team card (existing behaviour) ─────────────────────────
+  const SeattleTeamCard = ({ team }: { team: SeattleTeam }) => {
     const selected = selectedTeamIds.includes(team.id)
     return (
       <button
@@ -118,6 +175,92 @@ export default function TeamsClient() {
           </div>
         )}
       </button>
+    )
+  }
+
+  // ── Pro-team grid card (all-leagues browse) ──────────────────────────────
+  const ProTeamCard = ({ team }: { team: ProTeam }) => {
+    const isFollowed = followedIds.includes(team.id)
+    const isSeattle = team.state === SEATTLE_STATE
+    const badgeColor = LEAGUE_BADGE[team.league] ?? '#333'
+
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setDetailTeam({ team, detailLeague: toDetailLeague(team.league) })}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setDetailTeam({ team, detailLeague: toDetailLeague(team.league) }) }}
+        className="relative flex flex-col items-center gap-1.5 p-2.5 rounded-2xl transition-all active:scale-95 cursor-pointer select-none"
+        style={{
+          background: isFollowed
+            ? `${team.primaryColor}22`
+            : isSeattle
+            ? 'rgba(0,212,255,0.06)'
+            : 'rgba(255,255,255,0.03)',
+          border: `1.5px solid ${
+            isFollowed
+              ? team.primaryColor
+              : isSeattle
+              ? 'rgba(0,212,255,0.25)'
+              : 'rgba(255,255,255,0.07)'
+          }`,
+          boxShadow: isFollowed ? `0 0 12px ${team.primaryColor}33` : 'none',
+        }}
+      >
+        {/* Follow checkmark badge */}
+        {isFollowed && (
+          <div
+            className="absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded-full flex items-center justify-center z-10"
+            style={{ backgroundColor: team.primaryColor }}
+          >
+            <svg className="w-2 h-2" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        )}
+
+        {/* Seattle star indicator */}
+        {isSeattle && !isFollowed && (
+          <div className="absolute top-1.5 right-1.5 text-[#00d4ff] text-[10px] leading-none">★</div>
+        )}
+
+        {/* Logo */}
+        <div className="w-11 h-11 flex items-center justify-center mt-0.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={team.logo}
+            alt={team.name}
+            width={44}
+            height={44}
+            style={{ objectFit: 'contain', maxHeight: 44 }}
+          />
+        </div>
+
+        {/* Name */}
+        <div className="w-full text-center px-0.5">
+          <div className="text-white text-[11px] font-semibold leading-tight line-clamp-2">{team.shortName}</div>
+          <div
+            className="text-[8px] font-700 uppercase tracking-wider mt-0.5 px-1 py-0.5 rounded inline-block"
+            style={{ background: badgeColor, color: '#fff' }}
+          >
+            {team.league}
+          </div>
+        </div>
+
+        {/* Follow toggle — stopPropagation so it doesn't open detail sheet */}
+        <button
+          className="mt-0.5 text-[9px] font-700 uppercase tracking-wide px-2 py-0.5 rounded-full transition-all leading-none"
+          style={
+            isFollowed
+              ? { background: team.primaryColor, color: '#fff' }
+              : { background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#6b7280' }
+          }
+          onClick={e => { e.stopPropagation(); toggleFollow(team.id) }}
+          aria-label={isFollowed ? `Unfollow ${team.name}` : `Follow ${team.name}`}
+        >
+          {isFollowed ? '✓ Following' : '+ Follow'}
+        </button>
+      </div>
     )
   }
 
@@ -153,7 +296,6 @@ export default function TeamsClient() {
 
   const DrillDownPanel = ({ config }: { config: DrillDownConfig }) => (
     <div className="fixed inset-0 z-50 bg-[#0a0a0f] flex flex-col overflow-hidden">
-      {/* Header */}
       <div className="shrink-0 flex items-center gap-3 px-4 py-4 border-b border-white/10 bg-[#0a0a0f]/95 backdrop-blur-md">
         <button
           onClick={() => setDrillDown(null)}
@@ -170,19 +312,15 @@ export default function TeamsClient() {
           <p className="text-gray-500 text-xs">Select sports to follow</p>
         </div>
       </div>
-
-      {/* Sports list — team cards in 2-col grid, unavailable sports as list rows */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        {/* Available team cards — grid */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           {config.items.filter(i => i.type === 'team').map((item) => {
             if (item.type !== 'team') return null
             const team = SEATTLE_TEAMS.find(t => t.id === item.teamId)
             if (!team) return null
-            return <TeamCard key={item.teamId} team={team} />
+            return <SeattleTeamCard key={item.teamId} team={team} />
           })}
         </div>
-        {/* Unavailable sports — list */}
         {config.items.some(i => i.type === 'unavailable') && (
           <>
             <p className="text-[11px] uppercase tracking-widest font-bold text-zinc-600 mb-2 mt-2">Not yet available</p>
@@ -215,23 +353,107 @@ export default function TeamsClient() {
 
   return (
     <div className="pb-4">
+      {/* ── Header ── */}
       <div className="sticky top-0 z-30 glass-header px-4 py-3">
         <h1 className="font-display text-[26px] font-800 text-white leading-none tracking-tight uppercase">Teams</h1>
         <p className="text-zinc-500 text-sm mt-0.5">
-          Following {selectedTeamIds.length} team{selectedTeamIds.length !== 1 ? 's' : ''}
+          {totalFollowed > 0
+            ? `Following ${totalFollowed} team${totalFollowed !== 1 ? 's' : ''}`
+            : 'Tap a team to follow it'}
         </p>
       </div>
 
-      <div className="px-4 mt-4">
-        <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-1">Discover by Location 🗺️</h2>
-        <p className="text-zinc-600 text-[11px] mb-3">Tap a state or province to see its pro teams</p>
-        <USCanadaMap
-          selectedState={selectedMapState}
-          onStateSelect={(abbr) => setSelectedMapState(abbr)}
-          teamsPerState={teamsPerState}
-        />
+      {/* ── Sport filter tabs ── */}
+      <div className="overflow-x-auto no-scrollbar px-4 pt-3 pb-1">
+        <div className="flex gap-2 min-w-max">
+          {SPORT_TABS.map(tab => {
+            const active = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="px-4 py-1.5 rounded-full text-[12px] font-display font-700 uppercase tracking-wide transition-all whitespace-nowrap"
+                style={{
+                  background: active ? 'var(--accent)' : 'var(--surface-2)',
+                  color: active ? '#08080f' : '#9ca3af',
+                  border: `1px solid ${active ? 'var(--accent)' : 'rgba(255,255,255,0.08)'}`,
+                  boxShadow: active ? '0 0 12px rgba(0,212,255,0.35)' : 'none',
+                }}
+              >
+                {tab.label}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
+      {/* ── Pro teams grid ── */}
+      <div className="px-4 mt-3">
+        {/* Followed section header (only in ALL tab) */}
+        {activeTab === 'ALL' && proFollowedCount > 0 && (
+          <p className="font-display text-[10px] font-700 text-zinc-500 uppercase tracking-widest mb-2">
+            ★ Following ({proFollowedCount})
+          </p>
+        )}
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2.5">
+          {filteredTeams.map(team => (
+            <ProTeamCard key={team.id} team={team} />
+          ))}
+        </div>
+        {filteredTeams.length === 0 && (
+          <p className="text-zinc-600 text-sm text-center py-8">No teams found</p>
+        )}
+      </div>
+
+      {/* ── Seattle section (local / college teams) ── */}
+      {activeTab === 'ALL' && (
+        <>
+          <div className="px-4 mt-8 pb-1">
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-px bg-white/5" />
+              <p className="font-display text-[10px] font-700 text-zinc-600 uppercase tracking-widest">Seattle Area</p>
+              <div className="flex-1 h-px bg-white/5" />
+            </div>
+          </div>
+
+          <div className="px-4 mt-4">
+            <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Pro Teams</h2>
+            <div className="grid grid-cols-4 lg:grid-cols-6 gap-3">
+              {byIds(PRO_TEAM_IDS).map(team => <SeattleTeamCard key={team.id} team={team} />)}
+            </div>
+          </div>
+
+          <div className="px-4 mt-6">
+            <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">University of Washington</h2>
+            <UniversityCard config={UW_CONFIG} />
+          </div>
+
+          <div className="px-4 mt-6">
+            <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Washington State</h2>
+            <UniversityCard config={WSU_CONFIG} />
+          </div>
+
+          <div className="px-4 mt-6">
+            <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Other</h2>
+            <div className="grid grid-cols-4 lg:grid-cols-6 gap-3">
+              {byIds(OTHER_IDS).map(team => <SeattleTeamCard key={team.id} team={team} />)}
+            </div>
+          </div>
+
+          {/* Map */}
+          <div className="px-4 mt-8">
+            <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-1">Discover by Location 🗺️</h2>
+            <p className="text-zinc-600 text-[11px] mb-3">Tap a state or province to see its pro teams</p>
+            <USCanadaMap
+              selectedState={selectedMapState}
+              onStateSelect={(abbr) => setSelectedMapState(abbr)}
+              teamsPerState={teamsPerState}
+            />
+          </div>
+        </>
+      )}
+
+      {/* ── Sheets ── */}
       {selectedMapState && (
         <StateTeamsSheet
           stateAbbr={selectedMapState}
@@ -239,31 +461,16 @@ export default function TeamsClient() {
         />
       )}
 
-      <div className="px-4 mt-4">
-        <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Pro Teams</h2>
-        <div className="grid grid-cols-4 lg:grid-cols-6 gap-3">
-          {byIds(PRO_TEAM_IDS).map(team => <TeamCard key={team.id} team={team} />)}
-        </div>
-      </div>
+      {detailTeam && (
+        <TeamDetailSheet
+          teamId={detailTeam.team.espnId}
+          teamName={detailTeam.team.name}
+          teamLogo={detailTeam.team.logo}
+          league={detailTeam.detailLeague}
+          onClose={() => setDetailTeam(null)}
+        />
+      )}
 
-      <div className="px-4 mt-6">
-        <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">University of Washington</h2>
-        <UniversityCard config={UW_CONFIG} />
-      </div>
-
-      <div className="px-4 mt-6">
-        <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Washington State</h2>
-        <UniversityCard config={WSU_CONFIG} />
-      </div>
-
-      <div className="px-4 mt-6">
-        <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Other</h2>
-        <div className="grid grid-cols-4 lg:grid-cols-6 gap-3">
-          {byIds(OTHER_IDS).map(team => <TeamCard key={team.id} team={team} />)}
-        </div>
-      </div>
-
-      {/* Drill-down panel */}
       {drillDown && <DrillDownPanel config={drillDown} />}
     </div>
   )
