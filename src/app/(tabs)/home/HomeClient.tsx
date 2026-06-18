@@ -239,7 +239,7 @@ function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void })
           {/* Line score */}
           {canShowBoxScore && (
             <div className="mt-4">
-              <BoxScore eventId={game.id} league={game.league} seattleTeamId={game.seattleTeam.espnId} color={color} />
+              <BoxScore eventId={game.id.includes("|") ? game.id.split("|")[1] : game.id} league={game.league} seattleTeamId={game.seattleTeam.espnId} color={color} />
             </div>
           )}
         </div>

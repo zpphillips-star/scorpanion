@@ -38,35 +38,65 @@ export async function GET(req: Request) {
     const isLive = comp?.status?.type?.state === "in"
 
     // Line scores per team per period
-    const linescores = competitors.map((c: any) => ({
-      teamId: c.team?.id,
-      abbr: c.team?.abbreviation,
-      logo: c.team?.logo,
-      homeAway: c.homeAway,
-      score: parseFloat(c.score ?? "0"),
-      linescores: (c.linescores ?? []).map((l: any) =>
-        l.value !== undefined ? l.value : parseFloat(l.displayValue ?? "0")
-      ),
-      record: c.record?.[0]?.summary ?? "",
-    }))
+    // ESPN summary uses `logos` array not a single `logo` field
+    const linescores = competitors.map((c: any) => {
+      const inningData: any[] = c.linescores ?? []
+      const inningValues = inningData.map((l: any) =>
+        l.value !== undefined && l.value !== null ? l.value : parseFloat(l.displayValue ?? "0")
+      )
+      // For baseball: sum hits and errors across all innings (ESPN stores them per-inning)
+      const totalHits = sportType === "baseball"
+        ? inningData.reduce((sum: number, l: any) => sum + (typeof l.hits === "number" ? l.hits : 0), 0)
+        : undefined
+      const totalErrors = sportType === "baseball"
+        ? inningData.reduce((sum: number, l: any) => sum + (typeof l.errors === "number" ? l.errors : 0), 0)
+        : undefined
+      return {
+        teamId: c.team?.id,
+        abbr: c.team?.abbreviation,
+        logo: c.team?.logos?.[0]?.href || c.team?.logo || "",
+        homeAway: c.homeAway,
+        score: parseFloat(c.score ?? "0"),
+        linescores: inningValues,
+        record: c.record?.[0]?.summary ?? "",
+        hits: totalHits,
+        errors: totalErrors,
+      }
+    })
 
     // Box score stats
     const bsTeams: any[] = data.boxscore?.teams ?? []
-    const stats = bsTeams.map((t: any) => ({
-      teamId: t.team?.id,
-      abbr: t.team?.abbreviation,
-      statistics: (t.statistics ?? []).slice(0, 12).map((s: any) => ({
+    const stats = bsTeams.map((t: any) => {
+      const baseStats = (t.statistics ?? []).slice(0, 12).map((s: any) => ({
         name: s.name,
         label: s.label ?? s.name,
         displayValue: s.displayValue,
-      })),
-    }))
+      }))
+      // For baseball: inject hits/errors from competitor-level data (ESPN stores them there, not in boxscore teams)
+      if (sportType === "baseball") {
+        const comp = competitors.find((c: any) => c.team?.id === t.team?.id)
+        if (comp) {
+          if (comp.hits !== undefined && comp.hits !== null)
+            baseStats.push({ name: "hits", label: "H", displayValue: String(comp.hits) })
+          if (comp.errors !== undefined && comp.errors !== null)
+            baseStats.push({ name: "errors", label: "E", displayValue: String(comp.errors) })
+        }
+      }
+      return {
+        teamId: t.team?.id,
+        abbr: t.team?.abbreviation,
+        statistics: baseStats,
+      }
+    })
 
     // Period labels
     let periodLabels: string[] = []
     const maxPeriods = Math.max(...linescores.map(l => l.linescores.length), 0)
     if (sportType === "baseball") {
-      periodLabels = Array.from({ length: maxPeriods }, (_, i) => String(i + 1))
+      // Always show at least 9 innings; extend if extra innings played
+      const minInnings = 9
+      const totalInnings = Math.max(minInnings, maxPeriods)
+      periodLabels = Array.from({ length: totalInnings }, (_, i) => String(i + 1))
     } else if (sportType === "football") {
       periodLabels = ["Q1", "Q2", "Q3", "Q4", "OT", "OT2"].slice(0, maxPeriods)
     } else if (sportType === "hockey") {

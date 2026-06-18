@@ -11,6 +11,8 @@ interface LineTeam {
   score: number
   linescores: number[]
   record: string
+  hits?: number
+  errors?: number
 }
 
 interface TeamStat {
@@ -161,8 +163,8 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
             {linescores.map((team) => {
               const isSea = (seattleTeamId && team.teamId === seattleTeamId) || team.abbr === "SEA"
               const R = String(Math.round(team.score))
-              const H = getTeamStat(team.teamId, "hits")
-              const E = getTeamStat(team.teamId, "errors")
+              const H = team.hits !== undefined ? String(team.hits) : "–"
+              const E = team.errors !== undefined ? String(team.errors) : "–"
               return (
                 <tr key={team.teamId} className="border-t border-zinc-800/60">
                   <TeamCell team={team} isSea={!!isSea} />
