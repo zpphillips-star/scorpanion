@@ -147,7 +147,12 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
           {canShowBoxScore && (
             <div className="mt-4">
-              <BoxScore eventId={game.id} league={game.league} seattleTeamId={game.seattleTeam.espnId} color={isLive ? "#ef4444" : color} />
+              <BoxScore
+                eventId={game.id.includes("|") ? game.id.split("|")[1] : game.id}
+                league={game.league}
+                seattleTeamId={game.seattleTeam.espnId}
+                color={isLive ? "#ef4444" : color}
+              />
             </div>
           )}
         </div>

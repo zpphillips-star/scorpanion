@@ -4,6 +4,7 @@ import { Game } from "@/lib/types"
 import { getTeamLogoUrl } from "@/lib/teams"
 import TeamLogo from "./TeamLogo"
 import BoxScore from "./BoxScore"
+import CompactBaseballLineScore from "./CompactBaseballLineScore"
 import TeamDetailSheet from "./TeamDetailSheet"
 import UpcomingScheduleSection from "./UpcomingScheduleSection"
 
@@ -291,6 +292,16 @@ export function TodayGameCard({ game }: { game: Game }) {
               )}
             </div>
           </div>
+
+          {/* ── Inline MLB line score — baseball only, live or final ── */}
+          {(isLive || isFt) && game.sport === "baseball" && game.id && (
+            <CompactBaseballLineScore
+              gameId={game.id}
+              league={game.league}
+              seattleTeamId={game.seattleTeam.espnId}
+              isLive={isLive}
+            />
+          )}
         </div>
       </div>
 
