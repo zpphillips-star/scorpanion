@@ -368,16 +368,269 @@ function getSeasonInfo(standingsData: any, leagueId: string, scoreboard: any): S
   return { status, year, label, nextStartApprox }
 }
 
+// ── MLB division ID → name mapping ───────────────────────────────────────────
+const MLB_DIVISION_ID_NAME: Record<number, string> = {
+  200: 'AL West', 201: 'AL East', 202: 'AL Central',
+  203: 'NL West', 204: 'NL Central', 205: 'NL East',
+}
+
+const MLB_MARINERS_TEAM_ID = 136  // statsapi.mlb.com team ID
+
+// ── Compute current MLB/NHL season year ───────────────────────────────────────
+function getCurrentMLBYear(): number {
+  return new Date().getFullYear()
+}
+
+function getNHLSeasonId(): string {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + 1
+  const startYear = month >= 10 ? year : year - 1
+  return `${startYear}${startYear + 1}`
+}
+
+// ── Determine season status from current date (simplified) ────────────────────
+function getSeasonStatusFromDate(leagueId: string): SeasonInfo {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + 1 // 1–12
+  let status: SeasonInfo['status'] = 'regular'
+  let nextStartApprox: string | null = null
+
+  if (leagueId === 'mlb') {
+    // MLB: regular March-Sept, playoffs Oct-Nov, off-season Dec-Feb
+    if (month >= 10 && month <= 11) status = 'playoffs'
+    else if (month === 12 || month <= 2) { status = 'offseason'; nextStartApprox = `April ${year + 1}` }
+    else status = 'regular'
+  } else if (leagueId === 'nhl') {
+    // NHL: regular Oct-Apr, playoffs Apr-Jun, off-season Jul-Sept
+    if (month >= 4 && month <= 6) status = 'playoffs'
+    else if (month >= 7 && month <= 9) { status = 'offseason'; nextStartApprox = `October ${year}` }
+    else status = 'regular'
+  }
+
+  const label = leagueId === 'nhl'
+    ? `${year - 1}–${year} Season`
+    : `${year} Season`
+
+  return { status, year, label, nextStartApprox }
+}
+
+// ── Fetch MLB standings from statsapi.mlb.com ─────────────────────────────────
+async function fetchMLBStandings(): Promise<StandingsResponse> {
+  const year = getCurrentMLBYear()
+  const url = `https://statsapi.mlb.com/api/v1/standings?leagueId=103,104&season=${year}&hydrate=team`
+  const res = await fetch(url, { next: { revalidate: 300 } })
+  if (!res.ok) throw new Error('MLB standings request failed')
+  const data = await res.json()
+
+  const divisionOrder = DIVISION_ORDER['mlb'] ?? []
+  const confOrder = CONFERENCE_ORDER['mlb'] ?? []
+
+  // Group into divisions, then conferences
+  const divMap = new Map<string, StandingsEntry[]>()
+
+  for (const record of data.records ?? []) {
+    const divId: number = record.division?.id
+    const divName: string = MLB_DIVISION_ID_NAME[divId] ?? `Division ${divId}`
+
+    for (const tr of record.teamRecords ?? []) {
+      const team = tr.team ?? {}
+      const wins: number = tr.wins ?? 0
+      const losses: number = tr.losses ?? 0
+      const gp: number = tr.gamesPlayed ?? 0
+      const pct: number = parseFloat(tr.winningPercentage ?? '0') || 0
+      const gbRaw: string = tr.gamesBack ?? '-'
+      const gb: number | string = gbRaw === '-' ? 0 : parseFloat(gbRaw) || 0
+
+      const logo = `https://a.espncdn.com/i/teamlogos/mlb/500/${(team.fileCode ?? team.abbreviation ?? 'x').toLowerCase()}.png`
+
+      const entry: StandingsEntry = {
+        teamId: String(team.id ?? ''),
+        teamName: team.name ?? team.shortName ?? '',
+        abbr: team.abbreviation ?? '',
+        logo,
+        wins,
+        losses,
+        winPct: pct,
+        gamesBehind: gb,
+        isSeattle: team.id === MLB_MARINERS_TEAM_ID,
+        gamesPlayed: gp || undefined,
+      }
+
+      if (!divMap.has(divName)) divMap.set(divName, [])
+      divMap.get(divName)!.push(entry)
+    }
+  }
+
+  // Sort each division by win% descending
+  for (const [, entries] of divMap) {
+    entries.sort((a, b) => b.winPct - a.winPct || b.wins - a.wins)
+  }
+
+  const divMapConf = DIVISION_CONFERENCE_MAP['mlb'] ?? {}
+  const confMap = new Map<string, Division[]>()
+
+  for (const [divName, entries] of divMap) {
+    const confName = divMapConf[divName] ?? 'Other'
+    if (!confMap.has(confName)) confMap.set(confName, [])
+    confMap.get(confName)!.push({ name: divName, entries })
+  }
+
+  const conferences: ConferenceGroup[] = []
+  const divisions: Division[] = []
+
+  const sortedConfs = [...confMap.entries()].sort(
+    ([a], [b]) => sortByOrder(a, confOrder) - sortByOrder(b, confOrder)
+  )
+  for (const [confName, confDivs] of sortedConfs) {
+    const sortedDivs = [...confDivs].sort(
+      (a, b) => sortByOrder(a.name, divisionOrder) - sortByOrder(b.name, divisionOrder)
+    )
+    conferences.push({ name: confName, divisions: sortedDivs })
+    divisions.push(...sortedDivs)
+  }
+
+  let seattleDivisionName: string | null = null
+  let seattleConferenceName: string | null = null
+  for (const conf of conferences) {
+    for (const div of conf.divisions) {
+      if (div.entries.some(e => e.isSeattle)) {
+        seattleDivisionName = div.name
+        seattleConferenceName = conf.name
+      }
+    }
+  }
+
+  return {
+    season: getSeasonStatusFromDate('mlb'),
+    divisions,
+    conferences,
+    seattleDivisionName,
+    seattleConferenceName,
+  }
+}
+
+// ── Fetch NHL standings from api-web.nhle.com ─────────────────────────────────
+async function fetchNHLStandings(): Promise<StandingsResponse> {
+  const url = `https://api-web.nhle.com/v1/standings/now`
+  const res = await fetch(url, { next: { revalidate: 300 } })
+  if (!res.ok) throw new Error('NHL standings request failed')
+  const data = await res.json()
+
+  const divisionOrder = DIVISION_ORDER['nhl'] ?? []
+  const confOrder = CONFERENCE_ORDER['nhl'] ?? []
+  const divConfMap = DIVISION_CONFERENCE_MAP['nhl'] ?? {}
+
+  const divMap = new Map<string, StandingsEntry[]>()
+
+  for (const s of data.standings ?? []) {
+    const abbr: string = s.teamAbbrev?.default ?? ''
+    const teamName: string = s.teamName?.default ?? ''
+    const logo: string = s.teamLogo ?? ''
+    const wins: number = s.wins ?? 0
+    const losses: number = s.losses ?? 0
+    const otLosses: number = s.otLosses ?? 0
+    const points: number = s.points ?? 0
+    const gp: number = s.gamesPlayed ?? 0
+    const winPct: number = s.pointPctg ?? 0
+    const divName: string = s.divisionName ?? 'Unknown'
+
+    const entry: StandingsEntry = {
+      teamId: String(s.teamAbbrev?.default ?? ''),
+      teamName,
+      abbr,
+      logo,
+      wins,
+      losses,
+      overtimeLosses: otLosses || undefined,
+      winPct,
+      gamesBehind: 0,
+      points: points || undefined,
+      isSeattle: abbr === 'SEA',
+      gamesPlayed: gp || undefined,
+    }
+
+    if (!divMap.has(divName)) divMap.set(divName, [])
+    divMap.get(divName)!.push(entry)
+  }
+
+  // Sort each division by points desc, then wins
+  for (const [, entries] of divMap) {
+    entries.sort((a, b) => (b.points ?? 0) - (a.points ?? 0) || b.wins - a.wins)
+  }
+
+  const confMap = new Map<string, Division[]>()
+  for (const [divName, entries] of divMap) {
+    const confName = divConfMap[divName] ?? 'Other'
+    if (!confMap.has(confName)) confMap.set(confName, [])
+    confMap.get(confName)!.push({ name: divName, entries })
+  }
+
+  const conferences: ConferenceGroup[] = []
+  const divisions: Division[] = []
+
+  const sortedConfs = [...confMap.entries()].sort(
+    ([a], [b]) => sortByOrder(a, confOrder) - sortByOrder(b, confOrder)
+  )
+  for (const [confName, confDivs] of sortedConfs) {
+    const sortedDivs = [...confDivs].sort(
+      (a, b) => sortByOrder(a.name, divisionOrder) - sortByOrder(b.name, divisionOrder)
+    )
+    conferences.push({ name: confName, divisions: sortedDivs })
+    divisions.push(...sortedDivs)
+  }
+
+  let seattleDivisionName: string | null = null
+  let seattleConferenceName: string | null = null
+  for (const conf of conferences) {
+    for (const div of conf.divisions) {
+      if (div.entries.some(e => e.isSeattle)) {
+        seattleDivisionName = div.name
+        seattleConferenceName = conf.name
+      }
+    }
+  }
+
+  const seasonId = getNHLSeasonId()
+  const seasonYear = parseInt(seasonId.slice(4), 10)
+
+  return {
+    season: {
+      ...getSeasonStatusFromDate('nhl'),
+      year: seasonYear,
+      label: `${seasonYear - 1}–${seasonYear} Season`,
+    },
+    divisions,
+    conferences,
+    seattleDivisionName,
+    seattleConferenceName,
+  }
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const leagueId = searchParams.get('league') || 'mlb'
-  const mapping = LEAGUE_MAP[leagueId]
-
-  if (!mapping) {
-    return Response.json({ divisions: [], conferences: [], season: null, seattleDivisionName: null, seattleConferenceName: null })
-  }
 
   try {
+    // ── Official MLB standings ─────────────────────────────────────────────
+    if (leagueId === 'mlb') {
+      const response = await fetchMLBStandings()
+      return Response.json(response)
+    }
+
+    // ── Official NHL standings ─────────────────────────────────────────────
+    if (leagueId === 'nhl') {
+      const response = await fetchNHLStandings()
+      return Response.json(response)
+    }
+
+    // ── ESPN fallback for all other leagues ───────────────────────────────
+    const mapping = LEAGUE_MAP[leagueId]
+    if (!mapping) {
+      return Response.json({ divisions: [], conferences: [], season: null, seattleDivisionName: null, seattleConferenceName: null })
+    }
+
     const standingsUrl = `https://site.api.espn.com/apis/v2/sports/${mapping.sport}/${mapping.league}/standings`
     const scoreboardUrl = `https://site.api.espn.com/apis/site/v2/sports/${mapping.sport}/${mapping.league}/scoreboard`
 
@@ -392,7 +645,6 @@ export async function GET(request: NextRequest) {
     const season = getSeasonInfo(data, leagueId, scoreboard)
     const { conferences, divisions } = parseHierarchy(data, mapping.seattleIds, leagueId)
 
-    // Find Seattle's division and conference names
     let seattleDivisionName: string | null = null
     let seattleConferenceName: string | null = null
 
