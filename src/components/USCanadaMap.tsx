@@ -54,8 +54,27 @@ function getHoverFill(abbr: string, selected: string | null, teamsPerState: Reco
   return 'rgba(255,255,255,0.09)'
 }
 
+// react-simple-maps v3 spreads extra props onto the underlying <svg>, but
+// ComposableMapProps doesn't declare viewBox.  Cast to let TypeScript through.
+type ComposableMapWithViewBox = React.ComponentType<
+  React.ComponentProps<typeof ComposableMap> & { viewBox?: string }
+>
+const ComposableMapVB = ComposableMap as ComposableMapWithViewBox
+
+// ─── Northeast zoom ──────────────────────────────────────────────────────────
+// geoAlbersUsa at scale 1000 renders into an 800×450 SVG coordinate space.
+// The NE states cluster in the upper-right quadrant.  Changing the SVG viewBox
+// to a smaller crop magnifies that region without touching the projection.
+//
+// Tuning guide: open DevTools, inspect the rendered <svg> paths for CT/RI and
+// read their `d` bounding box to fine-tune X_NE / Y_NE / W_NE / H_NE.
+const VIEWBOX_FULL = '0 0 800 450'
+const VIEWBOX_NE   = '590 30 230 185'  // ← adjust if states are off-centre
+
+
 export default function USCanadaMap({ selectedState, onStateSelect, teamsPerState }: Props) {
   const [hoveredState, setHoveredState] = useState<string | null>(null)
+  const [neZoom, setNeZoom]             = useState(false)
 
   const provinceStyle = (abbr: string): React.CSSProperties => {
     const has = (teamsPerState[abbr] || 0) > 0
@@ -122,10 +141,24 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
           </defs>
         </svg>
 
-        <ComposableMap
+        {/* NE zoom label — only visible when zoomed */}
+        {neZoom && (
+          <div style={{
+            position: 'absolute', top: 6, left: 8, zIndex: 2,
+            fontSize: 9, fontWeight: 700, letterSpacing: '0.07em',
+            textTransform: 'uppercase', color: '#00d4ff',
+            pointerEvents: 'none',
+          }}>
+            Northeast — tap a state
+          </div>
+        )}
+
+        <ComposableMapVB
           projection="geoAlbersUsa"
           projectionConfig={{ scale: 1000 }}
-          style={{ width: '100%', height: 'auto' }}
+          /* viewBox crop drives the zoom — no projection change needed */
+          viewBox={neZoom ? VIEWBOX_NE : VIEWBOX_FULL}
+          style={{ width: '100%', height: 'auto', display: 'block' }}
         >
           <Geographies geography={US_GEO}>
             {({ geographies }: { geographies: GeoFeature[] }) =>
@@ -172,7 +205,26 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
               })
             }
           </Geographies>
-        </ComposableMap>
+        </ComposableMapVB>
+
+        {/* Zoom toggle — top-right corner */}
+        <button
+          onClick={() => setNeZoom(z => !z)}
+          aria-label={neZoom ? 'Return to full US map' : 'Zoom into Northeast states'}
+          style={{
+            position: 'absolute', top: 6, right: 6, zIndex: 3,
+            background: neZoom ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.07)',
+            border: `1px solid ${neZoom ? '#00d4ff' : 'rgba(255,255,255,0.18)'}`,
+            color: neZoom ? '#00d4ff' : '#9ca3af',
+            borderRadius: 5, padding: '3px 8px',
+            fontSize: 10, fontWeight: 700, letterSpacing: '0.03em',
+            cursor: 'pointer', userSelect: 'none',
+            backdropFilter: 'blur(4px)',
+            transition: 'background 0.15s, border-color 0.15s, color 0.15s',
+          }}
+        >
+          {neZoom ? '← Full US' : '🔍 NE'}
+        </button>
       </div>
 
       {/* Legend */}
