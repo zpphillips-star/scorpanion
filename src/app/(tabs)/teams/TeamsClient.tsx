@@ -7,6 +7,7 @@ import { useFollowedOtherTeams } from '@/hooks/useFollowedOtherTeams'
 import TeamLogo from '@/components/TeamLogo'
 import { SeattleTeam } from '@/lib/types'
 import USCanadaMap from '@/components/USCanadaMap'
+import TeamDetailSheet from '@/components/TeamDetailSheet'
 import { ALL_PRO_TEAMS, ProTeam, getTeamsByState } from '@/lib/allProTeams'
 
 // ── Sport filter tabs ────────────────────────────────────────────────────────
@@ -21,6 +22,15 @@ const SPORT_TABS = [
   { id: 'NWSL', label: 'NWSL' },
 ] as const
 type SportTab = typeof SPORT_TABS[number]['id']
+
+// Map ProTeam.league → team-detail route league param
+function toDetailLeague(league: string): string {
+  const map: Record<string, string> = {
+    NFL: 'nfl', NBA: 'nba', NHL: 'nhl', MLB: 'mlb',
+    WNBA: 'wnba', MLS: 'mls', NWSL: 'usa.nwsl',
+  }
+  return map[league] ?? league.toLowerCase()
+}
 
 // Seattle teams have state = 'WA'
 const SEATTLE_STATE = 'WA'
@@ -122,6 +132,7 @@ export default function TeamsClient() {
   const [drillDown, setDrillDown] = useState<DrillDownConfig | null>(null)
   const [selectedMapState, setSelectedMapState] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<SportTab>('ALL')
+  const [detailTeam, setDetailTeam] = useState<{ team: ProTeam; detailLeague: string } | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
   const teamsPerState = useMemo(() => {
@@ -205,10 +216,8 @@ export default function TeamsClient() {
       <div
         role="button"
         tabIndex={0}
-        onClick={() => toggleFollow(team.id)}
-        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') toggleFollow(team.id) }}
-        aria-label={isFollowed ? `Unfollow ${team.name}` : `Follow ${team.name}`}
-        aria-pressed={isFollowed}
+        onClick={() => setDetailTeam({ team, detailLeague: toDetailLeague(team.league) })}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setDetailTeam({ team, detailLeague: toDetailLeague(team.league) }) }}
         className="relative flex flex-col items-center gap-1.5 p-2.5 rounded-2xl transition-all active:scale-95 cursor-pointer select-none"
         style={{
           background: isFollowed
@@ -218,17 +227,17 @@ export default function TeamsClient() {
             : isSeattle
             ? 'rgba(0,212,255,0.06)'
             : 'rgba(255,255,255,0.03)',
-          border: `2px solid ${
+          border: `1.5px solid ${
             isFollowed
               ? team.primaryColor
               : isStateMatch
               ? 'rgba(251,191,36,0.45)'
               : isSeattle
               ? 'rgba(0,212,255,0.25)'
-              : 'rgba(255,255,255,0.08)'
+              : 'rgba(255,255,255,0.07)'
           }`,
           boxShadow: isFollowed
-            ? `0 0 8px ${team.primaryColor}40`
+            ? `0 0 12px ${team.primaryColor}33`
             : isStateMatch
             ? '0 0 8px rgba(251,191,36,0.15)'
             : 'none',
@@ -265,12 +274,7 @@ export default function TeamsClient() {
 
         {/* Name */}
         <div className="w-full text-center px-0.5">
-          <div
-            className="text-[11px] font-semibold leading-tight line-clamp-2"
-            style={{ color: isFollowed ? '#fff' : '#a1a1aa' }}
-          >
-            {team.shortName}
-          </div>
+          <div className="text-white text-[11px] font-semibold leading-tight line-clamp-2">{team.shortName}</div>
           <div
             className="text-[8px] font-700 uppercase tracking-wider mt-0.5 px-1 py-0.5 rounded inline-block"
             style={{ background: badgeColor, color: '#fff' }}
@@ -278,6 +282,20 @@ export default function TeamsClient() {
             {team.league}
           </div>
         </div>
+
+        {/* Follow toggle — stopPropagation so it doesn't open detail sheet */}
+        <button
+          className="mt-0.5 text-[9px] font-700 uppercase tracking-wide px-2 py-0.5 rounded-full transition-all leading-none"
+          style={
+            isFollowed
+              ? { background: team.primaryColor, color: '#fff' }
+              : { background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#6b7280' }
+          }
+          onClick={e => { e.stopPropagation(); toggleFollow(team.id) }}
+          aria-label={isFollowed ? `Unfollow ${team.name}` : `Follow ${team.name}`}
+        >
+          {isFollowed ? '✓ Following' : '+ Follow'}
+        </button>
       </div>
     )
   }
@@ -329,38 +347,32 @@ export default function TeamsClient() {
               return (
                 <button
                   key={team.id}
-                  onClick={() => toggleFollow(team.id)}
-                  aria-label={isFollowed ? `Unfollow ${team.name}` : `Follow ${team.name}`}
-                  aria-pressed={isFollowed}
-                  className="relative flex flex-col items-center gap-1 p-2.5 rounded-2xl transition-all active:scale-95 shrink-0"
+                  onClick={() => setDetailTeam({ team, detailLeague: toDetailLeague(team.league) })}
+                  className="flex flex-col items-center gap-1 p-2.5 rounded-2xl transition-all active:scale-95 shrink-0"
                   style={{
                     width: 76,
                     background: isFollowed ? `${team.primaryColor}28` : 'rgba(255,255,255,0.07)',
-                    border: `2px solid ${isFollowed ? team.primaryColor : 'rgba(0,212,255,0.22)'}`,
-                    boxShadow: isFollowed ? `0 0 8px ${team.primaryColor}40` : '0 0 6px rgba(0,212,255,0.06)',
+                    border: `1.5px solid ${isFollowed ? team.primaryColor : 'rgba(0,212,255,0.22)'}`,
+                    boxShadow: isFollowed ? `0 0 10px ${team.primaryColor}33` : '0 0 6px rgba(0,212,255,0.06)',
                   }}
                 >
-                  {/* Follow checkmark badge */}
-                  {isFollowed && (
-                    <div
-                      className="absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded-full flex items-center justify-center z-10"
-                      style={{ backgroundColor: team.primaryColor }}
-                    >
-                      <svg className="w-2 h-2" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  )}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={team.logo} alt={team.name} width={40} height={40} style={{ objectFit: "contain", maxHeight: 40 }} />
-                  <div
-                    className="text-[10px] font-semibold leading-tight text-center line-clamp-2 w-full"
-                    style={{ color: isFollowed ? '#fff' : '#a1a1aa' }}
-                  >{team.shortName}</div>
+                  <div className="text-[10px] font-semibold text-white leading-tight text-center line-clamp-2 w-full">{team.shortName}</div>
                   <span
                     className="text-[8px] font-700 uppercase px-1 py-0.5 rounded"
                     style={{ background: LEAGUE_BADGE[team.league] ?? '#333', color: '#fff' }}
                   >{team.league}</span>
+                  <button
+                    className="text-[8px] font-700 uppercase tracking-wide px-1.5 py-0.5 rounded-full transition-all leading-none"
+                    style={
+                      isFollowed
+                        ? { background: team.primaryColor, color: '#fff' }
+                        : { background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#6b7280' }
+                    }
+                    onClick={e => { e.stopPropagation(); toggleFollow(team.id) }}
+                    aria-label={isFollowed ? `Unfollow ${team.name}` : `Follow ${team.name}`}
+                  >{isFollowed ? '✓' : '+'}</button>
                 </button>
               )
             })}
@@ -468,7 +480,7 @@ export default function TeamsClient() {
         <p className="text-zinc-500 text-sm mt-0.5">
           {totalFollowed > 0
             ? `Following ${totalFollowed} team${totalFollowed !== 1 ? 's' : ''}`
-            : 'Tap a team to follow · Tap a state to filter'}
+            : 'Tap a state or team to explore'}
         </p>
       </div>
 
@@ -608,6 +620,16 @@ export default function TeamsClient() {
         </>
       )}
 
+      {/* ── Team detail sheet ── */}
+      {detailTeam && (
+        <TeamDetailSheet
+          teamId={detailTeam.team.espnId}
+          teamName={detailTeam.team.name}
+          teamLogo={detailTeam.team.logo}
+          league={detailTeam.detailLeague}
+          onClose={() => setDetailTeam(null)}
+        />
+      )}
     </div>
   )
 }
