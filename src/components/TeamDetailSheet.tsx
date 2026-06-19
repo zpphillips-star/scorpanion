@@ -87,27 +87,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                 {loading ? teamName : (data?.shortName ?? data?.name ?? teamName)}
               </div>
 
-              {data && !loading && (
-                <div className="flex items-baseline gap-2 mt-2 flex-wrap">
-                  <span className="font-display text-[30px] font-800 text-white tabular-nums leading-none">
-                    {data.wins}–{data.losses}{data.ties ? `–${data.ties}` : ""}
-                  </span>
-                  {data.divisionRank && (
-                    <span
-                      className="font-display text-[13px] font-700 px-2 py-0.5 rounded-full tabular-nums"
-                      style={{ color, background: `${color}18`, border: `1px solid ${color}30` }}
-                    >
-                      #{data.divisionRank} {data.divisionName?.split(" ").pop() ?? "Div"}
-                    </span>
-                  )}
-                  {data.winPct && (
-                    <span className="font-display text-[13px] text-zinc-500 tabular-nums">
-                      .{Math.round(parseFloat(data.winPct) * 1000).toString().padStart(3, "0")}
-                    </span>
-                  )}
-                </div>
-              )}
-              {loading && <div className="h-8 w-32 rounded-xl bg-white/8 animate-pulse mt-2" />}
+              {loading && <div className="h-5 w-24 rounded-xl bg-white/8 animate-pulse mt-1" />}
             </div>
           </div>
         </div>
