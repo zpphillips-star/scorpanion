@@ -7,9 +7,8 @@ import { useFollowedOtherTeams } from '@/hooks/useFollowedOtherTeams'
 import TeamLogo from '@/components/TeamLogo'
 import { SeattleTeam } from '@/lib/types'
 import USCanadaMap from '@/components/USCanadaMap'
-import StateTeamsSheet from '@/components/StateTeamsSheet'
 import TeamDetailSheet from '@/components/TeamDetailSheet'
-import { ALL_PRO_TEAMS, ProTeam } from '@/lib/allProTeams'
+import { ALL_PRO_TEAMS, ProTeam, getTeamsByState } from '@/lib/allProTeams'
 
 // ── Sport filter tabs ────────────────────────────────────────────────────────
 const SPORT_TABS = [
@@ -109,6 +108,24 @@ const LEAGUE_BADGE: Record<string, string> = {
   MLB: '#002D72', WNBA: '#FF6900', MLS: '#002B5C', NWSL: '#00A9E0',
 }
 
+// ── State full names ──────────────────────────────────────────────────────────
+const STATE_NAMES: Record<string, string> = {
+  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+  CO: 'Colorado', CT: 'Connecticut', DC: 'Washington D.C.', DE: 'Delaware',
+  FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois',
+  IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana',
+  ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota',
+  MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada',
+  NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York',
+  NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon',
+  PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota',
+  TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia',
+  WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming',
+  BC: 'British Columbia', AB: 'Alberta', SK: 'Saskatchewan', MB: 'Manitoba',
+  ON: 'Ontario', QC: 'Québec', NB: 'New Brunswick', NS: 'Nova Scotia',
+  PE: 'Prince Edward Island', NL: 'Newfoundland',
+}
+
 export default function TeamsClient() {
   const { selectedTeamIds, toggleTeam, loaded } = useSelectedTeams()
   const { followedIds, toggleFollow } = useFollowedOtherTeams()
@@ -116,6 +133,7 @@ export default function TeamsClient() {
   const [selectedMapState, setSelectedMapState] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<SportTab>('ALL')
   const [detailTeam, setDetailTeam] = useState<{ team: ProTeam; detailLeague: string } | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const teamsPerState = useMemo(() => {
     const map: Record<string, number> = {}
@@ -125,9 +143,18 @@ export default function TeamsClient() {
 
   // Filter + sort teams: followed first, then Seattle, then alphabetical
   const filteredTeams = useMemo(() => {
-    const base = activeTab === 'ALL'
+    let base = activeTab === 'ALL'
       ? ALL_PRO_TEAMS
       : ALL_PRO_TEAMS.filter(t => t.league === activeTab)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      base = base.filter(t =>
+        t.name.toLowerCase().includes(q) ||
+        t.city.toLowerCase().includes(q) ||
+        t.shortName.toLowerCase().includes(q) ||
+        t.abbr.toLowerCase().includes(q)
+      )
+    }
     return [...base].sort((a, b) => {
       const aF = followedIds.includes(a.id)
       const bF = followedIds.includes(b.id)
@@ -137,7 +164,7 @@ export default function TeamsClient() {
       if (aS !== bS) return aS ? -1 : 1
       return a.name.localeCompare(b.name)
     })
-  }, [activeTab, followedIds])
+  }, [activeTab, followedIds, searchQuery])
 
   const proFollowedCount = followedIds.filter(id => ALL_PRO_TEAMS.some(t => t.id === id)).length
   const totalFollowed = selectedTeamIds.length + proFollowedCount
@@ -182,6 +209,7 @@ export default function TeamsClient() {
   const ProTeamCard = ({ team }: { team: ProTeam }) => {
     const isFollowed = followedIds.includes(team.id)
     const isSeattle = team.state === SEATTLE_STATE
+    const isStateMatch = selectedMapState !== null && team.state === selectedMapState && !isFollowed && !isSeattle
     const badgeColor = LEAGUE_BADGE[team.league] ?? '#333'
 
     return (
@@ -194,17 +222,25 @@ export default function TeamsClient() {
         style={{
           background: isFollowed
             ? `${team.primaryColor}22`
+            : isStateMatch
+            ? 'rgba(251,191,36,0.07)'
             : isSeattle
             ? 'rgba(0,212,255,0.06)'
             : 'rgba(255,255,255,0.03)',
           border: `1.5px solid ${
             isFollowed
               ? team.primaryColor
+              : isStateMatch
+              ? 'rgba(251,191,36,0.45)'
               : isSeattle
               ? 'rgba(0,212,255,0.25)'
               : 'rgba(255,255,255,0.07)'
           }`,
-          boxShadow: isFollowed ? `0 0 12px ${team.primaryColor}33` : 'none',
+          boxShadow: isFollowed
+            ? `0 0 12px ${team.primaryColor}33`
+            : isStateMatch
+            ? '0 0 8px rgba(251,191,36,0.15)'
+            : 'none',
         }}
       >
         {/* Follow checkmark badge */}
@@ -260,6 +296,88 @@ export default function TeamsClient() {
         >
           {isFollowed ? '✓ Following' : '+ Follow'}
         </button>
+      </div>
+    )
+  }
+
+  // ── State spotlight row (inline horizontal scroll below map) ────────────
+  const StateSpotlightRow = ({ stateAbbr }: { stateAbbr: string }) => {
+    const stateTeams = getTeamsByState(stateAbbr)
+    const stateName = STATE_NAMES[stateAbbr] ?? stateAbbr
+    if (stateTeams.length === 0) {
+      return (
+        <div
+          className="mx-4 mb-2 px-4 py-3 rounded-2xl flex items-center justify-between"
+          style={{ background: 'rgba(0,212,255,0.05)', border: '1px solid rgba(0,212,255,0.15)' }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm">📍</span>
+            <span className="font-display text-sm font-700 text-white uppercase tracking-wide">{stateName}</span>
+            <span className="text-zinc-500 text-xs">No pro teams</span>
+          </div>
+          <button
+            onClick={() => setSelectedMapState(null)}
+            className="w-6 h-6 rounded-full flex items-center justify-center text-zinc-400 hover:bg-white/10 transition-colors text-xs"
+            aria-label="Clear selection"
+          >✕</button>
+        </div>
+      )
+    }
+    return (
+      <div
+        className="mb-2"
+        style={{ background: 'rgba(0,212,255,0.04)', borderTop: '1px solid rgba(0,212,255,0.12)', borderBottom: '1px solid rgba(0,212,255,0.12)' }}
+      >
+        <div className="flex items-center justify-between px-4 pt-3 pb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">📍</span>
+            <span className="font-display text-sm font-700 text-white uppercase tracking-wide">{stateName}</span>
+            <span className="text-zinc-500 text-xs">{stateTeams.length} team{stateTeams.length !== 1 ? 's' : ''}</span>
+          </div>
+          <button
+            onClick={() => setSelectedMapState(null)}
+            className="w-6 h-6 rounded-full flex items-center justify-center text-zinc-400 hover:bg-white/10 transition-colors text-xs leading-none"
+            aria-label="Clear state selection"
+          >✕</button>
+        </div>
+        <div className="overflow-x-auto no-scrollbar px-4 pb-3">
+          <div className="flex gap-2.5" style={{ width: 'max-content' }}>
+            {stateTeams.map(team => {
+              const isFollowed = followedIds.includes(team.id)
+              return (
+                <button
+                  key={team.id}
+                  onClick={() => setDetailTeam({ team, detailLeague: toDetailLeague(team.league) })}
+                  className="flex flex-col items-center gap-1 p-2.5 rounded-2xl transition-all active:scale-95 shrink-0"
+                  style={{
+                    width: 76,
+                    background: isFollowed ? `${team.primaryColor}28` : 'rgba(255,255,255,0.07)',
+                    border: `1.5px solid ${isFollowed ? team.primaryColor : 'rgba(0,212,255,0.22)'}`,
+                    boxShadow: isFollowed ? `0 0 10px ${team.primaryColor}33` : '0 0 6px rgba(0,212,255,0.06)',
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={team.logo} alt={team.name} width={36} height={36} style={{ objectFit: 'contain', maxHeight: 36 }} />
+                  <div className="text-[10px] font-semibold text-white leading-tight text-center line-clamp-2 w-full">{team.shortName}</div>
+                  <span
+                    className="text-[8px] font-700 uppercase px-1 py-0.5 rounded"
+                    style={{ background: LEAGUE_BADGE[team.league] ?? '#333', color: '#fff' }}
+                  >{team.league}</span>
+                  <button
+                    className="text-[8px] font-700 uppercase tracking-wide px-1.5 py-0.5 rounded-full transition-all leading-none"
+                    style={
+                      isFollowed
+                        ? { background: team.primaryColor, color: '#fff' }
+                        : { background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#6b7280' }
+                    }
+                    onClick={e => { e.stopPropagation(); toggleFollow(team.id) }}
+                    aria-label={isFollowed ? `Unfollow ${team.name}` : `Follow ${team.name}`}
+                  >{isFollowed ? '✓' : '+'}</button>
+                </button>
+              )
+            })}
+          </div>
+        </div>
       </div>
     )
   }
@@ -353,18 +471,72 @@ export default function TeamsClient() {
 
   return (
     <div className="pb-4">
+      {/* ── DrillDown panel (full-screen overlay, rendered first so it sits on top) ── */}
+      {drillDown && <DrillDownPanel config={drillDown} />}
+
       {/* ── Header ── */}
       <div className="sticky top-0 z-30 glass-header px-4 py-3">
         <h1 className="font-display text-[26px] font-800 text-white leading-none tracking-tight uppercase">Teams</h1>
         <p className="text-zinc-500 text-sm mt-0.5">
           {totalFollowed > 0
             ? `Following ${totalFollowed} team${totalFollowed !== 1 ? 's' : ''}`
-            : 'Tap a team to follow it'}
+            : 'Tap a state or team to explore'}
         </p>
       </div>
 
+      {/* ── Map — pinned at the top, always visible ── */}
+      <div className="px-4 pt-3 pb-2">
+        <div className="flex items-center justify-between mb-1.5">
+          <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest">🗺️ Discover by Location</h2>
+          {selectedMapState && (
+            <button
+              onClick={() => setSelectedMapState(null)}
+              className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              Clear ✕
+            </button>
+          )}
+        </div>
+        <USCanadaMap
+          selectedState={selectedMapState}
+          onStateSelect={(abbr) => setSelectedMapState(prev => prev === abbr ? null : abbr)}
+          teamsPerState={teamsPerState}
+        />
+      </div>
+
+      {/* ── State spotlight — appears immediately below map when a state is tapped ── */}
+      {selectedMapState && <StateSpotlightRow stateAbbr={selectedMapState} />}
+
+      {/* ── Search input ── */}
+      <div className="px-4 pt-2 pb-1">
+        <div className="relative">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search team or city…"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-8 py-2 rounded-xl text-sm text-white placeholder-zinc-500 outline-none focus:ring-1 focus:ring-[rgba(0,212,255,0.3)]"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)' }}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+              aria-label="Clear search"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* ── Sport filter tabs ── */}
-      <div className="overflow-x-auto no-scrollbar px-4 pt-3 pb-1">
+      <div className="overflow-x-auto no-scrollbar px-4 pt-1.5 pb-1">
         <div className="flex gap-2 min-w-max">
           {SPORT_TABS.map(tab => {
             const active = activeTab === tab.id
@@ -389,10 +561,16 @@ export default function TeamsClient() {
 
       {/* ── Pro teams grid ── */}
       <div className="px-4 mt-3">
-        {/* Followed section header (only in ALL tab) */}
-        {activeTab === 'ALL' && proFollowedCount > 0 && (
+        {/* Followed section header */}
+        {proFollowedCount > 0 && (
           <p className="font-display text-[10px] font-700 text-zinc-500 uppercase tracking-widest mb-2">
             ★ Following ({proFollowedCount})
+          </p>
+        )}
+        {/* State-match hint */}
+        {selectedMapState && !searchQuery && (
+          <p className="text-[10px] text-amber-400/70 mb-2">
+            ✦ Highlighted = {STATE_NAMES[selectedMapState] ?? selectedMapState} teams
           </p>
         )}
         <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2.5">
@@ -405,8 +583,8 @@ export default function TeamsClient() {
         )}
       </div>
 
-      {/* ── Seattle section (local / college teams) ── */}
-      {activeTab === 'ALL' && (
+      {/* ── Seattle section (local / college teams) — hidden during search ── */}
+      {activeTab === 'ALL' && !searchQuery && (
         <>
           <div className="px-4 mt-8 pb-1">
             <div className="flex items-center gap-2">
@@ -439,28 +617,10 @@ export default function TeamsClient() {
               {byIds(OTHER_IDS).map(team => <SeattleTeamCard key={team.id} team={team} />)}
             </div>
           </div>
-
-          {/* Map */}
-          <div className="px-4 mt-8">
-            <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-1">Discover by Location 🗺️</h2>
-            <p className="text-zinc-600 text-[11px] mb-3">Tap a state or province to see its pro teams</p>
-            <USCanadaMap
-              selectedState={selectedMapState}
-              onStateSelect={(abbr) => setSelectedMapState(abbr)}
-              teamsPerState={teamsPerState}
-            />
-          </div>
         </>
       )}
 
-      {/* ── Sheets ── */}
-      {selectedMapState && (
-        <StateTeamsSheet
-          stateAbbr={selectedMapState}
-          onClose={() => setSelectedMapState(null)}
-        />
-      )}
-
+      {/* ── Team detail sheet ── */}
       {detailTeam && (
         <TeamDetailSheet
           teamId={detailTeam.team.espnId}
@@ -470,8 +630,6 @@ export default function TeamsClient() {
           onClose={() => setDetailTeam(null)}
         />
       )}
-
-      {drillDown && <DrillDownPanel config={drillDown} />}
     </div>
   )
 }
