@@ -61,13 +61,17 @@ type ComposableMapWithViewBox = React.ComponentType<
 >
 const ComposableMapVB = ComposableMap as ComposableMapWithViewBox
 
-// ─── Northeast zoom ──────────────────────────────────────────────────────────
-const VIEWBOX_FULL = '0 0 800 450'
-const VIEWBOX_NE   = '590 30 230 185'
+// ─── 13 Colonies zoom ────────────────────────────────────────────────────────
+const VIEWBOX_FULL     = '0 0 800 450'
+const VIEWBOX_COLONIES = '560 20 260 260'  // wider crop covers VA/NC too
 
-// States that are too small to tap at full zoom — tapping any of these
-// automatically zooms into the NE view first
-const NE_SMALL_STATES = new Set(['CT','RI','MA','VT','NH','ME','NJ','DE','MD','DC','NY','PA'])
+// All 13 original colonies + DC + small mid-Atlantic states that are hard to tap
+// Tapping any of these auto-zooms. Tapping anything outside while zoomed → zoom out.
+const COLONIES_STATES = new Set([
+  'ME','NH','VT','MA','RI','CT',   // New England
+  'NY','NJ','PA','DE','MD','DC',   // Mid-Atlantic
+  'VA','NC','SC','GA',             // Southern colonies
+])
 
 
 export default function USCanadaMap({ selectedState, onStateSelect, teamsPerState }: Props) {
@@ -147,7 +151,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
             textTransform: 'uppercase', color: '#00d4ff',
             pointerEvents: 'none',
           }}>
-            Northeast — tap a state
+            Northeast — tap a state · tap outside to zoom out
           </div>
         )}
 
@@ -155,7 +159,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
           projection="geoAlbersUsa"
           projectionConfig={{ scale: 1000 }}
           /* viewBox crop drives the zoom — no projection change needed */
-          viewBox={neZoom ? VIEWBOX_NE : VIEWBOX_FULL}
+          viewBox={neZoom ? VIEWBOX_COLONIES : VIEWBOX_FULL}
           style={{ width: '100%', height: 'auto', display: 'block' }}
         >
           <Geographies geography={US_GEO}>
@@ -172,11 +176,20 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
                     geography={geo}
                     onClick={() => {
                       if (!abbr) return
-                      // Auto-zoom into NE when tapping a small state while not zoomed
-                      if (NE_SMALL_STATES.has(abbr) && !neZoom) {
-                        setNeZoom(true)
+                      if (neZoom) {
+                        // While zoomed: tapping outside the colonies region zooms back out
+                        if (!COLONIES_STATES.has(abbr)) {
+                          setNeZoom(false)
+                        } else {
+                          onStateSelect(abbr)
+                        }
                       } else {
-                        onStateSelect(abbr)
+                        // Not zoomed: tapping a small colonies state zooms in first
+                        if (COLONIES_STATES.has(abbr)) {
+                          setNeZoom(true)
+                        } else {
+                          onStateSelect(abbr)
+                        }
                       }
                     }}
                     onMouseEnter={() => setHoveredState(abbr)}
