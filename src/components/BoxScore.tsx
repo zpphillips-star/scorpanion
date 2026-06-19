@@ -611,15 +611,56 @@ export default function BoxScore({ eventId, league, seattleTeamId, color = "#00d
   const [data, setData] = useState<BoxScoreData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [fromCache, setFromCache] = useState(false)
 
   useEffect(() => {
     if (!eventId) { setLoading(false); return }
     setLoading(true)
     setError(false)
+    setFromCache(false)
+
+    const cacheKey = `bsc:${eventId}:${league}`
+
     fetch(`/api/boxscore?eventId=${eventId}&league=${encodeURIComponent(league)}`)
       .then(r => r.ok ? r.json() : null)
-      .then(d => { setData(d); setLoading(false) })
-      .catch(() => { setError(true); setLoading(false) })
+      .then((d: BoxScoreData | null) => {
+        if (d && d.linescores && d.linescores.length > 0) {
+          // Fresh data — persist to localStorage for future stale fallback
+          try { localStorage.setItem(cacheKey, JSON.stringify(d)) } catch { /* quota */ }
+          setData(d)
+          setFromCache(false)
+        } else {
+          // ESPN returned empty — try localStorage fallback
+          try {
+            const raw = localStorage.getItem(cacheKey)
+            if (raw) {
+              const cached: BoxScoreData = JSON.parse(raw)
+              if (cached.linescores.length > 0) {
+                setData(cached)
+                setFromCache(true)
+              }
+            }
+          } catch { /* parse error */ }
+        }
+        setLoading(false)
+      })
+      .catch(() => {
+        // Network error — try localStorage fallback
+        try {
+          const raw = localStorage.getItem(cacheKey)
+          if (raw) {
+            const cached: BoxScoreData = JSON.parse(raw)
+            if (cached.linescores.length > 0) {
+              setData(cached)
+              setFromCache(true)
+              setLoading(false)
+              return
+            }
+          }
+        } catch { /* parse error */ }
+        setError(true)
+        setLoading(false)
+      })
   }, [eventId, league])
 
   if (loading) {
@@ -649,6 +690,13 @@ export default function BoxScore({ eventId, league, seattleTeamId, color = "#00d
 
       {/* Team stats bars */}
       {showStats && <TeamStatsSection data={data} color={color} />}
+
+      {/* Subtle cached-data indicator */}
+      {fromCache && (
+        <div className="px-4 pb-3 pt-1">
+          <span className="text-[10px] text-zinc-600 uppercase tracking-widest">Cached · live data unavailable</span>
+        </div>
+      )}
     </div>
   )
 }

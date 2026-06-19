@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Game } from '@/lib/types'
+import { Game, ScoreUpdate } from '@/lib/types'
 import { getTeamLogoUrl } from '@/lib/teams'
 import { useSelectedTeams } from '@/hooks/useSelectedTeams'
 import { useTeamClickCounts } from '@/hooks/useTeamClickCounts'
@@ -19,10 +19,13 @@ export default function CalendarClient() {
   const { selectedTeamIds, loaded } = useSelectedTeams()
   const { counts: teamClickCounts, recordClick } = useTeamClickCounts()
   const [games, setGames] = useState<Game[]>([])
+  const [liveScores, setLiveScores] = useState<Record<string, ScoreUpdate>>({})
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [activeFilter, setActiveFilter] = useState('all')
+  const liveScoresRef = useRef(liveScores)
+  useEffect(() => { liveScoresRef.current = liveScores }, [liveScores])
 
   const now = new Date()
   const [viewYear, setViewYear] = useState(now.getFullYear())
@@ -53,8 +56,34 @@ export default function CalendarClient() {
 
   useEffect(() => { if (loaded) fetchSchedule() }, [loaded, fetchSchedule])
 
+  // ── Live-score polling (same cadence as Home/Schedule) ─────────────────────
+  const fetchLiveScores = useCallback(async () => {
+    try {
+      const r = await fetch('/api/live-scores')
+      if (!r.ok) return
+      setLiveScores(await r.json())
+    } catch { /* silent */ }
+  }, [])
+
+  useEffect(() => {
+    fetchLiveScores()
+    let interval = setInterval(fetchLiveScores, 30_000)
+    const adaptive = setInterval(() => {
+      const hasLive = Object.values(liveScoresRef.current).some(s => s.status === 'live')
+      clearInterval(interval)
+      interval = setInterval(fetchLiveScores, hasLive ? 2_000 : 30_000)
+    }, 5_000)
+    return () => { clearInterval(interval); clearInterval(adaptive) }
+  }, [fetchLiveScores])
+
+  // Merge live scores into schedule data
+  const allGames = games.map(g => {
+    const u = liveScores[g.id]
+    return u ? { ...g, status: u.status, seattleScore: u.seattleScore, opponentScore: u.opponentScore, clock: u.clock, period: u.period } : g
+  })
+
   const filteredGames = (() => {
-    const base = games.filter(g => selectedTeamIds.includes(g.seattleTeamId))
+    const base = allGames.filter(g => selectedTeamIds.includes(g.seattleTeamId))
     if (activeFilter === 'all') return base
     const gk = getCollegeGroupKey(activeFilter)
     if (gk) return base.filter(g => getCollegeGroupKey(g.seattleTeamId) === gk)

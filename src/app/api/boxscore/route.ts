@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server"
 
+// ── Server-side in-memory cache ───────────────────────────────────────────────
+// Persists within the same serverless warm-start instance.
+// Key: "eventId:league"  Value: the full JSON we previously returned
+const bsCache = new Map<string, Record<string, unknown>>()
+
 const SPORT_PATH: Record<string, string> = {
   mlb: "baseball/mlb",
   nfl: "football/nfl",
@@ -25,11 +30,17 @@ export async function GET(req: Request) {
   if (!sportPath) return NextResponse.json({ error: `Unknown league: ${league}` }, { status: 400 })
 
   const sportType = sportPath.split("/")[0] // baseball | football | hockey | basketball | soccer
+  const cacheKey = `${eventId}:${league}`
 
   try {
     const url = `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/summary?event=${eventId}`
     const res = await fetch(url, { next: { revalidate: 60 } })
-    if (!res.ok) return NextResponse.json({ error: "ESPN error" }, { status: 502 })
+    if (!res.ok) {
+      // Return cached data if available
+      const cached = bsCache.get(cacheKey)
+      if (cached) return NextResponse.json(cached)
+      return NextResponse.json({ error: "ESPN error" }, { status: 502 })
+    }
     const data = await res.json()
 
     const comp = data.header?.competitions?.[0]
@@ -202,7 +213,7 @@ export async function GET(req: Request) {
       )
     }
 
-    return NextResponse.json({
+    const payload: Record<string, unknown> = {
       sportType,
       periodLabels,
       linescores,
@@ -214,8 +225,22 @@ export async function GET(req: Request) {
       shotsOnGoal,
       isShootout,
       goalScorers,
-    })
+    }
+
+    // Cache whenever we have real linescore data (covers final and in-progress games)
+    if (linescores.length > 0) {
+      bsCache.set(cacheKey, payload)
+    } else {
+      // ESPN returned empty linescores — return cached version if we have one
+      const cached = bsCache.get(cacheKey)
+      if (cached) return NextResponse.json(cached)
+    }
+
+    return NextResponse.json(payload)
   } catch {
+    // On network/parse error, return cached version if we have one
+    const cached = bsCache.get(`${eventId}:${league}`)
+    if (cached) return NextResponse.json(cached)
     return NextResponse.json({ error: "Failed to fetch box score" }, { status: 500 })
   }
 }
