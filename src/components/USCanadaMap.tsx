@@ -1,87 +1,194 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
+import { ComposableMap, Geographies, Geography, GeoFeature } from 'react-simple-maps'
 
-interface Tile { abbr: string; col: number; row: number }
 interface Props {
   selectedState: string | null
   onStateSelect: (abbr: string) => void
   teamsPerState: Record<string, number>
 }
 
-const US_TILES: Tile[] = [
-  { abbr: 'AK', col: 0, row: 0 }, { abbr: 'ME', col: 10, row: 0 },
-  { abbr: 'WA', col: 0, row: 1 }, { abbr: 'MT', col: 1, row: 1 }, { abbr: 'ND', col: 2, row: 1 }, { abbr: 'MN', col: 3, row: 1 }, { abbr: 'WI', col: 5, row: 1 }, { abbr: 'MI', col: 6, row: 1 }, { abbr: 'VT', col: 9, row: 1 }, { abbr: 'NH', col: 10, row: 1 },
-  { abbr: 'OR', col: 0, row: 2 }, { abbr: 'ID', col: 1, row: 2 }, { abbr: 'SD', col: 2, row: 2 }, { abbr: 'NE', col: 3, row: 2 }, { abbr: 'IA', col: 4, row: 2 }, { abbr: 'IL', col: 5, row: 2 }, { abbr: 'IN', col: 6, row: 2 }, { abbr: 'OH', col: 7, row: 2 }, { abbr: 'PA', col: 8, row: 2 }, { abbr: 'NY', col: 9, row: 2 }, { abbr: 'MA', col: 10, row: 2 }, { abbr: 'RI', col: 11, row: 2 },
-  { abbr: 'CA', col: 0, row: 3 }, { abbr: 'NV', col: 1, row: 3 }, { abbr: 'WY', col: 2, row: 3 }, { abbr: 'CO', col: 3, row: 3 }, { abbr: 'KS', col: 4, row: 3 }, { abbr: 'MO', col: 5, row: 3 }, { abbr: 'KY', col: 6, row: 3 }, { abbr: 'WV', col: 7, row: 3 }, { abbr: 'VA', col: 8, row: 3 }, { abbr: 'MD', col: 9, row: 3 }, { abbr: 'NJ', col: 10, row: 3 }, { abbr: 'CT', col: 11, row: 3 }, { abbr: 'DE', col: 12, row: 3 },
-  { abbr: 'AZ', col: 1, row: 4 }, { abbr: 'NM', col: 2, row: 4 }, { abbr: 'OK', col: 3, row: 4 }, { abbr: 'AR', col: 4, row: 4 }, { abbr: 'TN', col: 5, row: 4 }, { abbr: 'NC', col: 6, row: 4 }, { abbr: 'SC', col: 7, row: 4 }, { abbr: 'DC', col: 9, row: 4 },
-  { abbr: 'TX', col: 3, row: 5 }, { abbr: 'LA', col: 4, row: 5 }, { abbr: 'MS', col: 5, row: 5 }, { abbr: 'AL', col: 6, row: 5 }, { abbr: 'GA', col: 7, row: 5 },
-  { abbr: 'FL', col: 6, row: 6 },
-  { abbr: 'HI', col: 1, row: 7 },
+// US states TopoJSON from CDN (includes AK + HI as insets via geoAlbersUsa)
+const US_GEO = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json'
+
+// FIPS numeric ID → state abbreviation
+const FIPS_TO_ABBR: Record<string, string> = {
+  '01':'AL','02':'AK','04':'AZ','05':'AR','06':'CA','08':'CO','09':'CT',
+  '10':'DE','11':'DC','12':'FL','13':'GA','15':'HI','16':'ID','17':'IL',
+  '18':'IN','19':'IA','20':'KS','21':'KY','22':'LA','23':'ME','24':'MD',
+  '25':'MA','26':'MI','27':'MN','28':'MS','29':'MO','30':'MT','31':'NE',
+  '32':'NV','33':'NH','34':'NJ','35':'NM','36':'NY','37':'NC','38':'ND',
+  '39':'OH','40':'OK','41':'OR','42':'PA','44':'RI','45':'SC','46':'SD',
+  '47':'TN','48':'TX','49':'UT','50':'VT','51':'VA','53':'WA','54':'WV',
+  '55':'WI','56':'WY',
+}
+
+// Canada province buttons (keep as a simple pill row — no free TopoJSON needed)
+const CANADA_PROVINCES = [
+  { abbr: 'BC', label: 'BC' },
+  { abbr: 'AB', label: 'AB' },
+  { abbr: 'SK', label: 'SK' },
+  { abbr: 'MB', label: 'MB' },
+  { abbr: 'ON', label: 'ON' },
+  { abbr: 'QC', label: 'QC' },
+  { abbr: 'NB', label: 'NB' },
+  { abbr: 'NS', label: 'NS' },
+  { abbr: 'PE', label: 'PE' },
+  { abbr: 'NL', label: 'NL' },
 ]
 
-const CANADA = ['BC', 'AB', 'SK', 'MB', 'ON', 'QC', 'NB', 'NS', 'PE', 'NL']
-const COLS = 13
+function getFill(abbr: string, selected: string | null, teamsPerState: Record<string, number>): string {
+  if (selected === abbr) return 'rgba(0,212,255,0.28)'
+  if ((teamsPerState[abbr] || 0) > 0) return 'rgba(255,255,255,0.11)'
+  return 'rgba(255,255,255,0.03)'
+}
+
+function getStroke(abbr: string, selected: string | null): string {
+  if (selected === abbr) return '#00d4ff'
+  return 'rgba(255,255,255,0.15)'
+}
+
+function getHoverFill(abbr: string, selected: string | null, teamsPerState: Record<string, number>): string {
+  if (selected === abbr) return 'rgba(0,212,255,0.35)'
+  if ((teamsPerState[abbr] || 0) > 0) return 'rgba(255,255,255,0.2)'
+  return 'rgba(255,255,255,0.09)'
+}
 
 export default function USCanadaMap({ selectedState, onStateSelect, teamsPerState }: Props) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [sz, setSz] = useState(24)
-  const GAP = 2
+  const [hoveredState, setHoveredState] = useState<string | null>(null)
 
-  useEffect(() => {
-    const measure = () => {
-      if (!ref.current) return
-      const w = ref.current.clientWidth
-      setSz(Math.max(18, Math.floor((w - GAP * (COLS - 1)) / COLS)))
-    }
-    measure()
-    const ro = new ResizeObserver(measure)
-    if (ref.current) ro.observe(ref.current)
-    return () => ro.disconnect()
-  }, [])
-
-  const fs = Math.max(6, Math.floor(sz * 0.33))
-  const canadaSz = Math.floor((sz * COLS + GAP * (COLS - 1) - GAP * (CANADA.length - 1)) / CANADA.length)
-
-  const style = (abbr: string): React.CSSProperties => {
+  const provinceStyle = (abbr: string): React.CSSProperties => {
     const has = (teamsPerState[abbr] || 0) > 0
     const sel = selectedState === abbr
-    if (sel) return { background: 'rgba(0,212,255,0.25)', border: '2px solid #00d4ff', color: '#00d4ff', boxShadow: '0 0 6px rgba(0,212,255,0.5)' }
-    if (has) return { background: 'rgba(255,255,255,0.13)', border: '1px solid rgba(255,255,255,0.22)', color: '#e5e7eb' }
-    return { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: '#374151' }
+    if (sel) return {
+      background: 'rgba(0,212,255,0.25)', border: '2px solid #00d4ff',
+      color: '#00d4ff', boxShadow: '0 0 6px rgba(0,212,255,0.45)',
+    }
+    if (has) return {
+      background: 'rgba(255,255,255,0.11)', border: '1px solid rgba(255,255,255,0.22)',
+      color: '#e5e7eb',
+    }
+    return {
+      background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+      color: '#4b5563',
+    }
   }
 
-  const base = (w: number, h: number): React.CSSProperties => ({
-    width: w, height: h, borderRadius: 4, fontSize: fs, fontWeight: 700,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'pointer', userSelect: 'none', flexShrink: 0, letterSpacing: '0.01em',
-    transition: 'all 0.1s',
-  })
-
   return (
-    <div ref={ref} style={{ width: '100%' }}>
-      <div style={{ marginBottom: 4 }}>
-        <div style={{ fontSize: 8, color: '#4b5563', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Canada</div>
-        <div style={{ display: 'flex', gap: GAP }}>
-          {CANADA.map(a => (
-            <button key={a} onClick={() => onStateSelect(a)} style={{ ...base(canadaSz, sz), ...style(a) }}>{a}</button>
+    <div style={{ width: '100%' }}>
+      {/* Canada province pill row */}
+      <div style={{ marginBottom: 6 }}>
+        <div style={{
+          fontSize: 9, color: '#4b5563', fontWeight: 700,
+          letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4,
+        }}>
+          Canada
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+          {CANADA_PROVINCES.map(({ abbr, label }) => (
+            <button
+              key={abbr}
+              onClick={() => onStateSelect(abbr)}
+              style={{
+                padding: '3px 7px',
+                borderRadius: 4,
+                fontSize: 10,
+                fontWeight: 700,
+                cursor: 'pointer',
+                userSelect: 'none',
+                transition: 'all 0.1s',
+                letterSpacing: '0.01em',
+                ...provinceStyle(abbr),
+              }}
+            >
+              {label}
+            </button>
           ))}
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${COLS}, ${sz}px)`, gap: GAP }}>
-        {US_TILES.map(t => (
-          <button key={t.abbr} onClick={() => onStateSelect(t.abbr)}
-            style={{ ...base(sz, sz), ...style(t.abbr), gridColumn: t.col + 1, gridRow: t.row + 1 }}>
-            {t.abbr}
-          </button>
-        ))}
+
+      {/* Real geographic US SVG map */}
+      <div style={{ width: '100%', position: 'relative' }}>
+        {/* Glow filter for selected state */}
+        <svg width="0" height="0" style={{ position: 'absolute' }}>
+          <defs>
+            <filter id="state-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+        </svg>
+
+        <ComposableMap
+          projection="geoAlbersUsa"
+          projectionConfig={{ scale: 1000 }}
+          style={{ width: '100%', height: 'auto' }}
+        >
+          <Geographies geography={US_GEO}>
+            {({ geographies }: { geographies: GeoFeature[] }) =>
+              geographies.map((geo) => {
+                const abbr = FIPS_TO_ABBR[geo.id] ?? ''
+                const isSelected = selectedState === abbr
+                const isHovered = hoveredState === abbr
+                const hasTeams = (teamsPerState[abbr] || 0) > 0
+
+                return (
+                  <Geography
+                    key={geo.rsmKey}
+                    geography={geo}
+                    onClick={() => { if (abbr) onStateSelect(abbr) }}
+                    onMouseEnter={() => setHoveredState(abbr)}
+                    onMouseLeave={() => setHoveredState(null)}
+                    tabIndex={abbr ? 0 : -1}
+                    style={{
+                      default: {
+                        fill: getFill(abbr, selectedState, teamsPerState),
+                        stroke: getStroke(abbr, selectedState),
+                        strokeWidth: isSelected ? 1.5 : 0.5,
+                        outline: 'none',
+                        cursor: abbr ? 'pointer' : 'default',
+                        filter: isSelected ? 'drop-shadow(0 0 4px rgba(0,212,255,0.7))' : undefined,
+                        transition: 'fill 0.15s, stroke 0.15s',
+                      },
+                      hover: {
+                        fill: isHovered ? getHoverFill(abbr, selectedState, teamsPerState) : getFill(abbr, selectedState, teamsPerState),
+                        stroke: isSelected ? '#00d4ff' : hasTeams ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.2)',
+                        strokeWidth: isSelected ? 1.5 : 0.7,
+                        outline: 'none',
+                        cursor: 'pointer',
+                      },
+                      pressed: {
+                        fill: 'rgba(0,212,255,0.2)',
+                        stroke: '#00d4ff',
+                        strokeWidth: 1,
+                        outline: 'none',
+                      },
+                    }}
+                  />
+                )
+              })
+            }
+          </Geographies>
+        </ComposableMap>
       </div>
-      <div style={{ display: 'flex', gap: 12, marginTop: 8, fontSize: 10 }}>
+
+      {/* Legend */}
+      <div style={{ display: 'flex', gap: 12, marginTop: 6, fontSize: 10 }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: 2, background: 'rgba(255,255,255,0.13)', border: '1px solid rgba(255,255,255,0.2)' }} />
+          <span style={{
+            display: 'inline-block', width: 10, height: 10, borderRadius: 2,
+            background: 'rgba(255,255,255,0.11)', border: '1px solid rgba(255,255,255,0.22)',
+          }} />
           <span style={{ color: '#9ca3af' }}>Has teams</span>
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: 2, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }} />
+          <span style={{
+            display: 'inline-block', width: 10, height: 10, borderRadius: 2,
+            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+          }} />
           <span style={{ color: '#4b5563' }}>No teams</span>
         </span>
       </div>
