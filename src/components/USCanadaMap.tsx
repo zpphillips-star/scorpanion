@@ -62,14 +62,12 @@ type ComposableMapWithViewBox = React.ComponentType<
 const ComposableMapVB = ComposableMap as ComposableMapWithViewBox
 
 // ─── Northeast zoom ──────────────────────────────────────────────────────────
-// geoAlbersUsa at scale 1000 renders into an 800×450 SVG coordinate space.
-// The NE states cluster in the upper-right quadrant.  Changing the SVG viewBox
-// to a smaller crop magnifies that region without touching the projection.
-//
-// Tuning guide: open DevTools, inspect the rendered <svg> paths for CT/RI and
-// read their `d` bounding box to fine-tune X_NE / Y_NE / W_NE / H_NE.
 const VIEWBOX_FULL = '0 0 800 450'
-const VIEWBOX_NE   = '590 30 230 185'  // ← adjust if states are off-centre
+const VIEWBOX_NE   = '590 30 230 185'
+
+// States that are too small to tap at full zoom — tapping any of these
+// automatically zooms into the NE view first
+const NE_SMALL_STATES = new Set(['CT','RI','MA','VT','NH','ME','NJ','DE','MD','DC','NY','PA'])
 
 
 export default function USCanadaMap({ selectedState, onStateSelect, teamsPerState }: Props) {
@@ -172,7 +170,15 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    onClick={() => { if (abbr) onStateSelect(abbr) }}
+                    onClick={() => {
+                      if (!abbr) return
+                      // Auto-zoom into NE when tapping a small state while not zoomed
+                      if (NE_SMALL_STATES.has(abbr) && !neZoom) {
+                        setNeZoom(true)
+                      } else {
+                        onStateSelect(abbr)
+                      }
+                    }}
                     onMouseEnter={() => setHoveredState(abbr)}
                     onMouseLeave={() => setHoveredState(null)}
                     tabIndex={abbr ? 0 : -1}
@@ -207,24 +213,25 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
           </Geographies>
         </ComposableMapVB>
 
-        {/* Zoom toggle — top-right corner */}
-        <button
-          onClick={() => setNeZoom(z => !z)}
-          aria-label={neZoom ? 'Return to full US map' : 'Zoom into Northeast states'}
-          style={{
-            position: 'absolute', top: 6, right: 6, zIndex: 3,
-            background: neZoom ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.07)',
-            border: `1px solid ${neZoom ? '#00d4ff' : 'rgba(255,255,255,0.18)'}`,
-            color: neZoom ? '#00d4ff' : '#9ca3af',
-            borderRadius: 5, padding: '3px 8px',
-            fontSize: 10, fontWeight: 700, letterSpacing: '0.03em',
-            cursor: 'pointer', userSelect: 'none',
-            backdropFilter: 'blur(4px)',
-            transition: 'background 0.15s, border-color 0.15s, color 0.15s',
-          }}
-        >
-          {neZoom ? '← Full US' : '🔍 NE'}
-        </button>
+        {/* Back button — only visible when zoomed into NE */}
+        {neZoom && (
+          <button
+            onClick={() => setNeZoom(false)}
+            aria-label="Return to full US map"
+            style={{
+              position: 'absolute', top: 6, right: 6, zIndex: 3,
+              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(255,255,255,0.18)',
+              color: '#9ca3af',
+              borderRadius: 5, padding: '3px 8px',
+              fontSize: 10, fontWeight: 700, letterSpacing: '0.03em',
+              cursor: 'pointer', userSelect: 'none',
+              backdropFilter: 'blur(4px)',
+            }}
+          >
+            ← Full US
+          </button>
+        )}
       </div>
 
       {/* Legend */}
