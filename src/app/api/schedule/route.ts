@@ -8,6 +8,79 @@ export const runtime = 'edge'
 // ── MLB Mariners official team ID ─────────────────────────────────────────────
 const MLB_MARINERS_TEAM_ID = 136
 
+// ── MLB statsapi team ID → ESPN team ID ──────────────────────────────────────
+// The MLB official API (statsapi.mlb.com) uses different numeric IDs than ESPN.
+// opponent.id must be the ESPN ID so that team-detail can call the ESPN API.
+const MLB_STATSAPI_TO_ESPN_ID: Record<number, string> = {
+  108: '3',    // LAA
+  109: '29',   // ARI
+  110: '1',    // BAL
+  111: '2',    // BOS
+  112: '16',   // CHC
+  113: '17',   // CIN
+  114: '5',    // CLE
+  115: '27',   // COL
+  116: '6',    // DET
+  117: '18',   // HOU
+  118: '7',    // KC
+  119: '19',   // LAD
+  120: '20',   // WSH
+  121: '21',   // NYM
+  133: '11',   // OAK
+  134: '23',   // PIT
+  135: '25',   // SD
+  136: '12',   // SEA
+  137: '26',   // SF
+  138: '24',   // STL
+  139: '30',   // TB
+  140: '13',   // TEX
+  141: '14',   // TOR
+  142: '9',    // MIN
+  143: '22',   // PHI
+  144: '15',   // ATL
+  145: '4',    // CWS
+  146: '28',   // MIA
+  147: '10',   // NYY
+  158: '8',    // MIL
+}
+
+// ── NHL internal API team ID → ESPN team ID ───────────────────────────────────
+// The NHL API (api-web.nhle.com) uses its own numeric team IDs; ESPN uses different ones.
+const NHL_API_TO_ESPN_ID: Record<number, string> = {
+  1: '11',     // NJD
+  2: '12',     // NYI
+  3: '13',     // NYR
+  4: '15',     // PHI
+  5: '16',     // PIT
+  6: '1',      // BOS
+  7: '2',      // BUF
+  8: '10',     // MTL
+  9: '14',     // OTT
+  10: '21',    // TOR
+  12: '7',     // CAR
+  13: '26',    // FLA
+  14: '20',    // TBL
+  15: '23',    // WSH
+  16: '4',     // CHI
+  17: '5',     // DET
+  18: '27',    // NSH
+  19: '19',    // STL
+  20: '3',     // CGY
+  21: '17',    // COL
+  22: '6',     // EDM
+  23: '22',    // VAN
+  24: '25',    // ANA
+  25: '9',     // DAL
+  26: '8',     // LAK
+  28: '18',    // SJS
+  29: '29',    // CBJ
+  30: '30',    // MIN
+  52: '28',    // WPG
+  54: '37',    // VGK
+  55: '124292',// SEA
+  68: '129764',// UTA (Utah Hockey Club)
+}
+
 // ── NHL Kraken team abbreviation ──────────────────────────────────────────────
 const NHL_KRAKEN_ABBREV = 'SEA'
 
@@ -69,7 +142,7 @@ async function fetchMLBSchedule(team: SeattleTeam): Promise<Game[]> {
         seattleTeam: team,
         isHome,
         opponent: {
-          id: String(opp.team.id),
+          id: MLB_STATSAPI_TO_ESPN_ID[opp.team.id] ?? String(opp.team.id),
           name: opp.team.name,
           shortName: opp.team.teamName,
           abbr: opp.team.abbreviation,
@@ -141,7 +214,7 @@ async function fetchNHLSchedule(team: SeattleTeam): Promise<Game[]> {
       seattleTeam: team,
       isHome,
       opponent: {
-        id: String(opp.id),
+        id: NHL_API_TO_ESPN_ID[opp.id] ?? String(opp.id),
         name: oppName,
         shortName: opp.commonName?.default ?? opp.abbrev,
         abbr: opp.abbrev,
