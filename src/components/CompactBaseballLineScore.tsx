@@ -115,10 +115,10 @@ export default function CompactBaseballLineScore({ gameId, league, seattleTeamId
                 </th>
               )
             })}
-            {/* R / H / E */}
-            <th className="pl-2 text-center font-display font-700 text-zinc-200 pb-1 border-l border-zinc-700">R</th>
-            <th className="px-1 text-center font-display font-600 text-zinc-500 pb-1">H</th>
-            <th className="px-1 text-center font-display font-600 text-zinc-700 pb-1">E</th>
+            {/* R / H / E — same width as inning cols */}
+            <th className="w-5 text-center font-display font-700 text-zinc-200 pb-1 border-l border-zinc-700">R</th>
+            <th className="w-5 text-center font-display font-600 text-zinc-500 pb-1">H</th>
+            <th className="w-5 text-center font-display font-600 text-zinc-700 pb-1">E</th>
           </tr>
         </thead>
         <tbody>
@@ -161,16 +161,16 @@ export default function CompactBaseballLineScore({ gameId, league, seattleTeamId
                   )
                 })}
 
-                {/* R / H / E totals */}
+                {/* R / H / E totals — same width as inning cols */}
                 <td
-                  className={`pl-2 text-center tabular-nums font-700 border-l border-zinc-700 ${
+                  className={`w-5 text-center tabular-nums font-700 border-l border-zinc-700 ${
                     isSea ? "text-white" : "text-zinc-400"
                   }`}
                 >
                   {R}
                 </td>
-                <td className="px-1 text-center tabular-nums text-zinc-400">{H}</td>
-                <td className="px-1 text-center tabular-nums text-zinc-600">{E}</td>
+                <td className="w-5 text-center tabular-nums text-zinc-400">{H}</td>
+                <td className="w-5 text-center tabular-nums text-zinc-600">{E}</td>
               </tr>
             )
           })}

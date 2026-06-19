@@ -153,10 +153,10 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
                   <th key={i} className={`${HDR} ${isCur ? "text-red-400" : ""}`}>{lbl}</th>
                 )
               })}
-              {/* R / H / E header */}
-              <th className="pb-2 pl-4 pr-1 font-display text-[13px] font-700 text-zinc-200 uppercase border-l-2 border-zinc-700 text-center">R</th>
-              <th className="pb-2 px-2 font-display text-[13px] font-600 text-zinc-500 uppercase text-center">H</th>
-              <th className="pb-2 px-2 font-display text-[13px] font-600 text-zinc-600 uppercase text-center">E</th>
+              {/* R / H / E header — same width as inning cols, subtle divider via border-l only (no extra padding) */}
+              <th className={`${HDR} border-l border-zinc-700 text-zinc-300`}>R</th>
+              <th className={`${HDR}`}>H</th>
+              <th className={`${HDR} text-zinc-600`}>E</th>
             </tr>
           </thead>
           <tbody>
@@ -179,8 +179,8 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
                       </td>
                     )
                   })}
-                  {/* R / H / E */}
-                  <td className={`${CELL} pl-4 text-[17px] font-800 border-l-2 border-zinc-700 ${isSea ? "text-white" : "text-zinc-400"}`}>{R}</td>
+                  {/* R / H / E — same width as inning cols */}
+                  <td className={`${CELL} text-[17px] font-800 border-l border-zinc-700 ${isSea ? "text-white" : "text-zinc-400"}`}>{R}</td>
                   <td className={`${CELL} text-[15px] font-600 text-zinc-400`}>{H}</td>
                   <td className={`${CELL} text-[15px] font-600 text-zinc-600`}>{E}</td>
                 </tr>
