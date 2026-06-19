@@ -61,16 +61,21 @@ type ComposableMapWithViewBox = React.ComponentType<
 >
 const ComposableMapVB = ComposableMap as ComposableMapWithViewBox
 
-// ─── 13 Colonies zoom ────────────────────────────────────────────────────────
+// ─── East coast zoom ─────────────────────────────────────────────────────────
 const VIEWBOX_FULL     = '0 0 800 450'
-const VIEWBOX_COLONIES = '560 20 260 260'  // wider crop covers VA/NC too
+const VIEWBOX_EAST     = '540 15 265 295'  // crops to east coast TN-northward
 
-// All 13 original colonies + DC + small mid-Atlantic states that are hard to tap
-// Tapping any of these auto-zooms. Tapping anything outside while zoomed → zoom out.
-const COLONIES_STATES = new Set([
-  'ME','NH','VT','MA','RI','CT',   // New England
-  'NY','NJ','PA','DE','MD','DC',   // Mid-Atlantic
-  'VA','NC','SC','GA',             // Southern colonies
+// States that are too small to tap at full zoom.
+// Rule: TN and north, eastern half only. Everything south of TN or west → select directly.
+const ZOOM_STATES = new Set([
+  // New England (tiny)
+  'ME','NH','VT','MA','RI','CT',
+  // Mid-Atlantic (small)
+  'NY','NJ','PA','DE','MD','DC',
+  // Upper South / Appalachia (still small on screen)
+  'VA','WV','KY','TN',
+  // Great Lakes (hard to distinguish borders)
+  'OH','IN','MI',
 ])
 
 
@@ -151,7 +156,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
             textTransform: 'uppercase', color: '#00d4ff',
             pointerEvents: 'none',
           }}>
-            Northeast — tap a state · tap outside to zoom out
+            East coast — tap a state · tap outside to zoom out
           </div>
         )}
 
@@ -159,7 +164,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
           projection="geoAlbersUsa"
           projectionConfig={{ scale: 1000 }}
           /* viewBox crop drives the zoom — no projection change needed */
-          viewBox={neZoom ? VIEWBOX_COLONIES : VIEWBOX_FULL}
+          viewBox={neZoom ? VIEWBOX_EAST : VIEWBOX_FULL}
           style={{ width: '100%', height: 'auto', display: 'block' }}
         >
           <Geographies geography={US_GEO}>
@@ -178,14 +183,14 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
                       if (!abbr) return
                       if (neZoom) {
                         // While zoomed: tapping outside the colonies region zooms back out
-                        if (!COLONIES_STATES.has(abbr)) {
+                        if (!ZOOM_STATES.has(abbr)) {
                           setNeZoom(false)
                         } else {
                           onStateSelect(abbr)
                         }
                       } else {
                         // Not zoomed: tapping a small colonies state zooms in first
-                        if (COLONIES_STATES.has(abbr)) {
+                        if (ZOOM_STATES.has(abbr)) {
                           setNeZoom(true)
                         } else {
                           onStateSelect(abbr)
