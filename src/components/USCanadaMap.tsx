@@ -63,7 +63,7 @@ const ComposableMapVB = ComposableMap as ComposableMapWithViewBox
 
 // ─── East coast zoom ─────────────────────────────────────────────────────────
 const VIEWBOX_FULL     = '0 0 800 450'
-const VIEWBOX_EAST     = '540 15 265 295'  // crops to east coast TN-northward
+const VIEWBOX_EAST     = '490 30 315 290'  // x=490→805, y=30→320: ME at top, TN fully at bottom
 
 // States that are too small to tap at full zoom.
 // Rule: TN and north, eastern half only. Everything south of TN or west → select directly.
