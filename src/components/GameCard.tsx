@@ -338,7 +338,7 @@ export default function GameCard({ game }: GameCardProps) {
                         <span className="font-display text-[12px] font-700 text-zinc-600 w-5 text-center flex-shrink-0">{i + 1}</span>
                         {e.logo ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={e.logo} alt={e.abbr} width={22} height={22} className="object-contain flex-shrink-0" />
+                          <img src={e.logo} alt={e.abbr} width={28} height={28} className="object-contain flex-shrink-0" />
                         ) : (
                           <span className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />
                         )}

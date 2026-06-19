@@ -300,7 +300,7 @@ function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void })
                   <span className="font-display text-[12px] font-700 text-zinc-600 w-5 text-center flex-shrink-0">{i + 1}</span>
                   {e.logo ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={e.logo} alt={e.abbr} width={22} height={22} className="object-contain flex-shrink-0" />
+                    <img src={e.logo} alt={e.abbr} width={28} height={28} className="object-contain flex-shrink-0" />
                   ) : (
                     <span className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />
                   )}
@@ -804,7 +804,7 @@ export default function HomeClient() {
                     {/* Opponent (left-aligned) */}
                     <div className="flex-1 flex items-center gap-2 min-w-0">
                       {g.opponent.logo
-                        ? <img src={g.opponent.logo} alt={g.opponent.abbr} width={24} height={24} className="object-contain flex-shrink-0" />
+                        ? <img src={g.opponent.logo} alt={g.opponent.abbr} width={28} height={28} className="object-contain flex-shrink-0" />
                         : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />
                       }
                       <span className="text-[13px] font-semibold text-white truncate">{g.opponent.shortName || g.opponent.name}</span>

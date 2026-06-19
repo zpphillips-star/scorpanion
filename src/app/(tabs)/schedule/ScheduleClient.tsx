@@ -228,7 +228,7 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
         </span>
         {game.isHome
           ? (game.opponent.logo
-              ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={24} height={24} className="object-contain flex-shrink-0" />
+              ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={28} height={28} className="object-contain flex-shrink-0" />
               : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />)
           : <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={24} />
         }
@@ -250,7 +250,7 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
         {game.isHome
           ? <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={24} />
           : (game.opponent.logo
-              ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={24} height={24} className="object-contain flex-shrink-0" />
+              ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={28} height={28} className="object-contain flex-shrink-0" />
               : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />)
         }
         <span className={`text-[13px] font-semibold truncate ${game.isHome ? (seattleLost ? 'text-zinc-500' : 'text-white') : (seattleWon ? 'text-zinc-500' : 'text-white')}`}>

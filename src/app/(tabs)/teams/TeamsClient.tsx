@@ -266,8 +266,8 @@ export default function TeamsClient() {
           <img
             src={team.logo}
             alt={team.name}
-            width={44}
-            height={44}
+            width={40}
+            height={40}
             style={{ objectFit: 'contain', maxHeight: 44 }}
           />
         </div>
@@ -357,7 +357,7 @@ export default function TeamsClient() {
                   }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={team.logo} alt={team.name} width={36} height={36} style={{ objectFit: 'contain', maxHeight: 36 }} />
+                  <img src={team.logo} alt={team.name} width={40} height={40} style={{ objectFit: "contain", maxHeight: 40 }} />
                   <div className="text-[10px] font-semibold text-white leading-tight text-center line-clamp-2 w-full">{team.shortName}</div>
                   <span
                     className="text-[8px] font-700 uppercase px-1 py-0.5 rounded"

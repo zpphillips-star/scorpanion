@@ -88,7 +88,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="font-display text-[11px] font-700 text-zinc-400 flex-shrink-0 w-5 text-center">{g.isHome ? "vs" : "@"}</span>
                     {g.oppLogo
-                      ? <img src={g.oppLogo} alt={g.opponent} width={18} height={18} className="object-contain flex-shrink-0" />
+                      ? <img src={g.oppLogo} alt={g.opponent} width={24} height={24} className="object-contain flex-shrink-0" />
                       : null
                     }
                     <span className="font-display text-[13px] font-700 text-white truncate">{g.opponent}</span>
@@ -104,7 +104,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
         <div>
           <div className="flex items-center gap-2 mb-3 pb-2.5" style={{ borderBottom: "2px solid rgba(255,255,255,0.15)" }}>
             {game.opponent.logo
-              ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={20} height={20} className="object-contain" />
+              ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={24} height={24} className="object-contain" />
               : <div className="w-5 h-5 rounded-full bg-white/10" />
             }
             <span className="font-display text-[13px] font-700 text-white truncate">{game.opponent.shortName || game.opponent.name}</span>
@@ -118,7 +118,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="font-display text-[11px] font-700 text-zinc-400 flex-shrink-0 w-5 text-center">{g.isHome ? "vs" : "@"}</span>
                     {g.oppLogo
-                      ? <img src={g.oppLogo} alt={g.opponent} width={18} height={18} className="object-contain flex-shrink-0" />
+                      ? <img src={g.oppLogo} alt={g.opponent} width={24} height={24} className="object-contain flex-shrink-0" />
                       : null
                     }
                     <span className="font-display text-[13px] font-700 text-white truncate">{g.opponent}</span>

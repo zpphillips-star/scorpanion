@@ -139,7 +139,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                     {/* Away row */}
                     <div className="flex items-center px-2.5 pt-2.5 pb-1 gap-1.5">
                       {awayLogo
-                        ? <img src={awayLogo} alt={awayAbbr} width={18} height={18} className="object-contain flex-shrink-0" />
+                        ? <img src={awayLogo} alt={awayAbbr} width={28} height={28} className="object-contain flex-shrink-0" />
                         : <div className="w-4 h-4 rounded-full bg-white/10 flex-shrink-0" />
                       }
                       <span className="flex-1 font-display text-[12px] font-600 text-zinc-300 truncate">{awayAbbr}</span>
@@ -148,7 +148,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                     {/* Home row */}
                     <div className="flex items-center px-2.5 pb-2 pt-1 gap-1.5 border-t border-white/5">
                       {homeLogo
-                        ? <img src={homeLogo} alt={homeAbbr} width={18} height={18} className="object-contain flex-shrink-0" />
+                        ? <img src={homeLogo} alt={homeAbbr} width={28} height={28} className="object-contain flex-shrink-0" />
                         : <div className="w-4 h-4 rounded-full bg-white/10 flex-shrink-0" />
                       }
                       <span className="flex-1 font-display text-[12px] font-600 text-zinc-300 truncate">{homeAbbr}</span>
@@ -181,7 +181,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                   style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
                 >
                   {g.oppLogo
-                    ? <img src={g.oppLogo} alt={g.opponent} width={34} height={34} className="object-contain flex-shrink-0" />
+                    ? <img src={g.oppLogo} alt={g.opponent} width={28} height={28} className="object-contain flex-shrink-0" />
                     : <div className="w-9 h-9 rounded-full bg-white/8 flex-shrink-0 flex items-center justify-center font-display text-[10px] text-zinc-500">{g.opponent.slice(0,3)}</div>
                   }
                   <div className="flex-1 min-w-0">
@@ -239,7 +239,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                     style={{ color: row.isThis ? color : (i === 0 ? "#fbbf24" : "var(--text-muted)") }}
                   >{i + 1}</div>
                   {row.logo
-                    ? <img src={row.logo} alt={row.abbr} width={24} height={24} className="object-contain flex-shrink-0" />
+                    ? <img src={row.logo} alt={row.abbr} width={28} height={28} className="object-contain flex-shrink-0" />
                     : <div className="w-6 h-6 rounded-full bg-white/8 flex-shrink-0" />
                   }
                   <div className="flex-1 min-w-0">
