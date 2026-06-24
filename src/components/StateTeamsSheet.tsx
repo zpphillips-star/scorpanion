@@ -61,7 +61,7 @@ export default function StateTeamsSheet({ stateAbbr, onClose }: Props) {
 
       {/* Sheet */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl animate-slide-up overflow-y-auto"
+        className="fixed bottom-0 left-0 right-0 z-50 rounded-t-xl animate-slide-up overflow-y-auto"
         style={{
           background: 'var(--surface, #111118)',
           maxHeight: '82vh',

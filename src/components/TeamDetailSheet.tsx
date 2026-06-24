@@ -49,7 +49,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
 
       {/* Sheet */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-[70] lg:max-w-2xl lg:mx-auto rounded-t-3xl overflow-y-auto animate-slide-up"
+        className="fixed bottom-0 left-0 right-0 z-[70] lg:max-w-2xl lg:mx-auto rounded-t-xl overflow-y-auto animate-slide-up"
         style={{ background: "var(--surface)", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "88dvh" }}
         onClick={e => e.stopPropagation()}
       >
@@ -113,7 +113,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                 return (
                   <div
                     key={i}
-                    className="rounded-2xl overflow-hidden"
+                    className="rounded-xl overflow-hidden"
                     style={{ background: "var(--surface-2)", border: `1px solid ${rc}28` }}
                   >
                     {/* Away row */}
@@ -157,7 +157,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
               {data.upcomingGames.map((g, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3 px-3.5 py-3 rounded-2xl"
+                  className="flex items-center gap-3 px-3.5 py-3 rounded-xl"
                   style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
                 >
                   {g.oppLogo

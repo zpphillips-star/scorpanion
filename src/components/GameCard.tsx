@@ -61,7 +61,7 @@ export default function GameCard({ game }: GameCardProps) {
       {/* ── Compact row card ─────────────────────────────────────────────── */}
       <button className="w-full text-left group" onClick={() => setOpen(true)}>
         <div
-          className="mx-3 my-1 rounded-2xl overflow-hidden transition-all duration-150 active:scale-[0.985]"
+          className="mx-3 my-1 rounded-xl overflow-hidden transition-all duration-150 active:scale-[0.985]"
           style={{
             background: isLive
               ? "linear-gradient(135deg,rgba(239,68,68,0.08) 0%,var(--surface) 60%)"
@@ -198,7 +198,7 @@ export default function GameCard({ game }: GameCardProps) {
 
             {/* Inner sheet */}
             <div
-              className="rounded-t-3xl overflow-y-auto"
+              className="rounded-t-xl overflow-y-auto"
               style={{ background: "var(--surface)", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "88dvh" }}
             >
               <div className="w-10 h-1 rounded-full bg-white/15 mx-auto mt-3 mb-2 flex-shrink-0" />
@@ -285,7 +285,7 @@ export default function GameCard({ game }: GameCardProps) {
                   <div className="grid grid-cols-2 gap-3">
                     {/* Seattle record */}
                     <div
-                      className="rounded-2xl px-4 py-3"
+                      className="rounded-xl px-4 py-3"
                       style={{ background: `${seattleColor}18`, border: `1px solid ${seattleColor}35` }}
                     >
                       <div className="flex items-center gap-2 mb-2">
@@ -303,7 +303,7 @@ export default function GameCard({ game }: GameCardProps) {
                     </div>
 
                     {/* Opponent record */}
-                    <div className="rounded-2xl px-4 py-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                    <div className="rounded-xl px-4 py-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
                       <div className="flex items-center gap-2 mb-2">
                         <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={22} />
                         <span className="font-display text-[12px] font-700 text-zinc-300 truncate">{game.opponent.shortName || game.opponent.abbr}</span>

@@ -46,7 +46,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
     <>
       <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50" onClick={onClose} />
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-2xl lg:mx-auto rounded-t-3xl overflow-y-auto animate-slide-up"
+        className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-2xl lg:mx-auto rounded-t-xl overflow-y-auto animate-slide-up"
         style={{ background: "var(--surface)", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "88dvh" }}
         onClick={e => e.stopPropagation()}
       >
@@ -162,7 +162,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
           <div className="px-4 py-4 border-t border-white/5">
             <div className="font-display text-[13px] font-700 uppercase tracking-widest text-zinc-400 mb-3">Season Records</div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl px-4 py-3" style={{ background: `${color}18`, border: `1px solid ${color}35` }}>
+              <div className="rounded-xl px-4 py-3" style={{ background: `${color}18`, border: `1px solid ${color}35` }}>
                 <div className="flex items-center gap-2 mb-2">
                   <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={22} />
                   <span className="font-display text-[12px] font-700 text-white truncate">{game.seattleTeam.shortName}</span>
@@ -176,7 +176,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                   </div>
                 )}
               </div>
-              <div className="rounded-2xl px-4 py-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+              <div className="rounded-xl px-4 py-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
                 <div className="flex items-center gap-2 mb-2">
                   <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={22} />
                   <span className="font-display text-[12px] font-700 text-zinc-300 truncate">{game.opponent.shortName || game.opponent.abbr}</span>

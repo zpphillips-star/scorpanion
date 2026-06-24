@@ -183,7 +183,7 @@ export default function TeamsClient() {
     return (
       <button
         onClick={() => toggleTeam(team.id)}
-        className="relative flex flex-col items-center gap-2 p-3 rounded-2xl transition-all active:scale-95"
+        className="relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all active:scale-95"
         style={{
           background: selected ? `${team.primaryColor}22` : 'rgba(255,255,255,0.04)',
           border: `2px solid ${selected ? team.primaryColor : 'rgba(255,255,255,0.08)'}`,
@@ -218,7 +218,7 @@ export default function TeamsClient() {
         tabIndex={0}
         onClick={() => setDetailTeam({ team, detailLeague: toDetailLeague(team.league) })}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setDetailTeam({ team, detailLeague: toDetailLeague(team.league) }) }}
-        className="relative flex flex-col items-center gap-1.5 p-2.5 rounded-2xl transition-all active:scale-95 cursor-pointer select-none"
+        className="relative flex flex-col items-center gap-1.5 p-2.5 rounded-xl transition-all active:scale-95 cursor-pointer select-none"
         style={{
           background: isFollowed
             ? `${team.primaryColor}22`
@@ -307,7 +307,7 @@ export default function TeamsClient() {
     if (stateTeams.length === 0) {
       return (
         <div
-          className="mx-4 mb-2 px-4 py-3 rounded-2xl flex items-center justify-between"
+          className="mx-4 mb-2 px-4 py-3 rounded-xl flex items-center justify-between"
           style={{ background: 'rgba(0,212,255,0.05)', border: '1px solid rgba(0,212,255,0.15)' }}
         >
           <div className="flex items-center gap-2">
@@ -348,7 +348,7 @@ export default function TeamsClient() {
                 <button
                   key={team.id}
                   onClick={() => setDetailTeam({ team, detailLeague: toDetailLeague(team.league) })}
-                  className="flex flex-col items-center gap-1 p-2.5 rounded-2xl transition-all active:scale-95 shrink-0"
+                  className="flex flex-col items-center gap-1 p-2.5 rounded-xl transition-all active:scale-95 shrink-0"
                   style={{
                     width: 76,
                     background: isFollowed ? `${team.primaryColor}28` : 'rgba(255,255,255,0.07)',
