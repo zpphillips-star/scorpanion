@@ -151,7 +151,7 @@ function DateStrip({
               ref={isToday ? todayBtnRef : undefined}
               onClick={() => onSelect(dateStr)}
               disabled={!hasGames}
-              className="flex flex-col items-center px-2.5 py-1.5 rounded-xl flex-shrink-0 min-w-[38px] transition-all active:scale-95"
+              className="flex flex-col items-center px-2.5 py-1.5 rounded-lg flex-shrink-0 min-w-[38px] transition-all active:scale-95"
               style={{
                 background: isToday ? 'rgba(0,212,255,0.15)' : 'transparent',
                 border: isToday ? '1px solid rgba(0,212,255,0.35)' : '1px solid transparent',
@@ -513,7 +513,7 @@ export default function ScheduleClient() {
 
       <div className="pb-24">
         {error && (
-          <div className="mx-4 mt-4 p-3 bg-red-900/30 border border-red-500/30 rounded-lg text-red-300 text-sm">{error}</div>
+          <div className="mx-4 mt-4 p-3 bg-red-900/30 border border-red-500/30 rounded-md text-red-300 text-sm">{error}</div>
         )}
 
         {/* Live banner */}

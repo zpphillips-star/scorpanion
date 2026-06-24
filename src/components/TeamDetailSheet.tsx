@@ -49,7 +49,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
 
       {/* Sheet */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-[70] lg:max-w-2xl lg:mx-auto rounded-t-xl overflow-y-auto animate-slide-up"
+        className="fixed bottom-0 left-0 right-0 z-[70] lg:max-w-2xl lg:mx-auto rounded-t-lg overflow-y-auto animate-slide-up"
         style={{ background: "var(--surface)", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "88dvh" }}
         onClick={e => e.stopPropagation()}
       >
@@ -87,7 +87,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                 {loading ? teamName : (data?.shortName ?? data?.name ?? teamName)}
               </div>
 
-              {loading && <div className="h-5 w-24 rounded-xl bg-white/8 animate-pulse mt-1" />}
+              {loading && <div className="h-5 w-24 rounded-lg bg-white/8 animate-pulse mt-1" />}
             </div>
           </div>
         </div>
@@ -113,7 +113,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                 return (
                   <div
                     key={i}
-                    className="rounded-xl overflow-hidden"
+                    className="rounded-lg overflow-hidden"
                     style={{ background: "var(--surface-2)", border: `1px solid ${rc}28` }}
                   >
                     {/* Away row */}
@@ -157,7 +157,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
               {data.upcomingGames.map((g, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3 px-3.5 py-3 rounded-xl"
+                  className="flex items-center gap-3 px-3.5 py-3 rounded-lg"
                   style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
                 >
                   {g.oppLogo
@@ -208,7 +208,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
               {data.divisionStandings.map((row, i) => (
                 <div
                   key={i}
-                  className="flex items-center px-3 py-2.5 rounded-xl gap-2.5"
+                  className="flex items-center px-3 py-2.5 rounded-lg gap-2.5"
                   style={{
                     background: row.isThis ? `${color}18` : "var(--surface-2)",
                     border: `1px solid ${row.isThis ? `${color}35` : "var(--border)"}`,

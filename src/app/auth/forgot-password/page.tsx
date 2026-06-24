@@ -59,7 +59,7 @@ export default function ForgotPasswordPage() {
         <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
           <form onSubmit={handleReset} className="space-y-4">
             {error && (
-              <div className="p-3 bg-red-900/30 border border-red-500/30 rounded-lg text-red-300 text-sm">
+              <div className="p-3 bg-red-900/30 border border-red-500/30 rounded-md text-red-300 text-sm">
                 {error}
               </div>
             )}
@@ -70,14 +70,14 @@ export default function ForgotPasswordPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 transition-colors"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 transition-colors"
                 placeholder="you@example.com"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl py-3 text-sm transition-colors"
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-3 text-sm transition-colors"
             >
               {loading ? 'Sending…' : 'Send reset link'}
             </button>

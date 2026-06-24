@@ -161,7 +161,7 @@ function ScopePicker({
           <button
             key={opt.id}
             onClick={() => setScope(opt.id)}
-            className="flex-1 rounded-xl px-3 py-2.5 text-center transition-all"
+            className="flex-1 rounded-lg px-3 py-2.5 text-center transition-all"
             style={{
               background: active ? "var(--accent)" : "var(--surface-2)",
               border: `1px solid ${active ? "var(--accent)" : "rgba(255,255,255,0.08)"}`,
@@ -357,7 +357,7 @@ function CollegeStandingsPicker({
             <button
               key={team.id}
               onClick={() => onSelect(team.id)}
-              className="px-3 py-2 rounded-xl text-[12px] font-700 font-display uppercase tracking-wide text-left transition-all flex items-center gap-2"
+              className="px-3 py-2 rounded-lg text-[12px] font-700 font-display uppercase tracking-wide text-left transition-all flex items-center gap-2"
               style={{
                 background: activeCollegeSport === team.id ? team.primaryColor + "30" : "var(--surface-2)",
                 color: activeCollegeSport === team.id ? "#fff" : "#9ca3af",
@@ -692,7 +692,7 @@ export default function StandingsClient() {
         </div>
       )}
       {error && (
-        <div className="mx-4 mt-4 p-3 rounded-xl text-red-300 text-sm" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
+        <div className="mx-4 mt-4 p-3 rounded-lg text-red-300 text-sm" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
           {error}
         </div>
       )}

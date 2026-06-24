@@ -183,7 +183,7 @@ export default function TeamsClient() {
     return (
       <button
         onClick={() => toggleTeam(team.id)}
-        className="relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all active:scale-95"
+        className="relative flex flex-col items-center gap-2 p-3 rounded-lg transition-all active:scale-95"
         style={{
           background: selected ? `${team.primaryColor}22` : 'rgba(255,255,255,0.04)',
           border: `2px solid ${selected ? team.primaryColor : 'rgba(255,255,255,0.08)'}`,
@@ -218,7 +218,7 @@ export default function TeamsClient() {
         tabIndex={0}
         onClick={() => setDetailTeam({ team, detailLeague: toDetailLeague(team.league) })}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setDetailTeam({ team, detailLeague: toDetailLeague(team.league) }) }}
-        className="relative flex flex-col items-center gap-1.5 p-2.5 rounded-xl transition-all active:scale-95 cursor-pointer select-none"
+        className="relative flex flex-col items-center gap-1.5 p-2.5 rounded-lg transition-all active:scale-95 cursor-pointer select-none"
         style={{
           background: isFollowed
             ? `${team.primaryColor}22`
@@ -307,7 +307,7 @@ export default function TeamsClient() {
     if (stateTeams.length === 0) {
       return (
         <div
-          className="mx-4 mb-2 px-4 py-3 rounded-xl flex items-center justify-between"
+          className="mx-4 mb-2 px-4 py-3 rounded-lg flex items-center justify-between"
           style={{ background: 'rgba(0,212,255,0.05)', border: '1px solid rgba(0,212,255,0.15)' }}
         >
           <div className="flex items-center gap-2">
@@ -348,7 +348,7 @@ export default function TeamsClient() {
                 <button
                   key={team.id}
                   onClick={() => setDetailTeam({ team, detailLeague: toDetailLeague(team.league) })}
-                  className="flex flex-col items-center gap-1 p-2.5 rounded-xl transition-all active:scale-95 shrink-0"
+                  className="flex flex-col items-center gap-1 p-2.5 rounded-lg transition-all active:scale-95 shrink-0"
                   style={{
                     width: 76,
                     background: isFollowed ? `${team.primaryColor}28` : 'rgba(255,255,255,0.07)',
@@ -388,7 +388,7 @@ export default function TeamsClient() {
     return (
       <button
         onClick={() => setDrillDown(config)}
-        className="w-full flex items-center gap-4 p-4 rounded-xl border transition-all text-left"
+        className="w-full flex items-center gap-4 p-4 rounded-lg border transition-all text-left"
         style={{
           borderColor: followedCount > 0 ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)',
           backgroundColor: followedCount > 0 ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
@@ -417,7 +417,7 @@ export default function TeamsClient() {
       <div className="shrink-0 flex items-center gap-3 px-4 py-4 border-b border-white/10 bg-[#0a0a0f]/95 backdrop-blur-md">
         <button
           onClick={() => setDrillDown(null)}
-          className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+          className="p-2 rounded-md hover:bg-white/10 transition-colors"
           aria-label="Close"
         >
           <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -451,7 +451,7 @@ export default function TeamsClient() {
                     href={item.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors hover:bg-white/5"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors hover:bg-white/5"
                     style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}
                   >
                     <span className="text-xl w-8 text-center">{item.emoji}</span>
@@ -518,7 +518,7 @@ export default function TeamsClient() {
             placeholder="Search team or city…"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-8 py-2 rounded-xl text-sm text-white placeholder-zinc-500 outline-none focus:ring-1 focus:ring-[rgba(0,212,255,0.3)]"
+            className="w-full pl-9 pr-8 py-2 rounded-lg text-sm text-white placeholder-zinc-500 outline-none focus:ring-1 focus:ring-[rgba(0,212,255,0.3)]"
             style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)' }}
           />
           {searchQuery && (

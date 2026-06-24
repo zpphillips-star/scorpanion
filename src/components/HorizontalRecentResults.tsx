@@ -19,7 +19,7 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex-shrink-0 w-[148px] rounded-xl overflow-hidden text-left active:scale-95 transition-transform"
+      className="flex-shrink-0 w-[148px] rounded-lg overflow-hidden text-left active:scale-95 transition-transform"
       style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
     >
       <div className="h-1" style={{ background: `linear-gradient(to right, ${color}, ${color}44)` }} />

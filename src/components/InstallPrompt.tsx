@@ -106,7 +106,7 @@ export default function InstallPrompt() {
         <div className="relative w-full bg-[#16161f] border-t border-white/10 rounded-t-3xl px-5 pt-5 pb-10 shadow-2xl shadow-black/80">
           <div className="w-10 h-1 bg-zinc-700 rounded-full mx-auto mb-5" />
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-[#00d4ff]/20 flex items-center justify-center text-2xl flex-shrink-0">🦂</div>
+            <div className="w-12 h-12 rounded-lg bg-[#00d4ff]/20 flex items-center justify-center text-2xl flex-shrink-0">🦂</div>
             <div>
               <p className="text-base font-bold text-white">Install Scorpanion</p>
               <p className="text-xs text-zinc-400">One more step needed</p>
@@ -121,7 +121,7 @@ export default function InstallPrompt() {
           </div>
           <button
             onClick={() => { navigator.clipboard?.writeText('https://scorpanion.com'); handleDismiss() }}
-            className="w-full py-3 rounded-xl bg-[#00d4ff] text-[#0a0a0f] text-sm font-bold active:scale-95 transition-transform"
+            className="w-full py-3 rounded-lg bg-[#00d4ff] text-[#0a0a0f] text-sm font-bold active:scale-95 transition-transform"
           >
             Copy Link → Open in Safari
           </button>
@@ -135,13 +135,13 @@ export default function InstallPrompt() {
     return (
       <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-2">
         <div className="bg-[#16161f] border border-white/10 rounded-2xl p-4 shadow-2xl shadow-black/60 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-[#00d4ff]/20 flex items-center justify-center text-2xl flex-shrink-0">🦂</div>
+          <div className="w-12 h-12 rounded-lg bg-[#00d4ff]/20 flex items-center justify-center text-2xl flex-shrink-0">🦂</div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-white">Add to Home Screen</p>
             <p className="text-xs text-zinc-400 mt-0.5">Install Scorpanion — no app store needed</p>
           </div>
           <div className="flex flex-col gap-2 flex-shrink-0">
-            <button onClick={handleAndroidInstall} className="bg-[#00d4ff] text-[#0a0a0f] text-xs font-bold px-4 py-2 rounded-xl active:scale-95 transition-transform">
+            <button onClick={handleAndroidInstall} className="bg-[#00d4ff] text-[#0a0a0f] text-xs font-bold px-4 py-2 rounded-lg active:scale-95 transition-transform">
               Install
             </button>
             <button onClick={handleDismiss} className="text-zinc-500 text-xs text-center">Not now</button>
@@ -158,7 +158,7 @@ export default function InstallPrompt() {
       <div className="relative w-full bg-[#16161f] border-t border-white/10 rounded-t-3xl px-5 pt-5 pb-10 shadow-2xl shadow-black/80">
         <div className="w-10 h-1 bg-zinc-700 rounded-full mx-auto mb-5" />
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-12 h-12 rounded-xl bg-[#00d4ff]/20 flex items-center justify-center text-2xl flex-shrink-0">🦂</div>
+          <div className="w-12 h-12 rounded-lg bg-[#00d4ff]/20 flex items-center justify-center text-2xl flex-shrink-0">🦂</div>
           <div>
             <p className="text-base font-bold text-white">Add Scorpanion</p>
             <p className="text-xs text-zinc-400">to your Home Screen</p>
@@ -181,16 +181,16 @@ export default function InstallPrompt() {
         </div>
         <div className="flex gap-3">
           {iosStep > 0 && (
-            <button onClick={() => setIosStep(s => s - 1)} className="flex-1 py-3 rounded-xl bg-zinc-800 text-zinc-300 text-sm font-semibold active:scale-95 transition-transform">
+            <button onClick={() => setIosStep(s => s - 1)} className="flex-1 py-3 rounded-lg bg-zinc-800 text-zinc-300 text-sm font-semibold active:scale-95 transition-transform">
               Back
             </button>
           )}
           {iosStep < IOS_STEPS.length - 1 ? (
-            <button onClick={() => setIosStep(s => s + 1)} className="flex-1 py-3 rounded-xl bg-[#00d4ff] text-[#0a0a0f] text-sm font-bold active:scale-95 transition-transform">
+            <button onClick={() => setIosStep(s => s + 1)} className="flex-1 py-3 rounded-lg bg-[#00d4ff] text-[#0a0a0f] text-sm font-bold active:scale-95 transition-transform">
               Next →
             </button>
           ) : (
-            <button onClick={handleDismiss} className="flex-1 py-3 rounded-xl bg-[#00d4ff] text-[#0a0a0f] text-sm font-bold active:scale-95 transition-transform">
+            <button onClick={handleDismiss} className="flex-1 py-3 rounded-lg bg-[#00d4ff] text-[#0a0a0f] text-sm font-bold active:scale-95 transition-transform">
               Done ✓
             </button>
           )}

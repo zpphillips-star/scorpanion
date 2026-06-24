@@ -58,7 +58,7 @@ function TodayDetailSheet({ game, onClose }: { game: Game; onClose: () => void }
     <>
       <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50" onClick={onClose} />
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-2xl lg:mx-auto rounded-t-xl overflow-y-auto animate-slide-up"
+        className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-2xl lg:mx-auto rounded-t-lg overflow-y-auto animate-slide-up"
         style={{ background: "var(--surface)", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "88dvh" }}
         onClick={e => e.stopPropagation()}
       >
@@ -145,7 +145,7 @@ function TodayDetailSheet({ game, onClose }: { game: Game; onClose: () => void }
           <div className="px-4 py-4 border-t border-white/5">
             <div className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-600 mb-3">Season Records</div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl px-4 py-3" style={{ background: `${color}15`, border: `1px solid ${color}30` }}>
+              <div className="rounded-lg px-4 py-3" style={{ background: `${color}15`, border: `1px solid ${color}30` }}>
                 <div className="flex items-center gap-2 mb-1.5">
                   <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={20} />
                   <span className="font-display text-[12px] font-700 text-white truncate">{game.seattleTeam.shortName}</span>
@@ -154,7 +154,7 @@ function TodayDetailSheet({ game, onClose }: { game: Game; onClose: () => void }
                   {game.seattleRecord ? `${game.seattleRecord.wins}–${game.seattleRecord.losses}` : "–"}
                 </div>
               </div>
-              <div className="rounded-xl px-4 py-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+              <div className="rounded-lg px-4 py-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
                 <div className="flex items-center gap-2 mb-1.5">
                   <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={20} />
                   <span className="font-display text-[12px] font-700 text-zinc-300 truncate">{game.opponent.shortName || game.opponent.abbr}</span>
@@ -176,7 +176,7 @@ function TodayDetailSheet({ game, onClose }: { game: Game; onClose: () => void }
             <a
               href={`https://gametime.com/search?q=${encodeURIComponent(game.seattleTeam.name)}`}
               target="_blank" rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-display text-[14px] font-800 uppercase tracking-wide text-white transition-all active:scale-98"
+              className="flex items-center justify-center gap-2 w-full py-3 rounded-lg font-display text-[14px] font-800 uppercase tracking-wide text-white transition-all active:scale-98"
               style={{ background: `${color}25`, border: `1.5px solid ${color}45` }}
             >
               <span>🎟</span> Buy Tickets on Gametime
@@ -210,7 +210,7 @@ export function TodayGameCard({ game }: { game: Game }) {
   return (
     <>
       <div
-        className="mx-3 my-1.5 rounded-xl overflow-hidden cursor-pointer active:scale-[0.985] transition-transform"
+        className="mx-3 my-1.5 rounded-lg overflow-hidden cursor-pointer active:scale-[0.985] transition-transform"
         style={{ background: "var(--surface)", border: `1.5px solid ${color}40` }}
         onClick={() => setShowDetail(true)}
       >
@@ -325,7 +325,7 @@ export function TodayBanner({ gameCount, hasLive }: { gameCount: number; hasLive
 
   return (
     <div
-      className="mx-3 mt-4 mb-1 px-4 py-3 rounded-xl flex items-center gap-3"
+      className="mx-3 mt-4 mb-1 px-4 py-3 rounded-lg flex items-center gap-3"
       style={{
         background: "linear-gradient(135deg, rgba(0,212,255,0.1) 0%, rgba(0,212,255,0.04) 100%)",
         border: "1.5px solid rgba(0,212,255,0.25)",

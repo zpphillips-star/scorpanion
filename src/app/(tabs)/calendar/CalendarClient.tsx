@@ -221,7 +221,7 @@ export default function CalendarClient() {
                 <button
                   key={ds}
                   onClick={() => { if (hasGames || isToday) setSelectedDate(ds === selectedDate ? null : ds) }}
-                  className={`relative flex flex-col items-center justify-start pt-1.5 rounded-xl transition-all active:scale-95 ${
+                  className={`relative flex flex-col items-center justify-start pt-1.5 rounded-lg transition-all active:scale-95 ${
                     isSelected ? 'ring-2 ring-[#00d4ff]' : hasGames ? 'cursor-pointer active:bg-white/10' : 'cursor-default'
                   }`}
                   style={{

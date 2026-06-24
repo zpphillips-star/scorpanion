@@ -69,7 +69,7 @@ export default function CompactBaseballLineScore({ gameId, league, seattleTeamId
 
   if (loading) {
     return (
-      <div className="bg-zinc-800/60 rounded-lg p-2 mt-2 flex justify-center">
+      <div className="bg-zinc-800/60 rounded-md p-2 mt-2 flex justify-center">
         <div className="w-3 h-3 border border-zinc-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -96,7 +96,7 @@ export default function CompactBaseballLineScore({ gameId, league, seattleTeamId
   }
 
   return (
-    <div className="bg-zinc-800/60 rounded-lg p-2 mt-2 overflow-x-auto no-scrollbar">
+    <div className="bg-zinc-800/60 rounded-md p-2 mt-2 overflow-x-auto no-scrollbar">
       <table className="text-xs w-full" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
         <thead>
           <tr>

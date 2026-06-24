@@ -61,7 +61,7 @@ export default function StateTeamsSheet({ stateAbbr, onClose }: Props) {
 
       {/* Sheet */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 rounded-t-xl animate-slide-up overflow-y-auto"
+        className="fixed bottom-0 left-0 right-0 z-50 rounded-t-lg animate-slide-up overflow-y-auto"
         style={{
           background: 'var(--surface, #111118)',
           maxHeight: '82vh',
@@ -111,11 +111,11 @@ export default function StateTeamsSheet({ stateAbbr, onClose }: Props) {
                     return (
                       <div
                         key={team.id}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
                         style={{ background: 'rgba(255,255,255,0.03)' }}
                       >
                         {/* Logo */}
-                        <div className="w-8 h-8 rounded-lg overflow-hidden bg-white/5 flex items-center justify-center shrink-0">
+                        <div className="w-8 h-8 rounded-md overflow-hidden bg-white/5 flex items-center justify-center shrink-0">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={team.logo}

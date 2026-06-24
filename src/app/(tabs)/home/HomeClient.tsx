@@ -128,7 +128,7 @@ function OffSeasonCards({ teams, nextGames }: {
               {next && (() => {
                 const days = Math.ceil((new Date(next.kickoff).getTime() - Date.now()) / 86400000)
                 return days >= 0 ? (
-                  <div className="flex-shrink-0 flex flex-col items-center justify-center w-12 h-12 rounded-xl" style={{ background: `${team.primaryColor}25`, border: `1px solid ${team.primaryColor}40` }}>
+                  <div className="flex-shrink-0 flex flex-col items-center justify-center w-12 h-12 rounded-lg" style={{ background: `${team.primaryColor}25`, border: `1px solid ${team.primaryColor}40` }}>
                     <span className="font-display text-[18px] font-800 leading-none" style={{ color: team.primaryColor === "#001628" || team.primaryColor === "#0C2C56" || team.primaryColor === "#002244" ? "#99D9D9" : team.primaryColor }}>{days}</span>
                     <span className="font-display text-[8px] font-600 text-zinc-500 uppercase tracking-wide">{days === 1 ? "day" : "days"}</span>
                   </div>
@@ -291,7 +291,7 @@ function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void })
               {seattleDivision.entries.map((e, i) => (
                 <div
                   key={e.teamId}
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl"
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg"
                   style={{
                     background: e.isSeattle ? `${color}20` : "var(--surface-2)",
                     border: `1px solid ${e.isSeattle ? color + "40" : "var(--border)"}`,

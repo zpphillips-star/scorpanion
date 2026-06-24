@@ -139,7 +139,7 @@ export default function BottomNav() {
             <Link
               key={tab.href}
               href={tab.href}
-              className="flex flex-col items-center gap-1 p-2 rounded-xl transition-all w-full relative"
+              className="flex flex-col items-center gap-1 p-2 rounded-lg transition-all w-full relative"
               style={{ background: active ? "rgba(0,212,255,0.08)" : "transparent" }}
             >
               {active && (

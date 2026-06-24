@@ -286,7 +286,7 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
               const isSea = (seattleTeamId && team.teamId === seattleTeamId) || team.abbr === "SEA"
               if (teamScorers.length === 0) return null
               return (
-                <div key={team.teamId} className="rounded-xl px-3 py-2.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <div key={team.teamId} className="rounded-lg px-3 py-2.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
                   <div className="flex items-center gap-2 mb-2">
                     {team.logo
                       // eslint-disable-next-line @next/next/no-img-element

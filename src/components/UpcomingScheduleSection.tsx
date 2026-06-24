@@ -51,7 +51,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
         {[0, 1].map(i => (
           <div key={i} className="space-y-2">
             <div className="h-3 w-20 rounded bg-white/8 animate-pulse" />
-            {[0, 1, 2].map(j => <div key={j} className="h-8 rounded-lg bg-white/5 animate-pulse" />)}
+            {[0, 1, 2].map(j => <div key={j} className="h-8 rounded-md bg-white/5 animate-pulse" />)}
           </div>
         ))}
       </div>
@@ -84,7 +84,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
           ) : (
             <div className="space-y-2">
               {seaGames.map((g, i) => (
-                <div key={i} className="rounded-xl px-2.5 py-2" style={{ background: "var(--surface-2)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div key={i} className="rounded-lg px-2.5 py-2" style={{ background: "var(--surface-2)", border: "1px solid rgba(255,255,255,0.06)" }}>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="font-display text-[11px] font-700 text-zinc-400 flex-shrink-0 w-5 text-center">{g.isHome ? "vs" : "@"}</span>
                     {g.oppLogo
@@ -114,7 +114,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
           ) : (
             <div className="space-y-2">
               {oppGames.map((g, i) => (
-                <div key={i} className="rounded-xl px-2.5 py-2" style={{ background: "var(--surface-2)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div key={i} className="rounded-lg px-2.5 py-2" style={{ background: "var(--surface-2)", border: "1px solid rgba(255,255,255,0.06)" }}>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="font-display text-[11px] font-700 text-zinc-400 flex-shrink-0 w-5 text-center">{g.isHome ? "vs" : "@"}</span>
                     {g.oppLogo
