@@ -36,8 +36,8 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-sm text-center">
           <div className="text-4xl mb-4">✉️</div>
           <h2 className="text-white font-bold text-xl mb-2">Email sent</h2>
-          <p className="text-gray-400 text-sm mb-6">Check your inbox for a password reset link.</p>
-          <Link href="/auth/login" className="text-xs text-gray-400 hover:text-white transition-colors">
+          <p className="text-gray-300 text-sm mb-6">Check your inbox for a password reset link.</p>
+          <Link href="/auth/login" className="text-xs text-gray-300 hover:text-white transition-colors">
             ← Back to sign in
           </Link>
         </div>
@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
         <div className="text-center mb-8">
           <div className="text-4xl mb-2">🦂</div>
           <h1 className="text-2xl font-bold text-white tracking-tight">scorpanion</h1>
-          <p className="text-gray-500 text-sm mt-1">Reset your password</p>
+          <p className="text-gray-400 text-sm mt-1">Reset your password</p>
         </div>
 
         {/* Card */}
@@ -64,7 +64,7 @@ export default function ForgotPasswordPage() {
               </div>
             )}
             <div>
-              <label className="block text-gray-400 text-xs font-medium mb-1.5">Email</label>
+              <label className="block text-gray-300 text-xs font-medium mb-1.5">Email</label>
               <input
                 type="email"
                 value={email}
@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
 
         {/* Links */}
         <div className="mt-4 text-center">
-          <Link href="/auth/login" className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
+          <Link href="/auth/login" className="text-xs text-gray-400 hover:text-gray-300 transition-colors">
             ← Back to sign in
           </Link>
         </div>

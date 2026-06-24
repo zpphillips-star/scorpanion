@@ -399,13 +399,13 @@ export default function TeamsClient() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-white font-semibold text-sm">{config.title}</div>
-          <div className="text-gray-400 text-xs mt-0.5">
+          <div className="text-gray-300 text-xs mt-0.5">
             {followedCount > 0
               ? `${followedCount} sport${followedCount !== 1 ? 's' : ''} followed`
               : `${config.items.length} sports — tap to explore`}
           </div>
         </div>
-        <svg className="w-5 h-5 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </button>
@@ -420,14 +420,14 @@ export default function TeamsClient() {
           className="p-2 rounded-md hover:bg-white/10 transition-colors"
           aria-label="Close"
         >
-          <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
         <Image src={config.logoSrc} alt={config.title} width={36} height={36} className="object-contain" unoptimized />
         <div>
           <h2 className="text-white font-bold text-base leading-tight">{config.title}</h2>
-          <p className="text-gray-500 text-xs">Select sports to follow</p>
+          <p className="text-gray-400 text-xs">Select sports to follow</p>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto px-4 py-4">
