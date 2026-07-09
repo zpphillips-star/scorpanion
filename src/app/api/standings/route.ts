@@ -3,13 +3,13 @@ import { NextRequest } from 'next/server'
 
 export const runtime = 'edge'
 
-const LEAGUE_MAP: Record<string, { sport: string; league: string; seattleIds: string[] }> = {
-  mlb:  { sport: 'baseball',    league: 'mlb',      seattleIds: ['12'] },
-  nhl:  { sport: 'hockey',      league: 'nhl',      seattleIds: ['124292'] },
-  nba:  { sport: 'basketball',  league: 'nba',      seattleIds: [] },
-  wnba: { sport: 'basketball',  league: 'wnba',     seattleIds: ['14'] },
-  mls:  { sport: 'soccer',      league: 'usa.1',    seattleIds: ['9726'] },
-  nfl:  { sport: 'football',    league: 'nfl',      seattleIds: ['26'] },
+const LEAGUE_MAP: Record<string, { sport: string; league: string }> = {
+  mlb:  { sport: 'baseball',    league: 'mlb'      },
+  nhl:  { sport: 'hockey',      league: 'nhl'      },
+  nba:  { sport: 'basketball',  league: 'nba'      },
+  wnba: { sport: 'basketball',  league: 'wnba'     },
+  mls:  { sport: 'soccer',      league: 'usa.1'    },
+  nfl:  { sport: 'football',    league: 'nfl'      },
 }
 
 // Maps ESPN team abbreviation → division name (for sports where ESPN returns flat conference data)
@@ -126,7 +126,7 @@ const NEXT_SEASON_MONTH: Record<string, string> = {
 interface StandingsEntry {
   teamId: string; teamName: string; abbr: string; logo: string
   wins: number; losses: number; ties?: number
-  winPct: number; gamesBehind: number | string; isSeattle: boolean
+  winPct: number; gamesBehind: number | string; isFollowed: boolean
   gamesPlayed?: number
   overtimeLosses?: number
   points?: number
@@ -145,8 +145,8 @@ interface StandingsResponse {
   season: SeasonInfo
   divisions: Division[]           // all divisions flat (for backward compat)
   conferences: ConferenceGroup[]  // grouped by conference
-  seattleDivisionName: string | null
-  seattleConferenceName: string | null
+  followedDivisionName: string | null
+  followedConferenceName: string | null
 }
 
 function getStat(stats: any[], name: string): number {
@@ -158,7 +158,7 @@ function getStatStr(stats: any[], name: string): string {
   return s ? String(s.displayValue ?? s.value) : '-'
 }
 
-function parseEntries(entries: any[], seattleIds: string[]): StandingsEntry[] {
+function parseEntries(entries: any[], highlightAbbrs: Set<string>): StandingsEntry[] {
   return entries.map((e: any) => {
     const team = e.team || {}
     const stats: any[] = e.stats || []
@@ -180,7 +180,7 @@ function parseEntries(entries: any[], seattleIds: string[]): StandingsEntry[] {
       ties: tiesRaw > 0 ? tiesRaw : undefined,
       winPct,
       gamesBehind: gb,
-      isSeattle: seattleIds.includes(String(team.id || '')),
+      isFollowed: highlightAbbrs.has(team.abbreviation || ''),
       gamesPlayed: gamesPlayed || undefined,
       overtimeLosses: overtimeLosses || undefined,
       points: points || undefined,
@@ -256,7 +256,7 @@ function applyStaticDivisions(
 
 function parseHierarchy(
   data: any,
-  seattleIds: string[],
+  highlightAbbrs: Set<string>,
   leagueId: string,
 ): { conferences: ConferenceGroup[]; divisions: Division[] } {
   const conferences: ConferenceGroup[] = []
@@ -276,7 +276,7 @@ function parseHierarchy(
         if (entries.length > 0) {
           const d: Division = {
             name: div.name || div.abbreviation || confName,
-            entries: parseEntries(entries, seattleIds),
+            entries: parseEntries(entries, highlightAbbrs),
           }
           confDivisions.push(d)
           divisionsFlat.push(d)
@@ -288,7 +288,7 @@ function parseHierarchy(
       if (entries.length > 0) {
         const d: Division = {
           name: confName,
-          entries: parseEntries(entries, seattleIds),
+          entries: parseEntries(entries, highlightAbbrs),
         }
         confDivisions.push(d)
         divisionsFlat.push(d)
@@ -304,7 +304,7 @@ function parseHierarchy(
   if (divisionsFlat.length === 0) {
     const entries: any[] = data.standings?.entries || data.entries || []
     if (entries.length > 0) {
-      const d: Division = { name: 'Overall', entries: parseEntries(entries, seattleIds) }
+      const d: Division = { name: 'Overall', entries: parseEntries(entries, highlightAbbrs) }
       conferences.push({ name: 'League', divisions: [d] })
       divisionsFlat.push(d)
     }
@@ -374,8 +374,6 @@ const MLB_DIVISION_ID_NAME: Record<number, string> = {
   203: 'NL West', 204: 'NL Central', 205: 'NL East',
 }
 
-const MLB_MARINERS_TEAM_ID = 136  // statsapi.mlb.com team ID
-
 // ── Compute current MLB/NHL season year ───────────────────────────────────────
 function getCurrentMLBYear(): number {
   return new Date().getFullYear()
@@ -417,7 +415,7 @@ function getSeasonStatusFromDate(leagueId: string): SeasonInfo {
 }
 
 // ── Fetch MLB standings from statsapi.mlb.com ─────────────────────────────────
-async function fetchMLBStandings(): Promise<StandingsResponse> {
+async function fetchMLBStandings(highlightAbbrs: Set<string>): Promise<StandingsResponse> {
   const year = getCurrentMLBYear()
   const url = `https://statsapi.mlb.com/api/v1/standings?leagueId=103,104&season=${year}&hydrate=team`
   const res = await fetch(url, { next: { revalidate: 300 } })
@@ -454,7 +452,7 @@ async function fetchMLBStandings(): Promise<StandingsResponse> {
         losses,
         winPct: pct,
         gamesBehind: gb,
-        isSeattle: team.id === MLB_MARINERS_TEAM_ID,
+        isFollowed: highlightAbbrs.has(team.abbreviation ?? ''),
         gamesPlayed: gp || undefined,
       }
 
@@ -491,13 +489,13 @@ async function fetchMLBStandings(): Promise<StandingsResponse> {
     divisions.push(...sortedDivs)
   }
 
-  let seattleDivisionName: string | null = null
-  let seattleConferenceName: string | null = null
+  let followedDivisionName: string | null = null
+  let followedConferenceName: string | null = null
   for (const conf of conferences) {
     for (const div of conf.divisions) {
-      if (div.entries.some(e => e.isSeattle)) {
-        seattleDivisionName = div.name
-        seattleConferenceName = conf.name
+      if (div.entries.some(e => e.isFollowed)) {
+        followedDivisionName = div.name
+        followedConferenceName = conf.name
       }
     }
   }
@@ -506,13 +504,13 @@ async function fetchMLBStandings(): Promise<StandingsResponse> {
     season: getSeasonStatusFromDate('mlb'),
     divisions,
     conferences,
-    seattleDivisionName,
-    seattleConferenceName,
+    followedDivisionName,
+    followedConferenceName,
   }
 }
 
 // ── Fetch NHL standings from api-web.nhle.com ─────────────────────────────────
-async function fetchNHLStandings(): Promise<StandingsResponse> {
+async function fetchNHLStandings(highlightAbbrs: Set<string>): Promise<StandingsResponse> {
   const url = `https://api-web.nhle.com/v1/standings/now`
   const res = await fetch(url, { next: { revalidate: 300 } })
   if (!res.ok) throw new Error('NHL standings request failed')
@@ -547,7 +545,7 @@ async function fetchNHLStandings(): Promise<StandingsResponse> {
       winPct,
       gamesBehind: 0,
       points: points || undefined,
-      isSeattle: abbr === 'SEA',
+      isFollowed: highlightAbbrs.has(abbr),
       gamesPlayed: gp || undefined,
     }
 
@@ -581,13 +579,13 @@ async function fetchNHLStandings(): Promise<StandingsResponse> {
     divisions.push(...sortedDivs)
   }
 
-  let seattleDivisionName: string | null = null
-  let seattleConferenceName: string | null = null
+  let followedDivisionName: string | null = null
+  let followedConferenceName: string | null = null
   for (const conf of conferences) {
     for (const div of conf.divisions) {
-      if (div.entries.some(e => e.isSeattle)) {
-        seattleDivisionName = div.name
-        seattleConferenceName = conf.name
+      if (div.entries.some(e => e.isFollowed)) {
+        followedDivisionName = div.name
+        followedConferenceName = conf.name
       }
     }
   }
@@ -603,32 +601,34 @@ async function fetchNHLStandings(): Promise<StandingsResponse> {
     },
     divisions,
     conferences,
-    seattleDivisionName,
-    seattleConferenceName,
+    followedDivisionName,
+    followedConferenceName,
   }
 }
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const leagueId = searchParams.get('league') || 'mlb'
+  const highlightParam = searchParams.get('highlight') || ''
+  const highlightAbbrs = new Set(highlightParam.split(',').map(s => s.trim()).filter(Boolean))
 
   try {
     // ── Official MLB standings ─────────────────────────────────────────────
     if (leagueId === 'mlb') {
-      const response = await fetchMLBStandings()
+      const response = await fetchMLBStandings(highlightAbbrs)
       return Response.json(response)
     }
 
     // ── Official NHL standings ─────────────────────────────────────────────
     if (leagueId === 'nhl') {
-      const response = await fetchNHLStandings()
+      const response = await fetchNHLStandings(highlightAbbrs)
       return Response.json(response)
     }
 
     // ── ESPN fallback for all other leagues ───────────────────────────────
     const mapping = LEAGUE_MAP[leagueId]
     if (!mapping) {
-      return Response.json({ divisions: [], conferences: [], season: null, seattleDivisionName: null, seattleConferenceName: null })
+      return Response.json({ divisions: [], conferences: [], season: null, followedDivisionName: null, followedConferenceName: null })
     }
 
     const standingsUrl = `https://site.api.espn.com/apis/v2/sports/${mapping.sport}/${mapping.league}/standings`
@@ -643,25 +643,25 @@ export async function GET(request: NextRequest) {
     const scoreboard = scoreboardRes.ok ? await scoreboardRes.json() : null
 
     const season = getSeasonInfo(data, leagueId, scoreboard)
-    const { conferences, divisions } = parseHierarchy(data, mapping.seattleIds, leagueId)
+    const { conferences, divisions } = parseHierarchy(data, highlightAbbrs, leagueId)
 
-    let seattleDivisionName: string | null = null
-    let seattleConferenceName: string | null = null
+    let followedDivisionName: string | null = null
+    let followedConferenceName: string | null = null
 
     for (const conf of conferences) {
       for (const div of conf.divisions) {
-        if (div.entries.some(e => e.isSeattle)) {
-          seattleDivisionName = div.name
-          seattleConferenceName = conf.name
+        if (div.entries.some(e => e.isFollowed)) {
+          followedDivisionName = div.name
+          followedConferenceName = conf.name
         }
       }
     }
 
     const response: StandingsResponse = {
-      season, divisions, conferences, seattleDivisionName, seattleConferenceName,
+      season, divisions, conferences, followedDivisionName, followedConferenceName,
     }
     return Response.json(response)
   } catch {
-    return Response.json({ divisions: [], conferences: [], season: null, seattleDivisionName: null, seattleConferenceName: null }, { status: 500 })
+    return Response.json({ divisions: [], conferences: [], season: null, followedDivisionName: null, followedConferenceName: null }, { status: 500 })
   }
 }

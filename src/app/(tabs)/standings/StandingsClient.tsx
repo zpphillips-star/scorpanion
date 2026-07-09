@@ -3,13 +3,15 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import { SEATTLE_TEAMS, getTeamLogoUrl } from "@/lib/teams"
 import { useSelectedTeams } from "@/hooks/useSelectedTeams"
+import { useFollowedOtherTeams } from "@/hooks/useFollowedOtherTeams"
 import { useTeamClickCounts } from "@/hooks/useTeamClickCounts"
+import { ALL_PRO_TEAMS } from "@/lib/allProTeams"
 import TeamLogo from "@/components/TeamLogo"
 
 interface StandingsEntry {
   teamId: string; teamName: string; abbr: string; logo: string
   wins: number; losses: number; ties?: number
-  winPct: number; gamesBehind: number | string; isSeattle: boolean
+  winPct: number; gamesBehind: number | string; isFollowed: boolean
   gamesPlayed?: number
   overtimeLosses?: number
   points?: number
@@ -24,8 +26,8 @@ interface StandingsResponse {
   season: SeasonInfo | null
   divisions: Division[]
   conferences: ConferenceGroup[]
-  seattleDivisionName: string | null
-  seattleConferenceName: string | null
+  followedDivisionName: string | null
+  followedConferenceName: string | null
 }
 
 // Map Seattle team IDs → standings league key
@@ -49,7 +51,7 @@ const LEAGUE_INFO: Record<string, { label: string; logo: string; color: string }
 }
 
 // Supported leagues for standings API
-const SUPPORTED_STANDINGS = new Set(["mlb", "nhl", "wnba", "mls", "nfl"])
+const SUPPORTED_STANDINGS = new Set(["mlb", "nhl", "wnba", "mls", "nfl", "nba"])
 
 function getCollegeGroupKey(teamId: string): string | null {
   if (teamId.startsWith("uw-")) return "uw"
@@ -85,7 +87,7 @@ function TeamLogoImg({ src, abbr }: { src: string; abbr: string }) {
 
 function SeasonBanner({ season, leagueId }: { season: SeasonInfo; leagueId: string }) {
   const info = LEAGUE_INFO[leagueId]
-  const seattleColor = info?.color || "#00d4ff"
+  const accentColor = info?.color || "#00d4ff"
 
   if (season.status === "offseason") {
     return (
@@ -126,13 +128,13 @@ function SeasonBanner({ season, leagueId }: { season: SeasonInfo; leagueId: stri
   // Regular season
   return (
     <div className="mx-3 mt-3 px-4 py-3 rounded-2xl flex items-center gap-3"
-      style={{ background: `${seattleColor}10`, border: `1px solid ${seattleColor}28` }}>
+      style={{ background: `${accentColor}10`, border: `1px solid ${accentColor}28` }}>
       <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ backgroundColor: seattleColor }} />
-        <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ backgroundColor: seattleColor }} />
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ backgroundColor: accentColor }} />
+        <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ backgroundColor: accentColor }} />
       </span>
       <div>
-        <div className="font-display text-[12px] font-700 uppercase tracking-widest" style={{ color: seattleColor }}>Regular Season</div>
+        <div className="font-display text-[12px] font-700 uppercase tracking-widest" style={{ color: accentColor }}>Regular Season</div>
         <div className="font-display text-[11px] text-zinc-500 mt-0.5">{season.label} · In progress</div>
       </div>
     </div>
@@ -140,15 +142,15 @@ function SeasonBanner({ season, leagueId }: { season: SeasonInfo; leagueId: stri
 }
 
 function ScopePicker({
-  scope, setScope, hasDivision, hasConference, seattleDivisionName, seattleConferenceName,
+  scope, setScope, hasDivision, hasConference, followedDivisionName, followedConferenceName,
 }: {
   scope: Scope; setScope: (s: Scope) => void
   hasDivision: boolean; hasConference: boolean
-  seattleDivisionName: string | null; seattleConferenceName: string | null
+  followedDivisionName: string | null; followedConferenceName: string | null
 }) {
   const options: { id: Scope; label: string; sublabel?: string }[] = []
-  if (hasDivision) options.push({ id: "division", label: "Division", sublabel: seattleDivisionName || undefined })
-  if (hasConference) options.push({ id: "conference", label: "Conference", sublabel: seattleConferenceName || undefined })
+  if (hasDivision) options.push({ id: "division", label: "Division", sublabel: followedDivisionName || undefined })
+  if (hasConference) options.push({ id: "conference", label: "Conference", sublabel: followedConferenceName || undefined })
   options.push({ id: "league", label: "All Divisions" })
 
   if (options.length <= 1) return null
@@ -241,7 +243,7 @@ function ConferenceHeader({ name }: { name: string }) {
   )
 }
 
-function DivisionTable({ division, seattleColor, leagueId }: { division: Division; seattleColor: string; leagueId: string }) {
+function DivisionTable({ division, accentColor, leagueId }: { division: Division; accentColor: string; leagueId: string }) {
   const cols = getColDefs(leagueId, division.entries)
   const bgBase = 'rgba(8,8,15,1)'
 
@@ -277,8 +279,8 @@ function DivisionTable({ division, seattleColor, leagueId }: { division: Divisio
           </thead>
           <tbody>
             {division.entries.map((entry, idx) => {
-              const rowBg = entry.isSeattle ? `${seattleColor}14` : 'transparent'
-              const stickyBg = entry.isSeattle ? `color-mix(in srgb, ${seattleColor} 8%, ${bgBase})` : bgBase
+              const rowBg = entry.isFollowed ? `${accentColor}14` : 'transparent'
+              const stickyBg = entry.isFollowed ? `color-mix(in srgb, ${accentColor} 8%, ${bgBase})` : bgBase
               return (
                 <tr key={entry.teamId} style={{ borderTop: '1px solid var(--border)' }}>
                   {/* Sticky team cell */}
@@ -287,17 +289,17 @@ function DivisionTable({ division, seattleColor, leagueId }: { division: Divisio
                     style={{ background: stickyBg, minWidth: '160px' }}
                   >
                     <div className="relative flex items-center gap-2.5">
-                      {entry.isSeattle && (
-                        <span className="absolute -left-4 top-0 bottom-0 w-[3px] rounded-r-full" style={{ background: seattleColor }} />
+                      {entry.isFollowed && (
+                        <span className="absolute -left-4 top-0 bottom-0 w-[3px] rounded-r-full" style={{ background: accentColor }} />
                       )}
                       <span className="font-display text-[11px] font-600 text-zinc-600 w-4 text-center flex-shrink-0">{idx + 1}</span>
                       <TeamLogoImg src={entry.logo} abbr={entry.abbr} />
                       <div className="min-w-0">
-                        <div className={`font-display text-[14px] font-700 leading-tight truncate ${entry.isSeattle ? "text-white" : "text-zinc-200"}`}>
+                        <div className={`font-display text-[14px] font-700 leading-tight truncate ${entry.isFollowed ? "text-white" : "text-zinc-200"}`}>
                           {entry.teamName}
                         </div>
-                        {entry.isSeattle && (
-                          <div className="text-[9px] font-semibold uppercase tracking-widest" style={{ color: seattleColor }}>▲ SEA</div>
+                        {entry.isFollowed && (
+                          <div className="text-[9px] font-semibold uppercase tracking-widest" style={{ color: accentColor }}>★ following</div>
                         )}
                       </div>
                     </div>
@@ -375,17 +377,18 @@ function CollegeStandingsPicker({
   )
 }
 
-function PlayoffSection({ leagueId, seattleColor }: { leagueId: string; seattleColor: string }) {
+function PlayoffSection({ leagueId, accentColor, followedAbbrs }: { leagueId: string; accentColor: string; followedAbbrs: string[] }) {
   const [data, setData] = useState<{ rounds: { name: string; series: any[] }[]; currentRound: string | null; season: string } | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
-    fetch(`/api/playoffs?league=${leagueId}`)
+    const highlight = followedAbbrs.join(',')
+    fetch(`/api/playoffs?league=${leagueId}${highlight ? `&highlight=${highlight}` : ''}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { setData(d); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [leagueId])
+  }, [leagueId, followedAbbrs])
 
   if (loading) return (
     <div className="mx-3 mt-3 flex items-center gap-2 px-4 py-3 rounded-2xl" style={{ background: "rgba(234,179,8,0.06)", border: "1px solid rgba(234,179,8,0.15)" }}>
@@ -406,8 +409,8 @@ function PlayoffSection({ leagueId, seattleColor }: { leagueId: string; seattleC
 
   // Show the most recent/active round
   const activeRound = data.rounds[data.rounds.length - 1]
-  const seattleSeries = activeRound.series.filter((s: any) => s.isSeattle)
-  const otherSeries = activeRound.series.filter((s: any) => !s.isSeattle)
+  const followedSeries = activeRound.series.filter((s: any) => s.isFollowed)
+  const otherSeries = activeRound.series.filter((s: any) => !s.isFollowed)
 
   return (
     <div className="mx-3 mt-3">
@@ -422,9 +425,9 @@ function PlayoffSection({ leagueId, seattleColor }: { leagueId: string; seattleC
         <span className="font-display text-[10px] text-zinc-600">{data.season}</span>
       </div>
 
-      {/* Seattle series first */}
-      {[...seattleSeries, ...otherSeries].map((series: any) => {
-        const isSea = series.isSeattle
+      {/* Followed series first */}
+      {[...followedSeries, ...otherSeries].map((series: any) => {
+        const isFollowed = series.isFollowed
         const winsNeeded = 4 // best of 7 for most sports
         const isOver = series.status === 'final'
         const isLive = series.status === 'live'
@@ -437,11 +440,11 @@ function PlayoffSection({ leagueId, seattleColor }: { leagueId: string; seattleC
             key={series.id}
             className="mb-2 rounded-2xl overflow-hidden"
             style={{
-              background: isSea ? `${seattleColor}12` : "var(--surface)",
-              border: `1px solid ${isSea ? seattleColor + "35" : "var(--border)"}`,
+              background: isFollowed ? `${accentColor}12` : "var(--surface)",
+              border: `1px solid ${isFollowed ? accentColor + "35" : "var(--border)"}`,
             }}
           >
-            {isSea && <div className="h-0.5" style={{ background: `linear-gradient(to right, ${seattleColor}, transparent)` }} />}
+            {isFollowed && <div className="h-0.5" style={{ background: `linear-gradient(to right, ${accentColor}, transparent)` }} />}
             <div className="px-3 py-3 flex items-center gap-2">
               {/* Away */}
               <div className="flex-1 flex flex-col items-center gap-1">
@@ -450,7 +453,7 @@ function PlayoffSection({ leagueId, seattleColor }: { leagueId: string; seattleC
                   : <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-[10px] text-zinc-500">{series.away.abbr}</div>
                 }
                 {series.away.seed && <span className="font-display text-[9px] text-zinc-600">#{series.away.seed}</span>}
-                <span className="font-display text-[12px] font-700 text-zinc-300">{series.away.abbr}</span>
+                <span className={`font-display text-[12px] font-700 ${isFollowed ? "text-white" : "text-zinc-300"}`}>{series.away.abbr}</span>
               </div>
 
               {/* Series score center */}
@@ -472,14 +475,14 @@ function PlayoffSection({ leagueId, seattleColor }: { leagueId: string; seattleC
                 <div className="flex gap-1 mt-1">
                   {Array.from({ length: winsNeeded }).map((_, i) => (
                     <div key={i} className="w-2 h-2 rounded-full" style={{
-                      background: i < aWins ? "#a1a1aa" : "var(--surface-2)",
+                      background: i < aWins ? (isFollowed ? accentColor : "#a1a1aa") : "var(--surface-2)",
                       border: "1px solid rgba(255,255,255,0.1)"
                     }} />
                   ))}
                   <span className="text-zinc-700 text-[9px] mx-0.5">·</span>
                   {Array.from({ length: winsNeeded }).map((_, i) => (
                     <div key={i} className="w-2 h-2 rounded-full" style={{
-                      background: i < hWins ? (isSea ? seattleColor : "#a1a1aa") : "var(--surface-2)",
+                      background: i < hWins ? (isFollowed ? accentColor : "#a1a1aa") : "var(--surface-2)",
                       border: "1px solid rgba(255,255,255,0.1)"
                     }} />
                   ))}
@@ -493,7 +496,7 @@ function PlayoffSection({ leagueId, seattleColor }: { leagueId: string; seattleC
                   : <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-[10px] text-zinc-500">{series.home.abbr}</div>
                 }
                 {series.home.seed && <span className="font-display text-[9px] text-zinc-600">#{series.home.seed}</span>}
-                <span className={`font-display text-[12px] font-700 ${isSea && SEATTLE_IDS[leagueId]?.includes(series.home.id) ? "text-white" : "text-zinc-300"}`}>{series.home.abbr}</span>
+                <span className={`font-display text-[12px] font-700 ${isFollowed ? "text-white" : "text-zinc-300"}`}>{series.home.abbr}</span>
               </div>
             </div>
           </div>
@@ -503,12 +506,10 @@ function PlayoffSection({ leagueId, seattleColor }: { leagueId: string; seattleC
   )
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const SEATTLE_IDS: Record<string, string[]> = { mlb: ['12'], nhl: ['124292'], wnba: ['14'], nfl: ['26'] }
-
 export default function StandingsClient() {
   const { selectedTeamIds, loaded } = useSelectedTeams()
-  const { counts: teamClickCounts, recordClick } = useTeamClickCounts()
+  const { followedIds } = useFollowedOtherTeams()
+  const { counts: _teamClickCounts, recordClick } = useTeamClickCounts()
   const [activeLeague, setActiveLeague] = useState<string>("")
   const [data, setData] = useState<StandingsResponse | null>(null)
   const [loading, setLoading] = useState(false)
@@ -516,16 +517,44 @@ export default function StandingsClient() {
   const [scope, setScope] = useState<Scope>("division")
   const [collegePicker, setCollegePicker] = useState<string | null>(null)
 
-  // Build available leagues from followed teams
+  // Get abbreviations of followed teams for a given standings league
+  const getFollowedAbbrsForLeague = (leagueId: string): string[] => {
+    const abbrs = new Set<string>()
+    // Seattle teams (from useSelectedTeams)
+    for (const team of SEATTLE_TEAMS) {
+      if (!selectedTeamIds.includes(team.id)) continue
+      if (TEAM_TO_LEAGUE[team.id] === leagueId) abbrs.add(team.abbr)
+    }
+    // Other followed pro teams (from useFollowedOtherTeams)
+    for (const pid of followedIds) {
+      const proTeam = ALL_PRO_TEAMS.find(t => t.id === pid)
+      if (!proTeam) continue
+      if (proTeam.league.toLowerCase() === leagueId) abbrs.add(proTeam.abbr)
+    }
+    return [...abbrs]
+  }
+
+  // Build available leagues from all followed teams (Seattle + others)
   const availableLeagues = (() => {
     const seen = new Set<string>()
     const result: { leagueId: string; teamId: string }[] = []
+    // Seattle teams first
     for (const team of SEATTLE_TEAMS) {
       if (!selectedTeamIds.includes(team.id)) continue
       const leagueId = TEAM_TO_LEAGUE[team.id]
       if (leagueId && SUPPORTED_STANDINGS.has(leagueId) && !seen.has(leagueId)) {
         seen.add(leagueId)
         result.push({ leagueId, teamId: team.id })
+      }
+    }
+    // Other followed pro teams
+    for (const pid of followedIds) {
+      const proTeam = ALL_PRO_TEAMS.find(t => t.id === pid)
+      if (!proTeam) continue
+      const leagueId = proTeam.league.toLowerCase()
+      if (SUPPORTED_STANDINGS.has(leagueId) && !seen.has(leagueId)) {
+        seen.add(leagueId)
+        result.push({ leagueId, teamId: pid })
       }
     }
     return result
@@ -555,8 +584,9 @@ export default function StandingsClient() {
 
   useEffect(() => {
     if (!activeLeague || !SUPPORTED_STANDINGS.has(activeLeague)) return
+    const highlight = getFollowedAbbrsForLeague(activeLeague).join(',')
     setLoading(true); setError(null); setData(null)
-    fetch(`/api/standings?league=${activeLeague}`)
+    fetch(`/api/standings?league=${activeLeague}${highlight ? `&highlight=${highlight}` : ''}`)
       .then(r => r.ok ? r.json() : Promise.reject())
       .then((d: StandingsResponse) => {
         setData(d)
@@ -564,24 +594,26 @@ export default function StandingsClient() {
       })
       .catch(() => setError("Unable to load standings"))
       .finally(() => setLoading(false))
-  }, [activeLeague])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeLeague, selectedTeamIds, followedIds])
 
-  const seattleColor = LEAGUE_INFO[activeLeague]?.color || "#00d4ff"
+  const accentColor = LEAGUE_INFO[activeLeague]?.color || "#00d4ff"
+  const followedAbbrs = activeLeague ? getFollowedAbbrsForLeague(activeLeague) : []
 
   const visibleDivisions: Division[] = (() => {
     if (!data) return []
     if (scope === "league") return data.divisions
     if (scope === "conference") {
-      const conf = data.conferences.find(c => c.name === data.seattleConferenceName)
+      const conf = data.conferences.find(c => c.name === data.followedConferenceName)
       return conf ? conf.divisions : data.divisions
     }
-    const div = data.divisions.find(d => d.name === data.seattleDivisionName)
+    const div = data.divisions.find(d => d.name === data.followedDivisionName)
     return div ? [div] : data.divisions.slice(0, 1)
   })()
 
-  const hasTrueDivisions = !!(data?.seattleDivisionName &&
+  const hasTrueDivisions = !!(data?.followedDivisionName &&
     data.conferences.some(c => c.divisions.length > 1))
-  const hasConference = !!(data?.seattleConferenceName &&
+  const hasConference = !!(data?.followedConferenceName &&
     data.conferences.length > 1)
 
   if (!loaded) {
@@ -715,15 +747,15 @@ export default function StandingsClient() {
 
           {/* PLAYOFFS — show bracket prominently first */}
           {data.season?.status === 'playoffs' && (
-            <PlayoffSection leagueId={activeLeague} seattleColor={seattleColor} />
+            <PlayoffSection leagueId={activeLeague} accentColor={accentColor} followedAbbrs={followedAbbrs} />
           )}
 
           {/* Scope picker — Division / Conference / All Divisions */}
           <ScopePicker
             scope={scope} setScope={setScope}
             hasDivision={hasTrueDivisions} hasConference={hasConference}
-            seattleDivisionName={data.seattleDivisionName}
-            seattleConferenceName={data.seattleConferenceName}
+            followedDivisionName={data.followedDivisionName}
+            followedConferenceName={data.followedConferenceName}
           />
 
           {/* Standings label — "Final" when postseason */}
@@ -742,12 +774,12 @@ export default function StandingsClient() {
                   <div key={conf.name}>
                     {data.conferences.length > 1 && <ConferenceHeader name={conf.name} />}
                     {conf.divisions.map(div => (
-                      <DivisionTable key={div.name} division={div} seattleColor={seattleColor} leagueId={activeLeague} />
+                      <DivisionTable key={div.name} division={div} accentColor={accentColor} leagueId={activeLeague} />
                     ))}
                   </div>
                 ))
               : visibleDivisions.map(div => (
-                  <DivisionTable key={div.name} division={div} seattleColor={seattleColor} leagueId={activeLeague} />
+                  <DivisionTable key={div.name} division={div} accentColor={accentColor} leagueId={activeLeague} />
                 ))
             }
           </div>

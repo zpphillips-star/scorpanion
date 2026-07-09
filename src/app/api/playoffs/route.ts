@@ -3,18 +3,20 @@ import { NextRequest } from 'next/server'
 
 export const runtime = 'edge'
 
-const LEAGUE_MAP: Record<string, { sport: string; league: string; seattleIds: string[] }> = {
-  mlb:  { sport: 'baseball',   league: 'mlb',  seattleIds: ['12'] },
-  nhl:  { sport: 'hockey',     league: 'nhl',  seattleIds: ['124292'] },
-  wnba: { sport: 'basketball', league: 'wnba', seattleIds: ['14'] },
-  nfl:  { sport: 'football',   league: 'nfl',  seattleIds: ['26'] },
-  nba:  { sport: 'basketball', league: 'nba',  seattleIds: [] },
-  mls:  { sport: 'soccer',     league: 'usa.1',seattleIds: ['9726'] },
+const LEAGUE_MAP: Record<string, { sport: string; league: string }> = {
+  mlb:  { sport: 'baseball',   league: 'mlb'     },
+  nhl:  { sport: 'hockey',     league: 'nhl'     },
+  wnba: { sport: 'basketball', league: 'wnba'    },
+  nfl:  { sport: 'football',   league: 'nfl'     },
+  nba:  { sport: 'basketball', league: 'nba'     },
+  mls:  { sport: 'soccer',     league: 'usa.1'   },
 }
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const leagueId = searchParams.get('league') || 'mlb'
+  const highlightParam = searchParams.get('highlight') || ''
+  const highlightAbbrs = new Set(highlightParam.split(',').map(s => s.trim()).filter(Boolean))
   const mapping = LEAGUE_MAP[leagueId]
   if (!mapping) return Response.json({ rounds: [], currentRound: null }, { status: 400 })
 
@@ -51,14 +53,14 @@ export async function GET(request: NextRequest) {
 
       const hTeam = makeTeam(home)
       const aTeam = makeTeam(away)
-      const isSeattle = mapping.seattleIds.includes(hTeam.id) || mapping.seattleIds.includes(aTeam.id)
+      const isFollowed = highlightAbbrs.has(hTeam.abbr) || highlightAbbrs.has(aTeam.abbr)
 
       const seriesKey = [hTeam.id, aTeam.id].sort().join('-')
       const alreadyHas = roundMap.get(round)!.find((s: any) => s.seriesKey === seriesKey)
       if (!alreadyHas) {
         const status = comp.status?.type?.completed ? 'final'
           : comp.status?.type?.state === 'in' ? 'live' : 'scheduled'
-        roundMap.get(round)!.push({ seriesKey, id: ev.id, status, round, home: hTeam, away: aTeam, isSeattle })
+        roundMap.get(round)!.push({ seriesKey, id: ev.id, status, round, home: hTeam, away: aTeam, isFollowed })
         latestRound = round
       }
     }
