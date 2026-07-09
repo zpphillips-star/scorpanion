@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
 import { SEATTLE_TEAMS, getTeamLogoUrl } from "@/lib/teams"
 import { useSelectedTeams } from "@/hooks/useSelectedTeams"
@@ -243,7 +243,14 @@ function ConferenceHeader({ name }: { name: string }) {
   )
 }
 
-function DivisionTable({ division, accentColor, leagueId }: { division: Division; accentColor: string; leagueId: string }) {
+function DivisionTable({ division, followedTeamColors, accentColor, leagueId }: {
+  division: Division
+  /** espnId → primaryColor for every followed team in this league */
+  followedTeamColors: Record<string, string>
+  /** fallback league accent color if espnId isn't in the map */
+  accentColor: string
+  leagueId: string
+}) {
   const cols = getColDefs(leagueId, division.entries)
   const bgBase = 'rgba(8,8,15,1)'
 
@@ -279,8 +286,12 @@ function DivisionTable({ division, accentColor, leagueId }: { division: Division
           </thead>
           <tbody>
             {division.entries.map((entry, idx) => {
-              const rowBg = entry.isFollowed ? `${accentColor}14` : 'transparent'
-              const stickyBg = entry.isFollowed ? `color-mix(in srgb, ${accentColor} 8%, ${bgBase})` : bgBase
+              // Per-team brand color — falls back to league accent if espnId not in map
+              const teamColor = entry.isFollowed
+                ? (followedTeamColors[entry.teamId] ?? accentColor)
+                : null
+              const rowBg = teamColor ? `${teamColor}18` : 'transparent'
+              const stickyBg = teamColor ? `color-mix(in srgb, ${teamColor} 10%, ${bgBase})` : bgBase
               return (
                 <tr key={entry.teamId} style={{ borderTop: '1px solid var(--border)' }}>
                   {/* Sticky team cell */}
@@ -289,18 +300,18 @@ function DivisionTable({ division, accentColor, leagueId }: { division: Division
                     style={{ background: stickyBg, minWidth: '160px' }}
                   >
                     <div className="relative flex items-center gap-2.5">
-                      {entry.isFollowed && (
-                        <span className="absolute -left-4 top-0 bottom-0 w-[3px] rounded-r-full" style={{ background: accentColor }} />
+                      {teamColor && (
+                        <span
+                          className="absolute -left-4 top-0 bottom-0 w-1 rounded-r-full"
+                          style={{ background: teamColor }}
+                        />
                       )}
                       <span className="font-display text-[11px] font-600 text-zinc-600 w-4 text-center flex-shrink-0">{idx + 1}</span>
                       <TeamLogoImg src={entry.logo} abbr={entry.abbr} />
                       <div className="min-w-0">
-                        <div className={`font-display text-[14px] font-700 leading-tight truncate ${entry.isFollowed ? "text-white" : "text-zinc-200"}`}>
+                        <div className={`font-display text-[14px] font-700 leading-tight truncate ${teamColor ? "text-white" : "text-zinc-200"}`}>
                           {entry.teamName}
                         </div>
-                        {entry.isFollowed && (
-                          <div className="text-[9px] font-semibold uppercase tracking-widest" style={{ color: accentColor }}>★ following</div>
-                        )}
                       </div>
                     </div>
                   </td>
@@ -600,6 +611,27 @@ export default function StandingsClient() {
   const accentColor = LEAGUE_INFO[activeLeague]?.color || "#00d4ff"
   const followedAbbrs = activeLeague ? getFollowedAbbrsForLeague(activeLeague) : []
 
+  // Build espnId → primaryColor for each followed team in the active league
+  // Used to highlight standings rows with each team's own brand color
+  const followedTeamColors = useMemo<Record<string, string>>(() => {
+    if (!activeLeague) return {}
+    const map: Record<string, string> = {}
+    // Seattle teams
+    for (const team of SEATTLE_TEAMS) {
+      if (!selectedTeamIds.includes(team.id)) continue
+      if (TEAM_TO_LEAGUE[team.id] !== activeLeague) continue
+      const proTeam = ALL_PRO_TEAMS.find(t => t.id === team.id)
+      if (proTeam) map[proTeam.espnId] = proTeam.primaryColor
+    }
+    // Other followed pro teams
+    for (const pid of followedIds) {
+      const proTeam = ALL_PRO_TEAMS.find(t => t.id === pid)
+      if (!proTeam || proTeam.league.toLowerCase() !== activeLeague) continue
+      map[proTeam.espnId] = proTeam.primaryColor
+    }
+    return map
+  }, [activeLeague, selectedTeamIds, followedIds])
+
   const visibleDivisions: Division[] = (() => {
     if (!data) return []
     if (scope === "league") return data.divisions
@@ -774,12 +806,12 @@ export default function StandingsClient() {
                   <div key={conf.name}>
                     {data.conferences.length > 1 && <ConferenceHeader name={conf.name} />}
                     {conf.divisions.map(div => (
-                      <DivisionTable key={div.name} division={div} accentColor={accentColor} leagueId={activeLeague} />
+                      <DivisionTable key={div.name} division={div} followedTeamColors={followedTeamColors} accentColor={accentColor} leagueId={activeLeague} />
                     ))}
                   </div>
                 ))
               : visibleDivisions.map(div => (
-                  <DivisionTable key={div.name} division={div} accentColor={accentColor} leagueId={activeLeague} />
+                  <DivisionTable key={div.name} division={div} followedTeamColors={followedTeamColors} accentColor={accentColor} leagueId={activeLeague} />
                 ))
             }
           </div>
