@@ -18,11 +18,11 @@ const TEAM_DIVISION_MAP: Record<string, Record<string, string>> = {
     // AL West (Mariners)
     LAA: 'AL West', HOU: 'AL West', ATH: 'AL West', SEA: 'AL West', TEX: 'AL West',
     // AL Central
-    CHW: 'AL Central', CLE: 'AL Central', DET: 'AL Central', KC: 'AL Central', MIN: 'AL Central',
+    CWS: 'AL Central', CLE: 'AL Central', DET: 'AL Central', KC: 'AL Central', MIN: 'AL Central',
     // AL East
     BAL: 'AL East', BOS: 'AL East', NYY: 'AL East', TB: 'AL East', TOR: 'AL East',
     // NL West
-    ARI: 'NL West', COL: 'NL West', LAD: 'NL West', SD: 'NL West', SF: 'NL West',
+    AZ: 'NL West', COL: 'NL West', LAD: 'NL West', SD: 'NL West', SF: 'NL West',
     // NL Central
     CHC: 'NL Central', CIN: 'NL Central', MIL: 'NL Central', PIT: 'NL Central', STL: 'NL Central',
     // NL East
@@ -48,17 +48,17 @@ const TEAM_DIVISION_MAP: Record<string, Record<string, string>> = {
   },
   nhl: {
     // Pacific Division (Kraken)
-    ANA: 'Pacific', CGY: 'Pacific', EDM: 'Pacific', LA: 'Pacific',
-    SEA: 'Pacific', SJ: 'Pacific', VAN: 'Pacific', VGK: 'Pacific',
+    ANA: 'Pacific', CGY: 'Pacific', EDM: 'Pacific', LAK: 'Pacific',
+    SEA: 'Pacific', SJS: 'Pacific', VAN: 'Pacific', VGK: 'Pacific',
     // Central Division
     CHI: 'Central', COL: 'Central', DAL: 'Central', MIN: 'Central',
     NSH: 'Central', STL: 'Central', UTA: 'Central', WPG: 'Central',
     // Metropolitan Division
-    CAR: 'Metropolitan', CBJ: 'Metropolitan', NJ: 'Metropolitan', NYI: 'Metropolitan',
+    CAR: 'Metropolitan', CBJ: 'Metropolitan', NJD: 'Metropolitan', NYI: 'Metropolitan',
     NYR: 'Metropolitan', PHI: 'Metropolitan', PIT: 'Metropolitan', WSH: 'Metropolitan',
     // Atlantic Division
     BOS: 'Atlantic', BUF: 'Atlantic', DET: 'Atlantic', FLA: 'Atlantic',
-    MTL: 'Atlantic', OTT: 'Atlantic', TB: 'Atlantic', TOR: 'Atlantic',
+    MTL: 'Atlantic', OTT: 'Atlantic', TBL: 'Atlantic', TOR: 'Atlantic',
   },
   nba: {
     // Northwest Division
