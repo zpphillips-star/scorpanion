@@ -245,7 +245,7 @@ function ConferenceHeader({ name }: { name: string }) {
 
 function DivisionTable({ division, followedTeamColors, accentColor, leagueId }: {
   division: Division
-  /** espnId → primaryColor for every followed team in this league */
+  /** abbr → primaryColor for every followed team in this league */
   followedTeamColors: Record<string, string>
   /** fallback league accent color if espnId isn't in the map */
   accentColor: string
@@ -286,9 +286,9 @@ function DivisionTable({ division, followedTeamColors, accentColor, leagueId }: 
           </thead>
           <tbody>
             {division.entries.map((entry, idx) => {
-              // Per-team brand color — falls back to league accent if espnId not in map
+              // Per-team brand color — falls back to league accent if abbr not in map
               const teamColor = entry.isFollowed
-                ? (followedTeamColors[entry.teamId] ?? accentColor)
+                ? (followedTeamColors[entry.abbr] ?? accentColor)
                 : null
               const rowBg = teamColor ? `${teamColor}18` : 'transparent'
               const stickyBg = teamColor ? `color-mix(in srgb, ${teamColor} 10%, ${bgBase})` : bgBase
@@ -611,23 +611,24 @@ export default function StandingsClient() {
   const accentColor = LEAGUE_INFO[activeLeague]?.color || "#00d4ff"
   const followedAbbrs = activeLeague ? getFollowedAbbrsForLeague(activeLeague) : []
 
-  // Build espnId → primaryColor for each followed team in the active league
-  // Used to highlight standings rows with each team's own brand color
+  // Build abbr → primaryColor for each followed team in the active league.
+  // Keyed by abbreviation (matches entry.abbr from the API) rather than espnId
+  // because MLB uses statsapi IDs and NHL uses abbreviations as teamId — neither
+  // matches the ESPN espnId stored in allProTeams.
   const followedTeamColors = useMemo<Record<string, string>>(() => {
     if (!activeLeague) return {}
     const map: Record<string, string> = {}
-    // Seattle teams
+    // Seattle teams (SEATTLE_TEAMS has primaryColor + abbr directly)
     for (const team of SEATTLE_TEAMS) {
       if (!selectedTeamIds.includes(team.id)) continue
       if (TEAM_TO_LEAGUE[team.id] !== activeLeague) continue
-      const proTeam = ALL_PRO_TEAMS.find(t => t.id === team.id)
-      if (proTeam) map[proTeam.espnId] = proTeam.primaryColor
+      map[team.abbr] = team.primaryColor
     }
     // Other followed pro teams
     for (const pid of followedIds) {
       const proTeam = ALL_PRO_TEAMS.find(t => t.id === pid)
       if (!proTeam || proTeam.league.toLowerCase() !== activeLeague) continue
-      map[proTeam.espnId] = proTeam.primaryColor
+      map[proTeam.abbr] = proTeam.primaryColor
     }
     return map
   }, [activeLeague, selectedTeamIds, followedIds])
