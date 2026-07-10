@@ -606,6 +606,8 @@ async function fetchNHLStandings(highlightAbbrs: Set<string>): Promise<Standings
   }
 }
 
+const NO_CACHE = { headers: { 'Cache-Control': 'no-store' } }
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const leagueId = searchParams.get('league') || 'mlb'
@@ -616,19 +618,19 @@ export async function GET(request: NextRequest) {
     // ── Official MLB standings ─────────────────────────────────────────────
     if (leagueId === 'mlb') {
       const response = await fetchMLBStandings(highlightAbbrs)
-      return Response.json(response)
+      return Response.json(response, NO_CACHE)
     }
 
     // ── Official NHL standings ─────────────────────────────────────────────
     if (leagueId === 'nhl') {
       const response = await fetchNHLStandings(highlightAbbrs)
-      return Response.json(response)
+      return Response.json(response, NO_CACHE)
     }
 
     // ── ESPN fallback for all other leagues ───────────────────────────────
     const mapping = LEAGUE_MAP[leagueId]
     if (!mapping) {
-      return Response.json({ divisions: [], conferences: [], season: null, followedDivisionName: null, followedConferenceName: null })
+      return Response.json({ divisions: [], conferences: [], season: null, followedDivisionName: null, followedConferenceName: null }, NO_CACHE)
     }
 
     const standingsUrl = `https://site.api.espn.com/apis/v2/sports/${mapping.sport}/${mapping.league}/standings`
@@ -660,8 +662,8 @@ export async function GET(request: NextRequest) {
     const response: StandingsResponse = {
       season, divisions, conferences, followedDivisionName, followedConferenceName,
     }
-    return Response.json(response)
+    return Response.json(response, NO_CACHE)
   } catch {
-    return Response.json({ divisions: [], conferences: [], season: null, followedDivisionName: null, followedConferenceName: null }, { status: 500 })
+    return Response.json({ divisions: [], conferences: [], season: null, followedDivisionName: null, followedConferenceName: null }, { status: 500, ...NO_CACHE })
   }
 }

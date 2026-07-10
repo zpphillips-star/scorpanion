@@ -290,8 +290,16 @@ function DivisionTable({ division, followedTeamColors, accentColor, leagueId }: 
               const teamColor = entry.isFollowed
                 ? (followedTeamColors[entry.abbr] ?? accentColor)
                 : null
-              const rowBg = teamColor ? `${teamColor}18` : 'transparent'
-              const stickyBg = teamColor ? `color-mix(in srgb, ${teamColor} 10%, ${bgBase})` : bgBase
+              // Many team primary colors are too dark to see against the near-black
+              // background (#08080F). Lighten by mixing 55% white so the accent bar
+              // and row tint are always visible regardless of how dark the primary is.
+              const barColor = teamColor
+                ? `color-mix(in srgb, ${teamColor}, white 55%)`
+                : null
+              const rowBg = teamColor
+                ? `color-mix(in srgb, ${teamColor} 18%, transparent)`
+                : 'transparent'
+              const stickyBg = teamColor ? `color-mix(in srgb, ${teamColor} 14%, ${bgBase})` : bgBase
               return (
                 <tr key={entry.teamId} style={{ borderTop: '1px solid var(--border)' }}>
                   {/* Sticky team cell */}
@@ -300,10 +308,10 @@ function DivisionTable({ division, followedTeamColors, accentColor, leagueId }: 
                     style={{ background: stickyBg, minWidth: '160px' }}
                   >
                     <div className="relative flex items-center gap-2.5">
-                      {teamColor && (
+                      {barColor && (
                         <span
                           className="absolute -left-4 top-0 bottom-0 w-1 rounded-r-full"
-                          style={{ background: teamColor }}
+                          style={{ background: barColor }}
                         />
                       )}
                       <span className="font-display text-[11px] font-600 text-zinc-600 w-4 text-center flex-shrink-0">{idx + 1}</span>
@@ -519,7 +527,7 @@ function PlayoffSection({ leagueId, accentColor, followedAbbrs }: { leagueId: st
 
 export default function StandingsClient() {
   const { selectedTeamIds, loaded } = useSelectedTeams()
-  const { followedIds } = useFollowedOtherTeams()
+  const { followedIds, loaded: followedLoaded } = useFollowedOtherTeams()
   const { counts: _teamClickCounts, recordClick } = useTeamClickCounts()
   const [activeLeague, setActiveLeague] = useState<string>("")
   const [data, setData] = useState<StandingsResponse | null>(null)
@@ -587,11 +595,11 @@ export default function StandingsClient() {
 
   // Auto-select first available league
   useEffect(() => {
-    if (!loaded) return
+    if (!loaded || !followedLoaded) return
     if (availableLeagues.length > 0 && !activeLeague) {
       setActiveLeague(availableLeagues[0].leagueId)
     }
-  }, [loaded, availableLeagues, activeLeague])
+  }, [loaded, followedLoaded, availableLeagues, activeLeague])
 
   useEffect(() => {
     if (!activeLeague || !SUPPORTED_STANDINGS.has(activeLeague)) return
@@ -649,7 +657,7 @@ export default function StandingsClient() {
   const hasConference = !!(data?.followedConferenceName &&
     data.conferences.length > 1)
 
-  if (!loaded) {
+  if (!loaded || !followedLoaded) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
