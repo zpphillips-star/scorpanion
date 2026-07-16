@@ -298,7 +298,7 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
                   </div>
                   {/* Column header — same grid as data rows */}
                   <div className="grid grid-cols-[1fr_30px_30px_30px] gap-x-1 pb-1.5 border-b border-zinc-800/60">
-                    <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider">Player</span>
+                    <span />
                     <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">PTS</span>
                     <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">REB</span>
                     <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">AST</span>

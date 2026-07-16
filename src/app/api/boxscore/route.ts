@@ -394,15 +394,23 @@ async function fetchESPNBoxScore(
   let topScorers: { teamId: string; abbr: string; name: string; pts: string; reb: string; ast: string }[] = []
   if (sportType === "basketball") {
     const bsPlayers: any[] = data.boxscore?.players ?? []
+    // Helper: find index by multiple possible key names (ESPN varies by league)
+    const findIdx = (keys: string[], ...names: string[]) => {
+      for (const n of names) {
+        const i = keys.findIndex((k: string) => k.toLowerCase() === n.toLowerCase())
+        if (i >= 0) return i
+      }
+      return -1
+    }
     topScorers = bsPlayers.flatMap((teamEntry: any) => {
       const teamId: string = teamEntry.team?.id ?? ""
       const abbr: string = teamEntry.team?.abbreviation ?? ""
       const statGroup = teamEntry.statistics?.[0]
       const keys: string[] = statGroup?.keys ?? []
       const athletes: any[] = statGroup?.athletes ?? []
-      const ptsIdx = keys.indexOf("pts")
-      const rebIdx = keys.indexOf("reb")
-      const astIdx = keys.indexOf("ast")
+      const ptsIdx = findIdx(keys, "pts", "points")
+      const rebIdx = findIdx(keys, "reb", "rebounds", "totalRebounds")
+      const astIdx = findIdx(keys, "ast", "assists")
       return athletes
         .filter((a: any) => a.athlete && Array.isArray(a.stats) && a.stats.length > 0)
         .map((a: any) => ({
@@ -413,7 +421,7 @@ async function fetchESPNBoxScore(
           ast: astIdx >= 0 ? (a.stats[astIdx] ?? "–") : "–",
         }))
         .sort((x: any, y: any) => parseFloat(String(y.pts)) - parseFloat(String(x.pts)))
-        .slice(0, 2)
+        .slice(0, 3)
     })
   }
 
