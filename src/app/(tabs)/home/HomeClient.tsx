@@ -645,7 +645,7 @@ export default function HomeClient() {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100dvh-8rem)] px-8 text-center gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/scorpion-mono.png" alt="Scorpanion" width={72} height={72} className="object-contain" />
+        <img src="/scorpion-logo.png" alt="Scorpanion" width={72} height={72} className="object-contain" />
         <h2 className="font-display text-[28px] font-800 text-white uppercase tracking-tight">No teams selected</h2>
         <p className="text-zinc-500 text-sm">Go to the Teams tab and follow the teams you want to track.</p>
       </div>
