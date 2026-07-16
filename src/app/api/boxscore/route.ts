@@ -440,15 +440,16 @@ async function fetchESPNBoxScore(
 
   let goalScorers: { teamId: string; name: string; minute: string; type: string }[] = []
   if (sportType === "soccer") {
-    const scoring: any[] = data.scoring ?? []
-    goalScorers = scoring.flatMap((period: any) =>
-      (period.scores ?? []).map((s: any) => ({
-        teamId: s.team?.id ?? "",
-        name: s.athlete?.shortName ?? s.athlete?.displayName ?? "",
-        minute: s.clock?.displayValue ?? "",
-        type: s.type?.text ?? "Goal",
-      }))
-    )
+    // ESPN NWSL/MLS summary uses `keyEvents` (not `data.scoring`) for goal data.
+    // Each scoring play has: team.id, participants[0].athlete.displayName, clock.displayValue, type.text
+    const keyEvents: any[] = data.keyEvents ?? []
+    const scoringEvents = keyEvents.filter((e: any) => e.scoringPlay === true)
+    goalScorers = scoringEvents.map((e: any) => ({
+      teamId: e.team?.id ?? "",
+      name: e.participants?.[0]?.athlete?.displayName ?? e.shortText ?? "",
+      minute: e.clock?.displayValue ?? "",
+      type: e.type?.text ?? "Goal",
+    }))
   }
 
   return {

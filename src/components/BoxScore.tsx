@@ -118,7 +118,7 @@ function TeamCell({ team, isSea }: { team: LineTeam; isSea: boolean }) {
 
 function SectionHeader({ label, first = false }: { label: string; first?: boolean }) {
   return (
-    <div className={`px-5 pb-2 ${first ? "pt-4" : "pt-6 border-t border-zinc-800/60"}`}>
+    <div className={`px-5 pb-3 ${first ? "pt-5" : "pt-7 border-t border-zinc-800/60"}`}>
       <span className="font-display text-[10px] font-700 uppercase tracking-[0.16em] text-zinc-500">{label}</span>
     </div>
   )
@@ -314,11 +314,11 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
                   />
                 )}
                 {teamScorers.map((s, idx) => (
-                  <div key={idx} className="relative grid grid-cols-[1fr_32px_32px_32px] gap-x-2 items-center px-5 py-3 border-b border-zinc-800/40 last:border-0">
-                    <span className={`text-[13px] font-600 truncate ${isSea ? "text-zinc-200" : "text-zinc-400"}`}>{s.name}</span>
-                    <span className="font-display text-[13px] font-700 tabular-nums text-center" style={{ color: isSea ? color : "#a1a1aa" }}>{s.pts}</span>
-                    <span className="font-display text-[13px] font-600 tabular-nums text-center text-zinc-500">{s.reb}</span>
-                    <span className="font-display text-[13px] font-600 tabular-nums text-center text-zinc-500">{s.ast}</span>
+                  <div key={idx} className="relative grid grid-cols-[1fr_32px_32px_32px] gap-x-2 items-center px-5 py-3.5 border-b border-zinc-800/40 last:border-0">
+                    <span className={`text-[14px] font-600 truncate ${isSea ? "text-zinc-200" : "text-zinc-400"}`}>{s.name}</span>
+                    <span className="font-display text-[14px] font-700 tabular-nums text-center" style={{ color: isSea ? color : "#a1a1aa" }}>{s.pts}</span>
+                    <span className="font-display text-[14px] font-600 tabular-nums text-center text-zinc-500">{s.reb}</span>
+                    <span className="font-display text-[14px] font-600 tabular-nums text-center text-zinc-500">{s.ast}</span>
                   </div>
                 ))}
               </div>

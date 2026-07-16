@@ -66,14 +66,16 @@ export default function UpcomingScheduleSection({ game }: Props) {
   const color = game.seattleTeam.primaryColor
 
   const GameRow = ({ g }: { g: UpcomingGame }) => (
-    <div className="flex items-center gap-2.5 py-3 border-b border-zinc-800/50 last:border-0">
-      <span className="font-display text-[11px] font-600 text-zinc-600 w-5 text-center flex-shrink-0">{g.isHome ? "vs" : "@"}</span>
+    <div className="flex items-center gap-3 py-3.5 border-b border-zinc-800/50 last:border-0">
+      <span className="font-display text-[12px] font-600 text-zinc-500 w-5 text-center flex-shrink-0">
+        {g.isHome ? "vs" : "@"}
+      </span>
       {g.oppLogo
         // eslint-disable-next-line @next/next/no-img-element
-        ? <img src={g.oppLogo} alt={g.opponent} width={18} height={18} className="object-contain flex-shrink-0" />
-        : <div className="w-4.5 h-4.5 flex-shrink-0" />}
-      <span className="font-display text-[13px] font-600 text-zinc-300 flex-1 truncate">{g.opponent}</span>
-      <span className="font-display text-[11px] text-zinc-600 flex-shrink-0">{fmtShortDate(g.date)}</span>
+        ? <img src={g.oppLogo} alt={g.opponent} width={20} height={20} className="object-contain flex-shrink-0" />
+        : <div className="w-5 h-5 flex-shrink-0" />}
+      <span className="font-display text-[14px] font-600 text-zinc-200 flex-1 truncate">{g.opponent}</span>
+      <span className="font-display text-[12px] text-zinc-500 flex-shrink-0">{fmtShortDate(g.date)}</span>
     </div>
   )
 
@@ -90,10 +92,10 @@ export default function UpcomingScheduleSection({ game }: Props) {
         <div className="px-5 pb-4">
           <div className="flex items-center gap-2 pb-2.5 mb-1 border-b border-zinc-800/60">
             <TeamLogo src={seaLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={16} />
-            <span className="font-display text-[11px] font-700 text-white truncate" style={{ color }}>{game.seattleTeam.abbr}</span>
+            <span className="font-display text-[12px] font-700 text-white truncate" style={{ color }}>{game.seattleTeam.abbr}</span>
           </div>
           {seaGames.length === 0
-            ? <div className="font-display text-[12px] text-zinc-600 py-3">No upcoming</div>
+            ? <div className="font-display text-[13px] text-zinc-600 py-3">No upcoming</div>
             : seaGames.map((g, i) => <GameRow key={i} g={g} />)}
         </div>
 
@@ -104,10 +106,10 @@ export default function UpcomingScheduleSection({ game }: Props) {
               // eslint-disable-next-line @next/next/no-img-element
               ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={16} height={16} className="object-contain" />
               : null}
-            <span className="font-display text-[11px] font-700 text-zinc-400 truncate">{game.opponent.abbr}</span>
+            <span className="font-display text-[12px] font-700 text-zinc-400 truncate">{game.opponent.abbr}</span>
           </div>
           {oppGames.length === 0
-            ? <div className="font-display text-[12px] text-zinc-600 py-3">No upcoming</div>
+            ? <div className="font-display text-[13px] text-zinc-600 py-3">No upcoming</div>
             : oppGames.map((g, i) => <GameRow key={i} g={g} />)}
         </div>
       </div>
