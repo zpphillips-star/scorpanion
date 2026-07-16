@@ -22,7 +22,8 @@ import {
 import { Game, ScoreUpdate } from '@/lib/types'
 import { SEATTLE_TEAMS } from '@/lib/teams'
 
-const STORAGE_KEY = 'seattle-sports-teams'
+const STORAGE_KEY       = 'seattle-sports-teams'
+const OTHER_STORAGE_KEY = 'followed_other_teams'
 
 const WHL_IDS  = ['thunderbirds', 'silvertips'] as const
 const NCAA_IDS = ['uw-softball', 'uw-soccer']   as const
@@ -71,33 +72,47 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([])
   const [loaded, setLoaded] = useState(false)
 
-  // Read from localStorage on mount
+  // Read from localStorage on mount — merges both Seattle and "other" followed teams
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        const parsed: unknown[] = JSON.parse(stored)
+      const seattleStored = localStorage.getItem(STORAGE_KEY)
+      let seattleIds: string[]
+      if (seattleStored) {
+        const parsed: unknown[] = JSON.parse(seattleStored)
         const validIds = new Set(SEATTLE_TEAMS.map(t => t.id))
         const filtered = (parsed as string[]).filter(id => validIds.has(id))
         // Prune stale IDs in storage
         if (filtered.length !== parsed.length) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered))
         }
-        setSelectedTeamIds(filtered)
+        seattleIds = filtered
       } else {
-        setSelectedTeamIds(SEATTLE_TEAMS.map(t => t.id))
+        seattleIds = SEATTLE_TEAMS.map(t => t.id)
       }
+
+      const otherStored = localStorage.getItem(OTHER_STORAGE_KEY)
+      const otherIds: string[] = otherStored ? (JSON.parse(otherStored) as string[]) : []
+
+      setSelectedTeamIds([...new Set([...seattleIds, ...otherIds])])
     } catch {
       setSelectedTeamIds(SEATTLE_TEAMS.map(t => t.id))
     }
     setLoaded(true)
   }, [])
 
-  // Stay in sync when useSelectedTeams.toggleTeam fires a custom event
+  // Stay in sync when either useSelectedTeams or useFollowedOtherTeams fires the event.
+  // Always re-read both keys so the merged list is always current.
   useEffect(() => {
-    const handler = (e: Event) => {
-      const ids = (e as CustomEvent<string[]>).detail
-      setSelectedTeamIds(ids)
+    const handler = () => {
+      try {
+        const seattleStored = localStorage.getItem(STORAGE_KEY)
+        const seattleIds: string[] = seattleStored
+          ? (JSON.parse(seattleStored) as string[])
+          : SEATTLE_TEAMS.map(t => t.id)
+        const otherStored = localStorage.getItem(OTHER_STORAGE_KEY)
+        const otherIds: string[] = otherStored ? (JSON.parse(otherStored) as string[]) : []
+        setSelectedTeamIds([...new Set([...seattleIds, ...otherIds])])
+      } catch { /* keep existing selection */ }
     }
     window.addEventListener('scorpanion:teams-changed', handler)
     return () => window.removeEventListener('scorpanion:teams-changed', handler)

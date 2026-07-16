@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest } from 'next/server'
 import { SEATTLE_TEAMS } from '@/lib/teams'
+import { ALL_PRO_TEAMS } from '@/lib/allProTeams'
 import { Game, SeattleTeam, TeamRecord } from '@/lib/types'
 
 export const runtime = 'edge'
@@ -317,29 +318,64 @@ async function fetchESPNSchedule(team: SeattleTeam): Promise<Game[]> {
   return games
 }
 
+// ── Map ProTeam league key (uppercase) → ESPN URL slug ────────────────────────
+function proLeagueToEspnSlug(league: string): string {
+  const SLUG_MAP: Record<string, string> = {
+    MLS:  'usa.1',
+    NWSL: 'usa.nwsl',
+  }
+  return SLUG_MAP[league] ?? league.toLowerCase()
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const teamsParam = searchParams.get('teams')
 
   const teamIds = teamsParam ? teamsParam.split(',') : SEATTLE_TEAMS.map(t => t.id)
-  const teams = SEATTLE_TEAMS.filter(t => teamIds.includes(t.id))
+
+  // Split into known Seattle teams and non-Seattle pro teams
+  const seattleTeamSet = new Set(SEATTLE_TEAMS.map(t => t.id))
+  const proTeamMap = new Map(ALL_PRO_TEAMS.map(t => [t.id, t]))
+
+  const seattleTeams = SEATTLE_TEAMS.filter(t => teamIds.includes(t.id))
+  const otherProTeams = teamIds
+    .filter(id => !seattleTeamSet.has(id) && proTeamMap.has(id))
+    .map(id => {
+      const pt = proTeamMap.get(id)!
+      // Map ProTeam to a SeattleTeam-compatible shape for fetchESPNSchedule
+      const mapped: SeattleTeam = {
+        id: pt.id,
+        name: pt.name,
+        shortName: pt.shortName,
+        abbr: pt.abbr,
+        sport: pt.sport,
+        league: proLeagueToEspnSlug(pt.league),
+        espnId: pt.espnId,
+        primaryColor: pt.primaryColor,
+        secondaryColor: '#ffffff',
+        emoji: '',
+        logoUrl: pt.logo,
+      }
+      return mapped
+    })
 
   const allGames: Game[] = []
   const seenIds = new Set<string>()
 
-  await Promise.all(
-    teams.map(async (team) => {
+  await Promise.all([
+    // ── Seattle teams (existing logic) ───────────────────────────────────────
+    ...seattleTeams.map(async (team) => {
       try {
         let games: Game[] = []
 
         if (team.league === 'mlb') {
-          // ── Official MLB API ──────────────────────────────────────────────
+          // ── Official MLB API ────────────────────────────────────────────────
           games = await fetchMLBSchedule(team)
         } else if (team.league === 'nhl') {
-          // ── Official NHL API ──────────────────────────────────────────────
+          // ── Official NHL API ────────────────────────────────────────────────
           games = await fetchNHLSchedule(team)
         } else {
-          // ── ESPN fallback for all other leagues ───────────────────────────
+          // ── ESPN fallback for all other leagues ─────────────────────────────
           if (!team.espnId) return
           games = await fetchESPNSchedule(team)
         }
@@ -352,8 +388,23 @@ export async function GET(request: NextRequest) {
       } catch {
         // ignore errors for individual teams
       }
-    })
-  )
+    }),
+
+    // ── Non-Seattle pro teams (always via ESPN) ───────────────────────────────
+    ...otherProTeams.map(async (team) => {
+      try {
+        if (!team.espnId) return
+        const games = await fetchESPNSchedule(team)
+        for (const game of games) {
+          if (seenIds.has(game.id)) continue
+          seenIds.add(game.id)
+          allGames.push(game)
+        }
+      } catch {
+        // ignore errors for individual teams
+      }
+    }),
+  ])
 
   allGames.sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime())
 
