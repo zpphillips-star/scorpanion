@@ -67,7 +67,7 @@ export function TodayGameCard({ game }: { game: Game }) {
   return (
     <>
       <div
-        className="mx-3 my-1.5 rounded-xl overflow-hidden cursor-pointer active:scale-[0.985] transition-transform"
+        className="mx-3 my-1.5 overflow-hidden cursor-pointer active:scale-[0.985] transition-transform"
         style={cardStyle}
         onClick={() => setShowDetail(true)}
       >

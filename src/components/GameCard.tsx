@@ -167,28 +167,24 @@ export default function GameCard({ game }: GameCardProps) {
 
             {/* Inner sheet */}
             <div
-              className="rounded-t-lg overflow-y-auto"
-              style={{ background: "var(--surface)", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "88dvh" }}
+              className="overflow-y-auto"
+              style={{ background: "#0f0f18", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "88dvh" }}
             >
-              <div className="w-10 h-1 rounded-full bg-white/15 mx-auto mt-3 mb-2 flex-shrink-0" />
 
               {/* ── SECTION 1: SCOREBOARD ─────────────────────────────────── */}
-              <div
-                className="relative px-5 pt-2 pb-5"
-                style={{ background: `linear-gradient(160deg, ${seattleColor}35 0%, ${game.seattleTeam.secondaryColor}15 60%, transparent 100%)` }}
-              >
+              <div className="relative bg-gradient-to-b from-[#0a1628] to-[#0f0f18] px-5 pt-4 pb-5">
                 <button onClick={() => setOpen(false)} className="absolute top-2 right-4 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-sm">✕</button>
 
                 {/* Status + meta */}
                 <div className="flex items-center gap-2 mb-3">
                   {isLive && (
-                    <span className="flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider" style={{ color: "var(--accent)", background: "var(--accent-muted)", border: "1px solid rgba(0,212,255,0.25)" }}>
-                      <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--accent)" }} />LIVE
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-red-400 uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse inline-block" />LIVE
                     </span>
                   )}
-                  {isFt && <span className="text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider" style={{ color: "var(--status-final)", background: "var(--surface-2)", border: "1px solid var(--border-default)" }}>FINAL</span>}
-                  {isUp && <span className="text-[11px] text-zinc-400 bg-white/5 px-2.5 py-1 rounded-full">{formatGameDate(game.kickoff)}</span>}
-                  {game.broadcast && <span className="text-[11px] text-zinc-400 bg-white/5 px-2.5 py-1 rounded-full">{game.broadcast}</span>}
+                  {isFt && <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">FINAL</span>}
+                  {isUp && <span className="text-[11px] text-zinc-500">{formatGameDate(game.kickoff)}</span>}
+                  {game.broadcast && <span className="text-[11px] text-zinc-600">{game.broadcast}</span>}
                   {game.venue?.city && <span className="text-[11px] text-zinc-500 ml-auto">📍 {game.venue.city}{game.venue.state ? `, ${game.venue.state}` : ""}</span>}
                 </div>
 

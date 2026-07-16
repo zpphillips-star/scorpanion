@@ -252,26 +252,25 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
     <>
       <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50" onClick={onClose} />
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-4xl lg:mx-auto rounded-t-2xl overflow-hidden flex flex-col animate-slide-up"
+        className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-4xl lg:mx-auto overflow-hidden flex flex-col animate-slide-up"
         style={{ background: "#0f0f18", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "96dvh" }}
         onClick={e => e.stopPropagation()}
       >
         {/* Fixed header */}
         <div className="relative bg-gradient-to-b from-[#0a1628] to-[#0f0f18] px-5 pt-4 pb-8 flex-shrink-0">
-          <div className="w-10 h-1 rounded-full bg-white/20 mx-auto mb-4" />
           <button onClick={onClose} className="absolute top-4 right-5 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-sm hover:bg-white/20 transition-colors">✕</button>
 
           {/* Status + date row */}
           <div className="flex items-center gap-2 mb-4">
             {isLive ? (
-              <span className="text-[11px] font-bold text-red-400 bg-red-500/10 px-2.5 py-0.5 rounded-full animate-pulse">● LIVE</span>
+              <span className="text-[11px] font-bold text-red-400 animate-pulse">● LIVE</span>
             ) : isFt ? (
-              <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">FINAL</span>
+              <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">FINAL</span>
             ) : (
-              <span className="text-[11px] text-zinc-400 bg-white/5 px-2.5 py-0.5 rounded-full">Upcoming</span>
+              <span className="text-[11px] text-zinc-500">Upcoming</span>
             )}
-            <span className="text-[11px] text-zinc-400 bg-white/5 px-2.5 py-0.5 rounded-full">{fmtDate(game.kickoff)}</span>
-            {game.broadcast && <span className="text-[11px] text-zinc-500 bg-white/5 px-2.5 py-0.5 rounded-full">{game.broadcast}</span>}
+            <span className="text-[11px] text-zinc-600">{fmtDate(game.kickoff)}</span>
+            {game.broadcast && <span className="text-[11px] text-zinc-600">{game.broadcast}</span>}
           </div>
 
           {/* Live clock */}

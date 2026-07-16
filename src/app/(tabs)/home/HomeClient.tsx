@@ -124,39 +124,34 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex-shrink-0 w-[148px] rounded-2xl overflow-hidden text-left active:scale-95 transition-transform"
-      style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+      className="flex-shrink-0 w-[140px] text-left active:opacity-70 transition-opacity border-r border-zinc-800 last:border-r-0 pr-4 mr-4 last:pr-0 last:mr-0"
     >
-      {/* Color bar top */}
-      <div className="h-1" style={{ background: `linear-gradient(to right, ${color}, ${color}44)` }} />
-      <div className="px-3 pt-2.5 pb-3">
-        {/* W/L + date */}
-        <div className="flex items-center justify-between mb-2.5">
-          <span className="font-display text-[11px] font-700 uppercase tracking-wide" style={{ color: resultColor }}>
-            {resultLabel}
+      {/* W/L + date */}
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: resultColor }}>
+          {resultLabel}
+        </span>
+        <span className="text-[10px] text-zinc-600">{fmtDate(game.kickoff).replace(/,.*/, "")}</span>
+      </div>
+      {/* Teams + scores */}
+      <div className="flex items-center justify-between gap-1.5">
+        <div className="flex flex-col items-center gap-1 flex-1">
+          <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={26} />
+          <span className={`font-display text-[14px] font-800 tabular-nums ${seattleLost ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+            {hasScore ? game.seattleScore : "–"}
           </span>
-          <span className="text-[10px] text-zinc-600">{fmtDate(game.kickoff).replace(/,.*/, "")}</span>
         </div>
-        {/* Teams + scores */}
-        <div className="flex items-center justify-between gap-1.5">
-          <div className="flex flex-col items-center gap-1 flex-1">
-            <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={26} />
-            <span className={`font-display text-[14px] font-800 tabular-nums ${seattleLost ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
-              {hasScore ? game.seattleScore : "–"}
-            </span>
-          </div>
-          <span className="font-display text-[10px] text-zinc-700 font-600 self-center pb-3">–</span>
-          <div className="flex flex-col items-center gap-1 flex-1">
-            <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={26} />
-            <span className={`font-display text-[14px] font-800 tabular-nums ${seattleWon ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
-              {hasScore ? game.opponentScore : "–"}
-            </span>
-          </div>
+        <span className="font-display text-[10px] text-zinc-700 font-600 self-center pb-3">–</span>
+        <div className="flex flex-col items-center gap-1 flex-1">
+          <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={26} />
+          <span className={`font-display text-[14px] font-800 tabular-nums ${seattleWon ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+            {hasScore ? game.opponentScore : "–"}
+          </span>
         </div>
-        {/* Opponent name */}
-        <div className="mt-2">
-          <span className="text-[10px] text-zinc-600 truncate block">vs {game.opponent.shortName || game.opponent.abbr}</span>
-        </div>
+      </div>
+      {/* Opponent name */}
+      <div className="mt-2">
+        <span className="text-[10px] text-zinc-600 truncate block">vs {game.opponent.shortName || game.opponent.abbr}</span>
       </div>
     </button>
   )
@@ -438,7 +433,7 @@ export default function HomeClient() {
             <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">Last 7 days</span>
           </div>
           <div className="overflow-x-auto no-scrollbar px-4">
-            <div className="flex gap-3 min-w-max pb-1">
+          <div className="flex min-w-max pb-1">
               {recent.map(g => (
                 <RecentCard key={g.id} game={g} onClick={() => setSelectedRecentGame(g)} />
               ))}
