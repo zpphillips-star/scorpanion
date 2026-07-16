@@ -114,13 +114,12 @@ function TeamCell({ team, isSea }: { team: LineTeam; isSea: boolean }) {
   )
 }
 
-// ─── Section header ───────────────────────────────────────────────────────────
+// ─── Section header — unified CastWA-style label ─────────────────────────────
 
-function SectionHeader({ label }: { label: string }) {
+function SectionHeader({ label, first = false }: { label: string; first?: boolean }) {
   return (
-    <div className="flex items-center gap-3 px-5 pt-5 pb-3">
-      <span className="font-display text-[13px] font-800 text-zinc-300 uppercase tracking-widest">{label}</span>
-      <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.10)" }} />
+    <div className={`px-5 pb-2 ${first ? "pt-4" : "pt-6 border-t border-zinc-800/60"}`}>
+      <span className="font-display text-[10px] font-700 uppercase tracking-[0.16em] text-zinc-500">{label}</span>
     </div>
   )
 }
@@ -141,7 +140,7 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
 
   return (
     <>
-      <SectionHeader label="Line Score" />
+      <SectionHeader label="Line Score" first />
       <div className="px-3 overflow-x-auto no-scrollbar">
         <table className="w-full min-w-max" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
           <thead>
@@ -234,7 +233,7 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
 
   return (
     <>
-      <SectionHeader label="Score by Quarter" />
+      <SectionHeader label="Score by Quarter" first />
       <div className="px-3 overflow-x-auto no-scrollbar">
         <table className="w-full min-w-max" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
           <thead>
@@ -280,41 +279,36 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
       {topScorers.length > 0 && (
         <>
           <SectionHeader label="Top Scorers" />
-          <div className="px-5 pb-4">
-            {linescores.map((team, teamIdx) => {
-              const teamScorers = scoresByTeam[team.teamId] ?? []
-              const isSea = (seattleTeamId && team.teamId === seattleTeamId) || team.abbr === "SEA"
-              if (teamScorers.length === 0) return null
-              return (
-                <div key={team.teamId}>
-                  {teamIdx > 0 && <div className="border-t border-zinc-800/60 mt-4 mb-3" />}
-                  {/* Team label */}
-                  <div className="flex items-center gap-2 mb-2">
-                    {team.logo
-                      // eslint-disable-next-line @next/next/no-img-element
-                      ? <img src={team.logo} alt={team.abbr} width={16} height={16} className="object-contain" />
-                      : null}
-                    <span className={`font-display text-[11px] font-700 uppercase tracking-wider ${isSea ? "text-zinc-300" : "text-zinc-500"}`}>{team.abbr}</span>
-                  </div>
-                  {/* Column header — same grid as data rows */}
-                  <div className="grid grid-cols-[1fr_30px_30px_30px] gap-x-1 pb-1.5 border-b border-zinc-800/60">
-                    <span />
-                    <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">PTS</span>
-                    <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">REB</span>
-                    <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">AST</span>
-                  </div>
-                  {teamScorers.map((s, idx) => (
-                    <div key={idx} className="grid grid-cols-[1fr_30px_30px_30px] gap-x-1 items-center py-2 border-b border-zinc-800/40">
-                      <span className={`text-[13px] font-600 truncate ${isSea ? "text-zinc-200" : "text-zinc-400"}`}>{s.name}</span>
-                      <span className="font-display text-[13px] font-700 tabular-nums text-center" style={{ color: isSea ? color : "#a1a1aa" }}>{s.pts}</span>
-                      <span className="font-display text-[13px] font-700 tabular-nums text-center text-zinc-500">{s.reb}</span>
-                      <span className="font-display text-[13px] font-700 tabular-nums text-center text-zinc-500">{s.ast}</span>
-                    </div>
-                  ))}
-                </div>
-              )
-            })}
+          {/* One shared column-header row */}
+          <div className="grid grid-cols-[20px_1fr_32px_32px_32px] gap-x-2 items-center px-5 pb-1.5 border-b border-zinc-800/60">
+            <span />
+            <span />
+            <span className="font-display text-[10px] font-700 text-zinc-600 uppercase tracking-wider text-center">PTS</span>
+            <span className="font-display text-[10px] font-700 text-zinc-600 uppercase tracking-wider text-center">REB</span>
+            <span className="font-display text-[10px] font-700 text-zinc-600 uppercase tracking-wider text-center">AST</span>
           </div>
+          {linescores.map((team, teamIdx) => {
+            const teamScorers = scoresByTeam[team.teamId] ?? []
+            const isSea = (seattleTeamId && team.teamId === seattleTeamId) || team.abbr === "SEA"
+            if (teamScorers.length === 0) return null
+            return (
+              <div key={team.teamId} className={teamIdx > 0 ? "border-t border-zinc-800/60" : ""}>
+                {teamScorers.map((s, idx) => (
+                  <div key={idx} className="grid grid-cols-[20px_1fr_32px_32px_32px] gap-x-2 items-center px-5 py-3 border-b border-zinc-800/40 last:border-0">
+                    {/* Logo only on the first player row per team */}
+                    {idx === 0 && team.logo
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={team.logo} alt={team.abbr} width={16} height={16} className="object-contain flex-shrink-0" />
+                      : <span />}
+                    <span className={`text-[13px] font-600 truncate ${isSea ? "text-zinc-200" : "text-zinc-400"}`}>{s.name}</span>
+                    <span className="font-display text-[13px] font-700 tabular-nums text-center" style={{ color: isSea ? color : "#a1a1aa" }}>{s.pts}</span>
+                    <span className="font-display text-[13px] font-600 tabular-nums text-center text-zinc-500">{s.reb}</span>
+                    <span className="font-display text-[13px] font-600 tabular-nums text-center text-zinc-500">{s.ast}</span>
+                  </div>
+                ))}
+              </div>
+            )
+          })}
         </>
       )}
     </>
@@ -336,7 +330,7 @@ function HockeyScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattle
 
   return (
     <>
-      <SectionHeader label="Score by Period" />
+      <SectionHeader label="Score by Period" first />
       <div className="px-3 overflow-x-auto no-scrollbar">
         <table className="w-full min-w-max" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
           <thead>
@@ -395,7 +389,7 @@ function FootballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
   const { linescores, periodLabels, currentPeriod } = data
   return (
     <>
-      <SectionHeader label="Score by Quarter" />
+      <SectionHeader label="Score by Quarter" first />
       <div className="px-3 overflow-x-auto no-scrollbar">
         <table className="w-full min-w-max" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
           <thead>
@@ -456,7 +450,7 @@ function SoccerScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattle
 
   return (
     <>
-      <SectionHeader label="Match Summary" />
+      <SectionHeader label="Match Summary" first />
       <div className="px-4 pb-2">
         {/* Scorers */}
         {goalScorers.length > 0 && (
@@ -512,7 +506,7 @@ function GenericScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattl
   const { linescores, periodLabels, currentPeriod, sportType } = data
   return (
     <>
-      <SectionHeader label="Score" />
+      <SectionHeader label="Score" first />
       <div className="px-3 overflow-x-auto no-scrollbar">
         <table className="w-full min-w-max" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
           <thead>
@@ -575,8 +569,7 @@ function TeamStatsSection({ data, color }: { data: BoxScoreData; color: string }
   return (
     <>
       <SectionHeader label="Team Stats" />
-      <div className="px-3 pb-3 space-y-2">
-        {sharedStats.map(key => {
+      {sharedStats.map(key => {
           const sa = teamA.statistics.find(s => s.name === key || s.label?.toLowerCase().includes(key.toLowerCase()))
           const sb = teamB.statistics.find(s => s.name === key || s.label?.toLowerCase().includes(key.toLowerCase()))
           if (!sa && !sb) return null
@@ -588,19 +581,18 @@ function TeamStatsSection({ data, color }: { data: BoxScoreData; color: string }
           const total = numA + numB || 1
           const pctA = numA / total
           return (
-            <div key={key} className="px-2 py-1.5">
-              <div className="flex justify-between mb-1.5">
-                <span className="font-display text-[14px] font-700 text-white tabular-nums">{vA}</span>
-                <span className="font-display text-[11px] text-zinc-500 uppercase tracking-wide">{label}</span>
-                <span className="font-display text-[14px] font-700 text-zinc-400 tabular-nums">{vB}</span>
+            <div key={key} className="px-5 py-3 border-b border-zinc-800/50 last:border-0">
+              <div className="flex justify-between items-baseline mb-2">
+                <span className="font-display text-[15px] font-700 text-white tabular-nums">{vA}</span>
+                <span className="font-display text-[10px] font-700 text-zinc-500 uppercase tracking-[0.12em]">{label}</span>
+                <span className="font-display text-[15px] font-700 text-zinc-400 tabular-nums">{vB}</span>
               </div>
-              <div className="h-1.5 rounded-full overflow-hidden flex" style={{ background: "rgba(255,255,255,0.08)" }}>
-                <div className="h-full rounded-l-full transition-all" style={{ width: `${pctA * 100}%`, background: color }} />
+              <div className="h-[3px] overflow-hidden flex" style={{ background: "rgba(255,255,255,0.07)" }}>
+                <div className="h-full transition-all" style={{ width: `${pctA * 100}%`, background: color }} />
               </div>
             </div>
           )
         })}
-      </div>
     </>
   )
 }
