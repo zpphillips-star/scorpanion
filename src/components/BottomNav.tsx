@@ -1,39 +1,46 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useState } from "react"
 
-// Fallback rendered when scorpion-mono.png fails to load (SW cache miss, network error, etc.)
-function ScorpionFallback({ size, active }: { size: number; active: boolean }) {
+// Inline SVG scorpion — never fails, no external file dependency.
+// scorpion-mono.png was a solid white rectangle, not a transparent silhouette,
+// so it was invisible on both the dark inactive and cyan active button states.
+function ScorpionIcon({ size, active }: { size: number; active: boolean }) {
+  const color = active ? "white" : "rgba(255,255,255,0.45)"
   return (
     <svg
       width={size}
       height={size}
       viewBox="0 0 24 24"
-      fill="currentColor"
-      style={{ color: active ? "white" : "rgba(255,255,255,0.45)" }}
+      fill="none"
       aria-hidden="true"
+      style={{ color }}
     >
-      {/* Simple home / shield silhouette as safe fallback */}
-      <path d="M12 3L2 9v1h2v10h5v-6h6v6h5V10h2V9L12 3z" />
+      {/* Body */}
+      <ellipse cx="11" cy="13.5" rx="4" ry="3" fill="currentColor" />
+      {/* Head */}
+      <ellipse cx="6.2" cy="13.5" rx="2.5" ry="2" fill="currentColor" />
+      {/* Tail curls up and over */}
+      <path
+        d="M15 11.5 C17 8 20.5 6.5 21.5 8.5 C22.5 10.5 20.5 12.5 19 13"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+      />
+      {/* Stinger */}
+      <path d="M19 13 L21.5 11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      {/* Claws */}
+      <path d="M3.8 12 L1.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M3.8 15 L1.5 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      {/* Legs — 3 pairs */}
+      <line x1="9" y1="16.5" x2="7.5" y2="19.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="12" y1="16.5" x2="11" y2="19.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="14.5" y1="16" x2="14" y2="19" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="9" y1="10.5" x2="7.5" y2="7.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="12" y1="10.5" x2="11" y2="7.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="14.5" y1="11" x2="14" y2="8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
-  )
-}
-
-function HomeIcon({ size, active }: { size: number; active: boolean }) {
-  const [failed, setFailed] = useState(false)
-  if (failed) return <ScorpionFallback size={size} active={active} />
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src="/scorpion-mono.png"
-      alt="Home"
-      width={size}
-      height={size}
-      className="object-contain"
-      style={{ filter: active ? "none" : "brightness(0.5)" }}
-      onError={() => setFailed(true)}
-    />
   )
 }
 
@@ -131,8 +138,7 @@ export default function BottomNav() {
                     : "0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
                 }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <HomeIcon size={26} active={homeActive} />
+                <ScorpionIcon size={26} active={homeActive} />
               </div>
               <span
                 className="text-[10px] font-semibold mt-1 transition-colors"
@@ -163,8 +169,7 @@ export default function BottomNav() {
               border: homeActive ? "2px solid var(--accent)" : "2px solid var(--border)",
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <HomeIcon size={22} active={homeActive} />
+            <ScorpionIcon size={22} active={homeActive} />
           </div>
         </Link>
 
