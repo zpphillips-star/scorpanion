@@ -121,7 +121,7 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex-shrink-0 w-[148px] text-left active:opacity-70 transition-opacity border-r border-zinc-800 last:border-r-0 pr-8 mr-8 last:pr-0 last:mr-0"
+      className="flex-shrink-0 w-[148px] text-left active:opacity-70 transition-opacity border-r border-zinc-800 last:border-r-0 pr-8 mr-8 last:pr-0 last:mr-0 pt-2"
     >
       {/* Date + league — inset so it doesn't crowd the edges */}
       <div className="flex items-center justify-between mb-4 px-1">
@@ -433,7 +433,7 @@ export default function HomeClient() {
 
       {/* ── Recent results (horizontal scroll, tappable) ─────────────────── */}
       {recent.length > 0 && (
-        <div className="mt-8">
+        <div className="mt-12 pt-2">
           <div className="flex items-center gap-3 px-4 mb-6">
             <span className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest">Recent</span>
             <div className="flex-1 h-px bg-zinc-800" />
@@ -476,8 +476,17 @@ export default function HomeClient() {
             {hasGames ? (
               todayGames.map(g => <TodayGameCard key={g.id} game={g} />)
             ) : (
-              <div className="px-4 py-8 flex items-center justify-center">
-                <span className="text-[15px] text-zinc-600 font-medium">No games today</span>
+              <div
+                className="mx-3 my-1.5 overflow-hidden"
+                style={{ background: "#18181f", border: "1px solid rgba(255,255,255,0.07)" }}
+              >
+                <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                  <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-widest">Today</span>
+                  <span className="text-[10px] font-medium" style={{ color: "#9090b0" }}>{new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}</span>
+                </div>
+                <div className="px-4 pt-4 pb-8 flex items-center justify-center">
+                  <span className="font-display text-[16px] font-700 uppercase tracking-wide text-zinc-600">No games today</span>
+                </div>
               </div>
             )}
           </div>
