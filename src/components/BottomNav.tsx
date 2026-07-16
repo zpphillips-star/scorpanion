@@ -141,7 +141,15 @@ export default function BottomNav() {
                     : "0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
                 }}
               >
-                <ScorpionIcon size={26} active={homeActive} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/scorpion-logo.png"
+                  alt="Home"
+                  width={homeActive ? 30 : 26}
+                  height={homeActive ? 30 : 26}
+                  className="object-contain transition-all"
+                  style={{ opacity: homeActive ? 1 : 0.75 }}
+                />
               </div>
               <span
                 className="text-[10px] font-semibold mt-1 transition-colors"
@@ -172,7 +180,15 @@ export default function BottomNav() {
               border: homeActive ? "2px solid var(--accent)" : "2px solid var(--border)",
             }}
           >
-            <ScorpionIcon size={22} active={homeActive} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/scorpion-logo.png"
+              alt="Home"
+              width={homeActive ? 24 : 20}
+              height={homeActive ? 24 : 20}
+              className="object-contain transition-all"
+              style={{ opacity: homeActive ? 1 : 0.75 }}
+            />
           </div>
         </Link>
 

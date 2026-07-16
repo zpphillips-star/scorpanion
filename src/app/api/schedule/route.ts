@@ -278,6 +278,9 @@ async function fetchESPNSchedule(team: SeattleTeam): Promise<Game[]> {
 
     const parseScore = (val: any): number | undefined => {
       if (val === undefined || val === null || val === '') return undefined
+      // ESPN returns score as object: { value: 78.0, displayValue: "78" }
+      if (typeof val === 'object') val = val.displayValue ?? val.value
+      if (val === undefined || val === null || val === '') return undefined
       const n = Number(val)
       return isNaN(n) ? undefined : n
     }
