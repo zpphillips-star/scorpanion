@@ -331,11 +331,23 @@ export default function HomeClient() {
 
   if (selectedTeamIds.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[calc(100dvh-8rem)] px-8 text-center gap-4">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/scorpion-logo.png" alt="Scorpanion" width={72} height={72} className="object-contain" />
-        <h2 className="font-display text-[28px] font-800 text-white uppercase tracking-tight">No teams yet</h2>
-        <p className="text-zinc-500 text-sm">Follow your teams to see their scores here.</p>
+      <div className="flex flex-col items-center justify-center h-[calc(100dvh-8rem)] px-8 text-center gap-6">
+        {/* Big + button */}
+        <a
+          href="/teams"
+          className="flex flex-col items-center gap-4 active:opacity-70 transition-opacity"
+        >
+          <div className="w-20 h-20 rounded-full border-2 border-dashed border-zinc-600 flex items-center justify-center">
+            <span className="text-4xl text-zinc-500 leading-none" style={{ marginTop: "-2px" }}>+</span>
+          </div>
+          <div>
+            <p className="text-white text-[16px] font-semibold mb-1">Add your teams</p>
+            <p className="text-zinc-500 text-[13px]">Tap to follow teams and see their scores here</p>
+          </div>
+          <div className="flex items-center gap-2 px-5 py-2.5 border border-zinc-700 text-zinc-300 text-[13px] font-semibold">
+            Browse Teams →
+          </div>
+        </a>
       </div>
     )
   }
