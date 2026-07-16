@@ -2,34 +2,34 @@
 
 /* ── Tailwind v4 theme extension (CSS-first config) ───────────────────────── */
 @theme {
-  /* Brand backgrounds */
-  --color-bg-base:     #0f0f18;
-  --color-bg-surface:  #161620;
-  --color-bg-elevated: #1e1e2c;
-  --color-bg-subtle:   #262636;
+  /* Brand backgrounds — Scorpanion Navy */
+  --color-bg-base:     #0F1B2D;
+  --color-bg-surface:  #132035;
+  --color-bg-elevated: #1A2A45;
+  --color-bg-subtle:   #1F3254;
 
-  /* Borders */
-  --color-border-subtle:  #1e1e2e;
-  --color-border-default: #2a2a3f;
-  --color-border-strong:  #3a3a55;
+  /* Borders — navy-toned */
+  --color-border-subtle:  #1E2E45;
+  --color-border-default: #25405C;
+  --color-border-strong:  #30506E;
 
-  /* Accent */
-  --color-accent:       #00d4ff;
-  --color-accent-dim:   #00a8cc;
-  --color-accent-muted: #003d4d;
+  /* Accent — Burnt Athletic Orange */
+  --color-accent:       #D95C17;
+  --color-accent-dim:   #B54E13;
+  --color-accent-muted: #3D1A08;
 
-  /* Text */
-  --color-text-primary:   #f0f0f8;
-  --color-text-secondary: #9090b0;
-  --color-text-tertiary:  #5a5a7a;
+  /* Text — Vintage Cream palette */
+  --color-text-primary:   #F2E6CF;
+  --color-text-secondary: #D8C6AA;
+  --color-text-tertiary:  #5F6773;
 
   /* Status */
-  --color-status-win:       #22c55e;
-  --color-status-loss:      #ef4444;
-  --color-status-live:      #00d4ff;
-  --color-status-final:     #5a5a7a;
-  --color-status-upcoming:  #9090b0;
-  --color-status-postponed: #f59e0b;
+  --color-status-win:       #2FA84F;
+  --color-status-loss:      #C43D35;
+  --color-status-live:      #FFB400;
+  --color-status-final:     #5F6773;
+  --color-status-upcoming:  #D8C6AA;
+  --color-status-postponed: #FFB400;
 
   /* Font families */
   --font-family-display: var(--font-barlow), "Barlow Condensed", system-ui, sans-serif;
@@ -45,41 +45,41 @@
 
 /* ── Design tokens (CSS vars — primary runtime mechanism) ─────────────────── */
 :root {
-  /* Backgrounds */
-  --bg:           #0f0f18;
-  --surface:      #161620;
-  --surface-2:    #1e1e2c;
-  --surface-3:    #262636;
+  /* Backgrounds — Scorpanion Navy */
+  --bg:           #0F1B2D;
+  --surface:      #132035;
+  --surface-2:    #1A2A45;
+  --surface-3:    #1F3254;
 
   /* Borders */
-  --border:         #1e1e2e;
-  --border-default: #2a2a3f;
-  --border-strong:  #3a3a55;
+  --border:         #1E2E45;
+  --border-default: #25405C;
+  --border-strong:  #30506E;
 
-  /* Accent */
-  --accent:       #00d4ff;
-  --accent-dim:   #00a8cc;
-  --accent-muted: #003d4d;
+  /* Accent — Burnt Orange */
+  --accent:       #D95C17;
+  --accent-dim:   #B54E13;
+  --accent-muted: #3D1A08;
 
-  /* Text */
-  --text:         #f0f0f8;
-  --text-muted:   #9090b0;
-  --text-faint:   #5a5a7a;
+  /* Text — Vintage Cream */
+  --text:         #F2E6CF;
+  --text-muted:   #D8C6AA;
+  --text-faint:   #5F6773;
 
   /* Status */
-  --live:            #00d4ff;
-  --status-win:      #22c55e;
-  --status-loss:     #ef4444;
-  --status-final:    #5a5a7a;
-  --status-upcoming: #9090b0;
-  --status-ppd:      #f59e0b;
+  --live:            #FFB400;
+  --status-win:      #2FA84F;
+  --status-loss:     #C43D35;
+  --status-final:    #5F6773;
+  --status-upcoming: #D8C6AA;
+  --status-ppd:      #FFB400;
 }
 
 /* ── Base ─────────────────────────────────────────────────────────────────── */
 * { box-sizing: border-box; padding: 0; margin: 0; }
 
 html, body {
-  background: #0f0f18;
+  background: #0F1B2D;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -99,7 +99,7 @@ body { font-family: var(--font-inter), "Inter", system-ui, sans-serif; }
 /* ── Scrollbar ────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(242,230,207,0.15); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -129,8 +129,8 @@ body { font-family: var(--font-inter), "Inter", system-ui, sans-serif; }
 .animate-fade-in { animation: fade-in 0.2s ease both; }
 
 @keyframes pulse-live {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,255,0.5); }
-  50%       { box-shadow: 0 0 0 5px rgba(0,212,255,0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,180,0,0.5); }
+  50%       { box-shadow: 0 0 0 5px rgba(255,180,0,0); }
 }
 .animate-pulse-live { animation: pulse-live 1.4s ease infinite; }
 
@@ -157,7 +157,7 @@ body { font-family: var(--font-inter), "Inter", system-ui, sans-serif; }
 
 /* ── Glass header ─────────────────────────────────────────────────────────── */
 .glass-header {
-  background: rgba(10,10,15,0.92);
+  background: rgba(8,18,35,0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);

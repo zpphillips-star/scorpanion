@@ -29,7 +29,7 @@ function AuthButton() {
         href="/auth/login"
         title={user.email}
         className="w-9 h-9 rounded-full flex items-center justify-center font-display text-[14px] font-800 transition-all active:scale-95"
-        style={{ background: "rgba(0,212,255,0.15)", border: "1.5px solid rgba(0,212,255,0.35)", color: "#00d4ff" }}
+        style={{ background: "rgba(217,92,23,0.15)", border: "1.5px solid rgba(217,92,23,0.35)", color: "#D95C17" }}
       >
         {user.email?.[0]?.toUpperCase() ?? "?"}
       </Link>
@@ -63,10 +63,12 @@ export default function PageHeader({ title, children, titleAction }: PageHeaderP
       <div className="flex items-center px-4 py-3 gap-3">
         {/* Left: scorpion logo */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/scorpion-logo.png" alt="Scorpanion" width={26} height={26} className="object-contain flex-shrink-0" />
+        <img src="/scorpanion-big.png" alt="Scorpanion" height={28} className="object-contain flex-shrink-0 max-h-[28px]"
+          onError={(e) => { (e.target as HTMLImageElement).src = "/scorpion-logo.png" }} />
 
         {/* Center: page title */}
-        <h1 className="flex-1 text-center font-display text-[22px] font-800 text-white leading-none tracking-tight uppercase">
+        <h1 className="flex-1 text-center font-display text-[22px] font-800 leading-none tracking-tight uppercase"
+            style={{ color: "#F2E6CF" }}>
           {title}
         </h1>
 
