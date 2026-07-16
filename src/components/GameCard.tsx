@@ -64,9 +64,9 @@ export default function GameCard({ game }: GameCardProps) {
           className="mx-3 my-1 rounded-lg overflow-hidden transition-all duration-150 active:scale-[0.985]"
           style={{
             background: isLive
-              ? "linear-gradient(135deg,rgba(239,68,68,0.08) 0%,var(--surface) 60%)"
+              ? "linear-gradient(135deg,rgba(0,212,255,0.06) 0%,var(--surface) 60%)"
               : "var(--surface)",
-            border: `1px solid ${isLive ? "rgba(239,68,68,0.25)" : "var(--border)"}`,
+            border: `1px solid ${isLive ? "rgba(0,212,255,0.2)" : "var(--border)"}`,
           }}
         >
           {/* Status bar */}
@@ -74,13 +74,13 @@ export default function GameCard({ game }: GameCardProps) {
             {isLive ? (
               <div className="flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "var(--accent)" }} />
+                  <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "var(--accent)" }} />
                 </span>
-                <span className="font-display text-[11px] font-700 text-red-400 uppercase tracking-widest">Live</span>
+                <span className="font-display text-[11px] font-700 uppercase tracking-widest" style={{ color: "var(--accent)" }}>LIVE</span>
               </div>
             ) : isFt ? (
-              <span className="font-display text-[11px] font-600 text-zinc-500 uppercase tracking-widest">Final</span>
+              <span className="font-display text-[11px] font-600 uppercase tracking-widest" style={{ color: "var(--status-final)" }}>FINAL</span>
             ) : (
               <span className="font-display text-[11px] font-600 text-zinc-500 uppercase tracking-widest">{formatGameDate(game.kickoff)}</span>
             )}
@@ -213,11 +213,11 @@ export default function GameCard({ game }: GameCardProps) {
                 {/* Status + meta */}
                 <div className="flex items-center gap-2 mb-3">
                   {isLive && (
-                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />Live
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider" style={{ color: "var(--accent)", background: "var(--accent-muted)", border: "1px solid rgba(0,212,255,0.25)" }}>
+                      <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--accent)" }} />LIVE
                     </span>
                   )}
-                  {isFt && <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider">Final</span>}
+                  {isFt && <span className="text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider" style={{ color: "var(--status-final)", background: "var(--surface-2)", border: "1px solid var(--border-default)" }}>FINAL</span>}
                   {isUp && <span className="text-[11px] text-zinc-400 bg-white/5 px-2.5 py-1 rounded-full">{formatGameDate(game.kickoff)}</span>}
                   {game.broadcast && <span className="text-[11px] text-zinc-400 bg-white/5 px-2.5 py-1 rounded-full">{game.broadcast}</span>}
                   {game.venue?.city && <span className="text-[11px] text-zinc-500 ml-auto">📍 {game.venue.city}</span>}
@@ -244,7 +244,7 @@ export default function GameCard({ game }: GameCardProps) {
                           {game.isHome ? game.opponentScore : game.seattleScore}<span className="text-zinc-600 text-[32px] mx-1.5">–</span>{game.isHome ? game.seattleScore : game.opponentScore}
                         </div>
                         {isFt && (
-                          <span className={`font-display text-[13px] font-800 uppercase tracking-widest ${seattleWon ? "text-emerald-400" : seattleLost ? "text-red-400" : "text-zinc-500"}`}>
+                          <span className={`font-display text-[13px] font-800 uppercase tracking-widest ${seattleWon ? "text-[#22c55e]" : seattleLost ? "text-[#ef4444]" : "text-zinc-500"}`}>
                             {seattleWon ? "Win" : seattleLost ? "Loss" : "Tie"}
                           </span>
                         )}

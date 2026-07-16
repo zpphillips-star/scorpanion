@@ -44,13 +44,13 @@ export function TodayGameCard({ game }: { game: Game }) {
             {isLive ? (
               <div className="flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "var(--accent)" }} />
+                  <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "var(--accent)" }} />
                 </span>
-                <span className="font-display text-[11px] font-800 text-red-400 uppercase tracking-widest">Live</span>
+                <span className="font-display text-[11px] font-800 uppercase tracking-widest" style={{ color: "var(--accent)" }}>LIVE</span>
               </div>
             ) : isFt ? (
-              <span className="font-display text-[11px] font-700 text-emerald-400 uppercase tracking-widest">Final</span>
+              <span className="font-display text-[11px] font-700 uppercase tracking-widest" style={{ color: "var(--status-final)" }}>FINAL</span>
             ) : (
               <span className="font-display text-[11px] font-700 uppercase tracking-widest" style={{ color }}>Today</span>
             )}

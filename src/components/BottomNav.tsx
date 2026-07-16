@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation"
 // inactive button and the cyan active button.
 function ScorpionIcon({ size, active }: { size: number; active: boolean }) {
   // Active = white icon on cyan pill; inactive = visible white-ish on dark pill.
-  const fill = active ? "#ffffff" : "rgba(255,255,255,0.65)"
+  const fill = active ? "#ffffff" : "rgba(255,255,255,0.55)"
   return (
     <svg
       width={size}
@@ -50,14 +50,14 @@ function ScorpionIcon({ size, active }: { size: number; active: boolean }) {
 // Side tabs — Schedule, Calendar on left; Standings, Teams on right
 const leftTabs = [
   { href: "/schedule", label: "Schedule", icon: (a: boolean) => (
-    <svg className={`w-5 h-5 transition-colors ${a ? "text-[#00d4ff]" : "text-zinc-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className={`w-5 h-5 transition-colors`} fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: a ? "#00d4ff" : "#5a5a7a" }}>
       <line x1="3" y1="6" x2="21" y2="6" strokeWidth={2} strokeLinecap="round"/>
       <line x1="3" y1="12" x2="21" y2="12" strokeWidth={2} strokeLinecap="round"/>
       <line x1="3" y1="18" x2="21" y2="18" strokeWidth={2} strokeLinecap="round"/>
     </svg>
   )},
   { href: "/calendar", label: "Calendar", icon: (a: boolean) => (
-    <svg className={`w-5 h-5 transition-colors ${a ? "text-[#00d4ff]" : "text-zinc-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className={`w-5 h-5 transition-colors`} fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: a ? "#00d4ff" : "#5a5a7a" }}>
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth={2}/>
       <line x1="16" y1="2" x2="16" y2="6" strokeWidth={2} strokeLinecap="round"/>
       <line x1="8" y1="2" x2="8" y2="6" strokeWidth={2} strokeLinecap="round"/>
@@ -67,12 +67,12 @@ const leftTabs = [
 ]
 const rightTabs = [
   { href: "/standings", label: "Standings", icon: (a: boolean) => (
-    <svg className={`w-5 h-5 transition-colors ${a ? "text-[#00d4ff]" : "text-zinc-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className={`w-5 h-5 transition-colors`} fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: a ? "#00d4ff" : "#5a5a7a" }}>
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
     </svg>
   )},
   { href: "/teams", label: "Teams", icon: (a: boolean) => (
-    <svg className={`w-5 h-5 transition-colors ${a ? "text-[#00d4ff]" : "text-zinc-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className={`w-5 h-5 transition-colors`} fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: a ? "#00d4ff" : "#5a5a7a" }}>
       <rect x="3" y="3" width="7" height="7" rx="1" strokeWidth={2}/>
       <rect x="14" y="3" width="7" height="7" rx="1" strokeWidth={2}/>
       <rect x="14" y="14" width="7" height="7" rx="1" strokeWidth={2}/>
@@ -95,7 +95,7 @@ const NavTab = ({ href, label, icon }: { href: string; label: string; icon: (a: 
         }}
       />
       <span className="mt-2">{icon(active)}</span>
-      <span className="text-[10px] font-semibold transition-colors" style={{ color: active ? "var(--accent)" : "#6b7280" }}>
+      <span className="text-[10px] font-semibold transition-colors" style={{ color: active ? "var(--accent)" : "#5a5a7a" }}>
         {label}
       </span>
     </Link>
@@ -112,9 +112,10 @@ export default function BottomNav() {
       <nav
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40"
         style={{
-          background: "var(--surface)",
-          borderTop: "1px solid var(--border)",
+          background: "#12121a",
+          borderTop: "1px solid #1e1e2e",
           paddingBottom: "env(safe-area-inset-bottom)",
+          minHeight: "60px",
         }}
       >
         <div className="flex items-end">
@@ -153,7 +154,7 @@ export default function BottomNav() {
               </div>
               <span
                 className="text-[10px] font-semibold mt-1 transition-colors"
-                style={{ color: homeActive ? "var(--accent)" : "#6b7280" }}
+                style={{ color: homeActive ? "var(--accent)" : "#5a5a7a" }}
               >
                 Home
               </span>
@@ -208,7 +209,7 @@ export default function BottomNav() {
                 />
               )}
               {tab.icon(active)}
-              <span className="text-[9px] xl:text-[10px] font-semibold" style={{ color: active ? "var(--accent)" : "#6b7280" }}>
+              <span className="text-[9px] xl:text-[10px] font-semibold" style={{ color: active ? "var(--accent)" : "#5a5a7a" }}>
                 {tab.label}
               </span>
             </Link>

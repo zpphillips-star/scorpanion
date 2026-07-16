@@ -30,7 +30,7 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
 }
 function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).replace(/\s?(am|pm)/i, m => m.toUpperCase().trim()).replace(/^(\d)/, h => h)
 }
 function fmtDayHeader(ds: string) {
   const [y, m, day] = ds.split("-").map(Number)
@@ -366,8 +366,8 @@ export default function HomeClient() {
       <div className="flex flex-col items-center justify-center h-[calc(100dvh-8rem)] px-8 text-center gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/scorpion-logo.png" alt="Scorpanion" width={72} height={72} className="object-contain" />
-        <h2 className="font-display text-[28px] font-800 text-white uppercase tracking-tight">No teams selected</h2>
-        <p className="text-zinc-500 text-sm">Go to the Teams tab and follow the teams you want to track.</p>
+        <h2 className="font-display text-[28px] font-800 text-white uppercase tracking-tight">No teams yet</h2>
+        <p className="text-zinc-500 text-sm">Follow your teams to see their scores here.</p>
       </div>
     )
   }
@@ -451,6 +451,17 @@ export default function HomeClient() {
         </div>
       </PageHeader>
 
+      {/* ── Rest day indicator — has teams, nothing today ──────────────────── */}
+      {selectedTeamIds.length > 0 && todayGames.length === 0 && !hasAnyLive && (recent.length > 0 || allUpcoming.length > 0) && (
+        <div className="mt-5 mx-4 flex items-center gap-3">
+          <span className="font-display text-[13px] font-800 uppercase tracking-[0.08em]" style={{ color: "var(--text-muted)" }}>
+            Rest day 😴
+          </span>
+          <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+          <span className="text-[11px]" style={{ color: "var(--text-faint)" }}>None of your teams play today.</span>
+        </div>
+      )}
+
       {/* ── Recent results (horizontal scroll, tappable) ─────────────────── */}
       {recent.length > 0 && (
         <div className="mt-5">
@@ -481,13 +492,13 @@ export default function HomeClient() {
             <div className="flex items-center gap-3 px-4 mb-2">
               {hasLive && (
                 <span className="relative flex h-2 w-2 flex-shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "var(--accent)" }} />
+                  <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "var(--accent)" }} />
                 </span>
               )}
               <span
                 className="font-display text-[13px] font-800 uppercase tracking-widest"
-                style={{ color: hasLive ? "#f87171" : "white" }}
+                style={{ color: hasLive ? "var(--accent)" : "white" }}
               >
                 {hasLive ? "Live Now" : "Today"}
               </span>

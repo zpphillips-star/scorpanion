@@ -4,11 +4,25 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
+function EyeIcon({ open }: { open: boolean }) {
+  return open ? (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  ) : (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+    </svg>
+  )
+}
+
 export default function SignupPage() {
   const router = useRouter()
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -40,12 +54,14 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4">
-        <div className="w-full max-w-sm text-center">
-          <div className="text-4xl mb-4">✉️</div>
-          <h2 className="text-white font-bold text-xl mb-2">Check your email</h2>
-          <p className="text-gray-300 text-sm mb-6">We sent a confirmation link to <span className="text-white">{email}</span></p>
-          <Link href="/schedule" className="text-xs text-gray-400 hover:text-gray-300 transition-colors">
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0a0f' }}>
+        <div className="w-full max-w-[400px] text-center">
+          <div className="text-5xl mb-4">✉️</div>
+          <h2 className="font-extrabold text-xl mb-2" style={{ color: '#f0f0f8' }}>Check your email</h2>
+          <p className="text-sm mb-6" style={{ color: '#9090b0' }}>
+            We sent a confirmation link to <span style={{ color: '#f0f0f8' }}>{email}</span>
+          </p>
+          <Link href="/schedule" className="transition-colors" style={{ color: '#5a5a7a', fontSize: '13px' }}>
             Continue without confirming →
           </Link>
         </div>
@@ -53,81 +69,142 @@ export default function SignupPage() {
     )
   }
 
+  const inputStyle = {
+    height: '52px',
+    background: '#12121a',
+    border: '1px solid #2a2a3f',
+    borderRadius: '10px',
+    fontSize: '15px',
+  }
+
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="text-4xl mb-2">🦂</div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">scorpanion</h1>
-          <p className="text-gray-400 text-sm mt-1">Create your account</p>
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0a0f' }}>
+      <div className="w-full max-w-[400px]">
+
+        {/* ── Logo area ── */}
+        <div
+          className="text-center mb-8 pt-8 pb-2 relative"
+          style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(0,212,255,0.08) 0%, transparent 100%)' }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/scorpion-logo.png" alt="Scorpanion" width={64} height={64} className="object-contain mx-auto mb-3" />
+          <div
+            className="font-display text-[32px] font-extrabold uppercase tracking-[0.08em] leading-none mb-2"
+            style={{ color: '#f0f0f8' }}
+          >
+            SCORPANION
+          </div>
+          <p style={{ color: '#9090b0', fontSize: '15px', fontWeight: 400 }}>Your teams. Every score.</p>
         </div>
 
-        {/* Card */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-          <form onSubmit={handleSignup} className="space-y-4">
-            {error && (
-              <div className="p-3 bg-red-900/30 border border-red-500/30 rounded-md text-red-300 text-sm">
-                {error}
-              </div>
-            )}
-            <div>
-              <label className="block text-gray-300 text-xs font-medium mb-1.5">Display name</label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
-                required
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 transition-colors"
-                placeholder="Hawks fan"
-              />
+        {/* ── Form ── */}
+        <form onSubmit={handleSignup} className="space-y-4">
+          {error && (
+            <div
+              className="px-4 py-3 rounded-[10px] text-sm"
+              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}
+            >
+              {error}
             </div>
-            <div>
-              <label className="block text-gray-300 text-xs font-medium mb-1.5">Email</label>
+          )}
+
+          <div>
+            <label className="block mb-1.5" style={{ color: '#9090b0', fontSize: '13px', fontWeight: 500 }}>
+              Display name
+            </label>
+            <input
+              type="text"
+              value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              required
+              placeholder="Hawks fan"
+              className="w-full px-4 text-white placeholder-[#5a5a7a] outline-none transition-all"
+              style={inputStyle}
+              onFocus={e => { e.currentTarget.style.borderColor = '#00d4ff'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0,212,255,0.15)' }}
+              onBlur={e => { e.currentTarget.style.borderColor = '#2a2a3f'; e.currentTarget.style.boxShadow = 'none' }}
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1.5" style={{ color: '#9090b0', fontSize: '13px', fontWeight: 500 }}>
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              placeholder="you@example.com"
+              className="w-full px-4 text-white placeholder-[#5a5a7a] outline-none transition-all"
+              style={inputStyle}
+              onFocus={e => { e.currentTarget.style.borderColor = '#00d4ff'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0,212,255,0.15)' }}
+              onBlur={e => { e.currentTarget.style.borderColor = '#2a2a3f'; e.currentTarget.style.boxShadow = 'none' }}
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1.5" style={{ color: '#9090b0', fontSize: '13px', fontWeight: 500 }}>
+              Password
+            </label>
+            <div className="relative">
               <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 transition-colors"
-                placeholder="you@example.com"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 text-xs font-medium mb-1.5">Password</label>
-              <input
-                type="password"
+                type={showPw ? 'text' : 'password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 transition-colors"
                 placeholder="••••••••"
+                className="w-full px-4 pr-12 text-white placeholder-[#5a5a7a] outline-none transition-all"
+                style={inputStyle}
+                onFocus={e => { e.currentTarget.style.borderColor = '#00d4ff'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0,212,255,0.15)' }}
+                onBlur={e => { e.currentTarget.style.borderColor = '#2a2a3f'; e.currentTarget.style.boxShadow = 'none' }}
               />
+              <button
+                type="button"
+                onClick={() => setShowPw(v => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                style={{ color: '#5a5a7a' }}
+                tabIndex={-1}
+              >
+                <EyeIcon open={showPw} />
+              </button>
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-3 text-sm transition-colors"
-            >
-              {loading ? 'Creating account…' : 'Create account'}
-            </button>
-          </form>
-        </div>
+          </div>
 
-        {/* Links */}
-        <div className="mt-4 text-center space-y-2">
-          <p className="text-xs text-gray-400">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full font-semibold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              height: '48px',
+              background: '#00d4ff',
+              color: '#0a0a0f',
+              borderRadius: '10px',
+              fontSize: '15px',
+              fontWeight: 600,
+            }}
+          >
+            {loading ? 'Creating account…' : 'Create account'}
+          </button>
+        </form>
+
+        {/* ── Footer links ── */}
+        <div className="mt-6 text-center space-y-3">
+          <div style={{ color: '#9090b0', fontSize: '13px' }}>
             Already have an account?{' '}
-            <Link href="/auth/login" className="text-gray-300 hover:text-white transition-colors">
+            <Link href="/auth/login" className="transition-colors" style={{ color: '#00d4ff' }}>
               Sign in
             </Link>
-          </p>
-          <Link href="/schedule" className="text-xs text-gray-400 hover:text-gray-300 transition-colors block mt-2">
-            Continue without account →
-          </Link>
+          </div>
+          <div className="pt-1">
+            <Link href="/schedule" className="transition-colors" style={{ color: '#5a5a7a', fontSize: '13px' }}>
+              Continue without account →
+            </Link>
+          </div>
         </div>
+
       </div>
     </div>
   )
 }
+
