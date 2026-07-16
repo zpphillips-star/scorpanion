@@ -361,6 +361,19 @@ export async function GET(request: NextRequest) {
 
   const allGames: Game[] = []
   const seenIds = new Set<string>()
+  // Deduplicate by underlying event ID (strips team prefix) so that the same
+  // game doesn't appear twice when the user follows two teams that play each other.
+  const seenEventKeys = new Set<string>()
+
+  function addGame(game: Game) {
+    if (seenIds.has(game.id)) return
+    // Extract the raw event/game key (everything after the first "|")
+    const eventKey = game.id.includes('|') ? game.id.split('|').slice(1).join('|') : game.id
+    if (seenEventKeys.has(eventKey)) return
+    seenIds.add(game.id)
+    seenEventKeys.add(eventKey)
+    allGames.push(game)
+  }
 
   await Promise.all([
     // ── Seattle teams (existing logic) ───────────────────────────────────────
@@ -380,11 +393,7 @@ export async function GET(request: NextRequest) {
           games = await fetchESPNSchedule(team)
         }
 
-        for (const game of games) {
-          if (seenIds.has(game.id)) continue
-          seenIds.add(game.id)
-          allGames.push(game)
-        }
+        for (const game of games) addGame(game)
       } catch {
         // ignore errors for individual teams
       }
@@ -395,11 +404,7 @@ export async function GET(request: NextRequest) {
       try {
         if (!team.espnId) return
         const games = await fetchESPNSchedule(team)
-        for (const game of games) {
-          if (seenIds.has(game.id)) continue
-          seenIds.add(game.id)
-          allGames.push(game)
-        }
+        for (const game of games) addGame(game)
       } catch {
         // ignore errors for individual teams
       }
