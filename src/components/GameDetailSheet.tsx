@@ -53,12 +53,12 @@ interface TeamDetail {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-/** ALL-CAPS section label flanked by hairline dividers */
+/** ALL-CAPS section label flanked by hairline dividers — WC style */
 function SectionHeader({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-2 mb-2.5">
+    <div className="flex items-center gap-3 mb-3">
       <div className="flex-1 h-px bg-zinc-800" />
-      <span className="font-display text-[9px] font-700 uppercase tracking-[0.18em] text-zinc-500 px-0.5">
+      <span className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-500 flex-shrink-0">
         {label}
       </span>
       <div className="flex-1 h-px bg-zinc-800" />
@@ -247,8 +247,8 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
     <>
       <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50" onClick={onClose} />
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-2xl lg:mx-auto rounded-t-2xl overflow-y-auto animate-slide-up"
-        style={{ background: "var(--surface)", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "88dvh" }}
+        className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-3xl lg:mx-auto rounded-t-3xl overflow-y-auto animate-slide-up"
+        style={{ background: "var(--surface)", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "94dvh" }}
         onClick={e => e.stopPropagation()}
       >
         {/* Drag handle */}
@@ -274,63 +274,63 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
             style={{ background: "linear-gradient(to bottom, transparent, var(--surface))" }}
           />
 
-          <div className="relative px-5 pt-5 pb-7">
+          <div className="relative px-6 pt-7 pb-9">
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white text-sm z-10"
+              className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white text-sm z-10"
             >✕</button>
 
             {/* Status + broadcast badges — centered */}
-            <div className="flex items-center justify-center gap-2 mb-6">
+            <div className="flex items-center justify-center gap-2 mb-8">
               {isLive ? (
-                <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-red-500/15 border border-red-500/30">
+                <div className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-red-500/15 border border-red-500/30">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
                   </span>
-                  <span className="font-display text-[12px] font-800 text-red-400 uppercase tracking-wider">Live</span>
+                  <span className="font-display text-[13px] font-800 text-red-400 uppercase tracking-wider">Live</span>
                 </div>
               ) : isFt ? (
-                <span className="font-display text-[12px] font-700 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-1.5 rounded-full uppercase tracking-wider">Final</span>
+                <span className="font-display text-[13px] font-700 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-full uppercase tracking-wider">Final</span>
               ) : (
-                <span className="font-display text-[12px] font-700 text-sky-400 bg-sky-500/10 border border-sky-500/20 px-3.5 py-1.5 rounded-full uppercase tracking-wider">Upcoming</span>
+                <span className="font-display text-[13px] font-700 text-sky-400 bg-sky-500/10 border border-sky-500/20 px-4 py-2 rounded-full uppercase tracking-wider">Upcoming</span>
               )}
               {game.broadcast && (
-                <span className="font-display text-[12px] font-700 text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3.5 py-1.5 rounded-full">{game.broadcast}</span>
+                <span className="font-display text-[13px] font-700 text-amber-400 bg-amber-500/10 border border-amber-500/20 px-4 py-2 rounded-full">{game.broadcast}</span>
               )}
             </div>
 
             {/* Teams + score / time row */}
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-4">
 
               {/* Away (left) */}
               <button
-                className="flex-1 flex flex-col items-center gap-2 active:scale-95 transition-transform"
+                className="flex-1 flex flex-col items-center gap-3 active:scale-95 transition-transform"
                 onClick={() => setTeamSheet({ id: awayId, name: awayName, logo: awayLogo })}
               >
                 <div style={{ opacity: hasScore && !awayWon && homeWon ? 0.35 : 1, transition: "opacity 0.2s" }}>
-                  <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={80} />
+                  <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={96} />
                 </div>
-                <span className={`font-display text-[15px] font-700 text-center leading-tight max-w-[100px] ${hasScore && !awayWon && homeWon ? "text-zinc-500" : "text-white"}`}>
+                <span className={`font-display text-[17px] font-700 text-center leading-tight max-w-[120px] ${hasScore && !awayWon && homeWon ? "text-zinc-500" : "text-white"}`}>
                   {awayName}
                 </span>
                 {awayRecord && (
-                  <span className="font-display text-[12px] text-zinc-400 tabular-nums -mt-1">{formatRecord(awayRecord)}</span>
+                  <span className="font-display text-[13px] text-zinc-400 tabular-nums -mt-1">{formatRecord(awayRecord)}</span>
                 )}
-                <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-[0.18em] bg-white/5 px-2 py-0.5 rounded-full">Away</span>
+                <span className="font-display text-[11px] font-600 text-zinc-600 uppercase tracking-[0.18em] bg-white/5 px-3 py-1 rounded-full">Away</span>
               </button>
 
               {/* Center — score OR vs+time */}
-              <div className="flex flex-col items-center gap-1.5 flex-shrink-0 min-w-[96px]">
+              <div className="flex flex-col items-center gap-2 flex-shrink-0 min-w-[110px]">
                 {hasScore ? (
                   <>
                     <div
                       className={`font-display font-800 tabular-nums leading-none ${isLive ? "text-red-300" : "text-white"}`}
-                      style={{ fontSize: "76px" }}
+                      style={{ fontSize: "88px" }}
                     >
                       <span style={{ color: isLive ? undefined : (awayWon || (!awayWon && !homeWon)) ? "#f0f0f8" : "#5a5a7a" }}>{awayScore}</span>
-                      <span className="text-zinc-600 mx-1" style={{ fontSize: "30px" }}>–</span>
+                      <span className="text-zinc-600 mx-1" style={{ fontSize: "36px" }}>–</span>
                       <span style={{ color: isLive ? undefined : (homeWon || (!awayWon && !homeWon)) ? "#f0f0f8" : "#5a5a7a" }}>{homeScore}</span>
                     </div>
                     {isLive && liveDetail && (
@@ -339,18 +339,18 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                       </div>
                     )}
                     {isFt && (
-                      <span className="font-display text-[22px] leading-none mt-1" style={{ color: awayWon || homeWon ? "#00d4ff" : "#52525b" }}>
+                      <span className="font-display text-[26px] leading-none mt-1" style={{ color: awayWon || homeWon ? "#00d4ff" : "#52525b" }}>
                         {awayWon ? "◀" : homeWon ? "▶" : "—"}
                       </span>
                     )}
                   </>
                 ) : (
                   <>
-                    <span className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-[0.25em]">vs</span>
-                    <span className="font-display text-[22px] font-800 text-white text-center leading-tight">
+                    <span className="font-display text-[12px] font-700 text-zinc-500 uppercase tracking-[0.25em]">vs</span>
+                    <span className="font-display text-[26px] font-800 text-white text-center leading-tight">
                       {new Date(game.kickoff).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
                     </span>
-                    <span className="font-display text-[11px] text-zinc-400 text-center">
+                    <span className="font-display text-[12px] text-zinc-400 text-center">
                       {new Date(game.kickoff).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                     </span>
                   </>
@@ -359,26 +359,26 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
               {/* Home (right) */}
               <button
-                className="flex-1 flex flex-col items-center gap-2 active:scale-95 transition-transform"
+                className="flex-1 flex flex-col items-center gap-3 active:scale-95 transition-transform"
                 onClick={() => setTeamSheet({ id: homeId, name: homeName, logo: homeLogo })}
               >
                 <div style={{ opacity: hasScore && !homeWon && awayWon ? 0.35 : 1, transition: "opacity 0.2s" }}>
-                  <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={80} />
+                  <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={96} />
                 </div>
-                <span className={`font-display text-[15px] font-700 text-center leading-tight max-w-[100px] ${hasScore && !homeWon && awayWon ? "text-zinc-500" : "text-white"}`}>
+                <span className={`font-display text-[17px] font-700 text-center leading-tight max-w-[120px] ${hasScore && !homeWon && awayWon ? "text-zinc-500" : "text-white"}`}>
                   {homeName}
                 </span>
                 {homeRecord && (
-                  <span className="font-display text-[12px] text-zinc-400 tabular-nums -mt-1">{formatRecord(homeRecord)}</span>
+                  <span className="font-display text-[13px] text-zinc-400 tabular-nums -mt-1">{formatRecord(homeRecord)}</span>
                 )}
-                <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-[0.18em] bg-white/5 px-2 py-0.5 rounded-full">Home</span>
+                <span className="font-display text-[11px] font-600 text-zinc-600 uppercase tracking-[0.18em] bg-white/5 px-3 py-1 rounded-full">Home</span>
               </button>
             </div>
 
             {/* Venue pill — always, if available */}
             {game.venue?.name && (
-              <div className="flex justify-center mt-5">
-                <span className="text-[12px] text-zinc-400 bg-white/5 border border-white/10 px-4 py-2 rounded-full flex items-center gap-2">
+              <div className="flex justify-center mt-7">
+                <span className="text-[13px] text-zinc-400 bg-white/5 border border-white/10 px-5 py-2.5 rounded-full flex items-center gap-2">
                   📍 {game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}{game.venue.state ? `, ${game.venue.state}` : ""}
                 </span>
               </div>
@@ -401,8 +401,10 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
         {/* Team context cards — upcoming games only */}
         {isUpcoming && (
           <div className="border-t border-zinc-800/60">
-            <div className="px-5 pt-7 pb-3">
-              <span className="font-display text-[10px] font-700 uppercase tracking-[0.18em] text-zinc-500">Team Overview</span>
+            <div className="flex items-center gap-3 px-5 pt-7 pb-5">
+              <div className="flex-1 h-px bg-zinc-800" />
+              <span className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-500 flex-shrink-0">Team Overview</span>
+              <div className="flex-1 h-px bg-zinc-800" />
             </div>
             <div className="px-5 py-5 border-t border-zinc-800/40">
               <TeamContextCard
@@ -422,14 +424,16 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
         {/* Season records — live/completed games */}
         {!isUpcoming && (game.seattleRecord || game.opponentRecord) && (
           <div className="border-t border-zinc-800/60">
-            <div className="px-5 pt-7 pb-3">
-              <span className="font-display text-[10px] font-700 uppercase tracking-[0.18em] text-zinc-500">Season Records</span>
+            <div className="flex items-center gap-3 px-5 pt-7 pb-5">
+              <div className="flex-1 h-px bg-zinc-800" />
+              <span className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-500 flex-shrink-0">Season Records</span>
+              <div className="flex-1 h-px bg-zinc-800" />
             </div>
             <div className="grid grid-cols-2 divide-x divide-zinc-800/60">
               <div className="px-5 py-6">
                 <div className="flex items-center gap-2 mb-4">
                   <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={22} />
-                  <span className="font-display text-[12px] font-700 text-white truncate">{game.seattleTeam.shortName}</span>
+                  <span className="font-display text-[12px] font-700 text-zinc-300 truncate">{game.seattleTeam.shortName}</span>
                 </div>
                 <div className="font-display text-[34px] font-800 text-white tabular-nums leading-none">
                   {game.seattleRecord ? `${game.seattleRecord.wins}–${game.seattleRecord.losses}` : "–"}
@@ -445,7 +449,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                   <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={22} />
                   <span className="font-display text-[12px] font-700 text-zinc-300 truncate">{game.opponent.shortName || game.opponent.abbr}</span>
                 </div>
-                <div className="font-display text-[34px] font-800 text-zinc-300 tabular-nums leading-none">
+                <div className="font-display text-[34px] font-800 text-white tabular-nums leading-none">
                   {game.opponentRecord ? `${game.opponentRecord.wins}–${game.opponentRecord.losses}` : "–"}
                 </div>
                 {game.opponentRecord && (

@@ -114,12 +114,14 @@ function TeamCell({ team, isSea }: { team: LineTeam; isSea: boolean }) {
   )
 }
 
-// ─── Section header — unified CastWA-style label ─────────────────────────────
+// ─── Section header — WC-style hairline-flanked centered label ───────────────
 
 function SectionHeader({ label, first = false }: { label: string; first?: boolean }) {
   return (
-    <div className={`px-5 pb-4 ${first ? "pt-6" : "pt-8 border-t border-zinc-800/60"}`}>
-      <span className="font-display text-[10px] font-700 uppercase tracking-[0.16em] text-zinc-500">{label}</span>
+    <div className={`flex items-center gap-3 px-5 mb-4 ${first ? "pt-6" : "pt-8 border-t border-zinc-800/60"}`}>
+      <div className="flex-1 h-px bg-zinc-800" />
+      <span className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-500 flex-shrink-0">{label}</span>
+      <div className="flex-1 h-px bg-zinc-800" />
     </div>
   )
 }
@@ -453,66 +455,65 @@ function FootballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
 
 // ─── Soccer ───────────────────────────────────────────────────────────────────
 
-function SoccerScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattleTeamId?: string }) {
+function SoccerScoreboard({ data }: { data: BoxScoreData; seattleTeamId?: string }) {
   const { linescores, goalScorers } = data
   if (linescores.length < 2) return null
 
-  // Away team is index 0 (homeAway="away"), home is index 1 (homeAway="home")
   const away = linescores.find(t => t.homeAway === "away") ?? linescores[0]
   const home = linescores.find(t => t.homeAway === "home") ?? linescores[1]
 
-  const awayGoals = goalScorers.filter(g => g.teamId === away.teamId)
-  const homeGoals = goalScorers.filter(g => g.teamId === home.teamId)
-  const maxGoals = Math.max(awayGoals.length, homeGoals.length, 1)
+  // WC pattern: home team on LEFT (text-right), minute in CENTER, away team on RIGHT (text-left)
+  // Sorted chronologically by minute
+  const allGoals = [...goalScorers].sort((a, b) => parseInt(a.minute) - parseInt(b.minute))
 
   return (
     <>
       <SectionHeader label="Match Summary" first />
-      <div className="px-5 pb-4">
-        {/* Scorers */}
-        {goalScorers.length > 0 && (
-          <div className="grid grid-cols-[1fr_auto_1fr] gap-x-2 mt-2">
-            {Array.from({ length: maxGoals }).map((_, i) => {
-              const ag = awayGoals[i]
-              const hg = homeGoals[i]
-              return (
-                <div key={i} className="contents">
-                  {/* Away scorer */}
-                  <div className="text-right py-2">
-                    {ag ? (
-                      <span className={`text-[13px] font-600 ${away.teamId === (seattleTeamId ?? "") ? "text-zinc-200" : "text-zinc-400"}`}>
-                        {ag.name}
-                        {ag.type === "Own Goal" ? " (OG)" : ag.type === "Penalty" ? " (P)" : ""}
-                        <span className="text-zinc-500 ml-1">{ag.minute}′</span>
-                      </span>
-                    ) : <span />}
-                  </div>
-                  <div className="w-4" />
-                  {/* Home scorer */}
-                  <div className="py-2">
-                    {hg ? (
-                      <span className={`text-[13px] font-600 ${home.teamId === (seattleTeamId ?? "") ? "text-zinc-200" : "text-zinc-400"}`}>
-                        {hg.name}
-                        {hg.type === "Own Goal" ? " (OG)" : hg.type === "Penalty" ? " (P)" : ""}
-                        <span className="text-zinc-500 ml-1">{hg.minute}′</span>
-                      </span>
-                    ) : <span />}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
 
-        {/* Half-time breakdown if available */}
-        {(away.linescores.length > 0 || home.linescores.length > 0) && (
-          <div className="mt-5 flex items-center justify-between text-[12px] text-zinc-500 border-t border-zinc-800 pt-4">
-            <span className="tabular-nums font-600">{away.linescores[0] ?? 0} – {home.linescores[0] ?? 0}</span>
-            <span className="uppercase tracking-wider text-[10px]">Half Time</span>
-            <span className="tabular-nums font-600">{away.linescores[1] ?? 0} – {home.linescores[1] ?? 0}</span>
+      {/* Team name headers — WC style */}
+      <div className="grid items-center px-5 mb-1" style={{ gridTemplateColumns: "1fr 40px 1fr", columnGap: "8px" }}>
+        <span className="text-[11px] font-700 text-zinc-500 uppercase tracking-widest text-right truncate">{home.abbr}</span>
+        <span />
+        <span className="text-[11px] font-700 text-zinc-500 uppercase tracking-widest text-left truncate">{away.abbr}</span>
+      </div>
+
+      {/* Scorer rows — exact WC layout */}
+      <div className="px-5 pb-2 flex flex-col">
+        {allGoals.length > 0 ? allGoals.map((g, i) => {
+          const isHome = g.teamId === home.teamId
+          const suffix = g.type === "Own Goal" ? " (OG)" : g.type === "Penalty" ? " (P)" : ""
+          return (
+            <div key={i} className="grid items-center py-2.5 border-b border-zinc-800/40 last:border-0"
+              style={{ gridTemplateColumns: "1fr 40px 1fr", columnGap: "8px" }}>
+              <span className="text-[13px] text-white font-semibold text-right leading-none truncate">
+                {isHome ? `${g.name}${suffix}` : ""}
+              </span>
+              <span className="text-[11px] text-zinc-500 font-medium leading-none text-center tabular-nums">{g.minute}′</span>
+              <span className="text-[13px] text-white font-semibold text-left leading-none truncate">
+                {!isHome ? `${g.name}${suffix}` : ""}
+              </span>
+            </div>
+          )
+        }) : (
+          <div className="grid items-center py-3"
+            style={{ gridTemplateColumns: "1fr 40px 1fr", columnGap: "8px" }}>
+            <span />
+            <span className="text-[11px] text-zinc-600 text-center">—</span>
+            <span />
           </div>
         )}
       </div>
+
+      {/* Half-time breakdown — WC hairline style */}
+      {(away.linescores.length > 0 || home.linescores.length > 0) && (
+        <div className="mx-5 mt-1 mb-5 flex items-center gap-3 pt-3 border-t border-zinc-800">
+          <span className="text-[13px] tabular-nums font-600 text-zinc-300">{home.linescores[0] ?? 0} – {away.linescores[0] ?? 0}</span>
+          <div className="flex-1 h-px bg-zinc-800" />
+          <span className="text-[10px] uppercase tracking-widest text-zinc-600 flex-shrink-0">Half Time</span>
+          <div className="flex-1 h-px bg-zinc-800" />
+          <span className="text-[13px] tabular-nums font-600 text-zinc-300">{home.linescores[1] ?? 0} – {away.linescores[1] ?? 0}</span>
+        </div>
+      )}
     </>
   )
 }

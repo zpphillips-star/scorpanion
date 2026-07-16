@@ -81,18 +81,20 @@ export default function UpcomingScheduleSection({ game }: Props) {
 
   return (
     <div className="border-t border-zinc-800/60">
-      {/* Section label */}
-      <div className="px-5 pt-6 pb-2">
-        <span className="font-display text-[10px] font-700 uppercase tracking-[0.16em] text-zinc-500">Upcoming Schedule</span>
+      {/* Section label — WC hairline style */}
+      <div className="flex items-center gap-3 px-5 pt-7 pb-5">
+        <div className="flex-1 h-px bg-zinc-800" />
+        <span className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-500 flex-shrink-0">Upcoming Schedule</span>
+        <div className="flex-1 h-px bg-zinc-800" />
       </div>
 
       {/* Two-column layout: Seattle | Opponent */}
       <div className="grid grid-cols-2 divide-x divide-zinc-800/60">
         {/* Seattle column */}
-        <div className="px-5 pb-4">
-          <div className="flex items-center gap-2 pb-2.5 mb-1 border-b border-zinc-800/60">
+        <div className="px-5 pb-5">
+          <div className="flex items-center gap-2 pb-3 mb-1 border-b border-zinc-800/60">
             <TeamLogo src={seaLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={16} />
-            <span className="font-display text-[12px] font-700 text-white truncate" style={{ color }}>{game.seattleTeam.abbr}</span>
+            <span className="font-display text-[12px] font-700 text-zinc-300 truncate">{game.seattleTeam.abbr}</span>
           </div>
           {seaGames.length === 0
             ? <div className="font-display text-[13px] text-zinc-600 py-3">No upcoming</div>
@@ -100,8 +102,8 @@ export default function UpcomingScheduleSection({ game }: Props) {
         </div>
 
         {/* Opponent column */}
-        <div className="px-5 pb-4">
-          <div className="flex items-center gap-2 pb-2.5 mb-1 border-b border-zinc-800/60">
+        <div className="px-5 pb-5">
+          <div className="flex items-center gap-2 pb-3 mb-1 border-b border-zinc-800/60">
             {game.opponent.logo
               // eslint-disable-next-line @next/next/no-img-element
               ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={16} height={16} className="object-contain" />
