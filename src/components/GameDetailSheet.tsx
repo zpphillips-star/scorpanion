@@ -331,7 +331,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
         </div>
 
         {/* Scrollable body */}
-        <div className="overflow-y-auto flex-1 px-4 pt-5 pb-8">
+        <div className="overflow-y-auto flex-1 px-4 pt-3 pb-8">
           {canShowBoxScore && (
             <BoxScore
               eventId={game.id.includes("|") ? game.id.split("|")[1] : game.id}

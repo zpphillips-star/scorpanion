@@ -118,7 +118,7 @@ function TeamCell({ team, isSea }: { team: LineTeam; isSea: boolean }) {
 
 function SectionHeader({ label, first = false }: { label: string; first?: boolean }) {
   return (
-    <div className="flex items-center gap-2 pt-6 pb-3 px-1">
+    <div className={`flex items-center gap-2 ${first ? "pt-1" : "pt-6"} pb-3 px-1`}>
       <div className="flex-1 h-px bg-zinc-800" />
       <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{label}</span>
       <div className="flex-1 h-px bg-zinc-800" />
@@ -321,46 +321,6 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
               )
             })}
           </div>
-          {linescores.map((team, teamIdx) => {
-            // Match scorers by teamId first, then fall back to abbr match
-            const teamScorers = scoresByTeam[team.teamId]
-              ?? Object.entries(scoresByTeam).find(([id]) => id === team.abbr)?.[1]
-              ?? []
-            if (teamScorers.length === 0) return null
-            return (
-              <div key={team.teamId} className={`relative overflow-hidden${teamIdx > 0 ? " mt-4 border-t-4 border-zinc-800" : ""}`}>
-                {/* Watermark logo — centered behind all player rows */}
-                {team.logo && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={team.logo}
-                    alt=""
-                    aria-hidden
-                    style={{
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%, -50%)",
-                      width: 80,
-                      height: 80,
-                      objectFit: "contain",
-                      opacity: 0.09,
-                      pointerEvents: "none",
-                      userSelect: "none",
-                    }}
-                  />
-                )}
-                {teamScorers.map((s, idx) => (
-                  <div key={idx} className="relative grid grid-cols-[1fr_32px_32px_32px] gap-x-2 items-center px-5 py-5 border-b border-zinc-800/40 last:border-0">
-                    <span className="text-[14px] font-600 truncate text-zinc-200">{s.name}</span>
-                    <span className="font-display text-[14px] font-600 tabular-nums text-center text-zinc-200">{s.pts}</span>
-                    <span className="font-display text-[14px] font-600 tabular-nums text-center text-zinc-400">{s.reb}</span>
-                    <span className="font-display text-[14px] font-600 tabular-nums text-center text-zinc-400">{s.ast}</span>
-                  </div>
-                ))}
-              </div>
-            )
-          })}
         </>
       )}
     </>
@@ -500,7 +460,7 @@ function SoccerScoreboard({ data }: { data: BoxScoreData; seattleTeamId?: string
 
   return (
     <>
-      <SectionHeader label="Goals" />
+      <SectionHeader label="Goals" first />
       <div className="pb-2">
         {goalScorers.length === 0 ? (
           <div className="text-center text-[12px] text-zinc-600 py-3">No goals recorded</div>
@@ -721,7 +681,7 @@ export default function BoxScore({ eventId, league, seattleTeamId, color = "#00d
   const showStats = sportType !== "soccer" // soccer stats shown elsewhere
 
   return (
-    <div className="mt-1 border-t border-zinc-800/60">
+    <div className="mt-1">
       {/* Sport-specific scoreboard */}
       {sportType === "baseball"   && <BaseballScoreboard    data={data} seattleTeamId={seattleTeamId} />}
       {sportType === "basketball" && <BasketballScoreboard  data={data} seattleTeamId={seattleTeamId} color={color} />}
