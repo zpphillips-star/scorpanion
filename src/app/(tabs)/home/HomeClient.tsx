@@ -433,8 +433,8 @@ export default function HomeClient() {
 
       {/* ── Recent results (horizontal scroll, tappable) ─────────────────── */}
       {recent.length > 0 && (
-        <div className="mt-5">
-          <div className="flex items-center gap-3 px-4 mb-5">
+        <div className="mt-8">
+          <div className="flex items-center gap-3 px-4 mb-6">
             <span className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest">Recent</span>
             <div className="flex-1 h-px bg-zinc-800" />
             <span className="font-display text-[10px] text-zinc-600 uppercase tracking-wider">Last 7 days</span>
@@ -523,27 +523,24 @@ export default function HomeClient() {
                 return (
                   <div
                     key={g.id}
-                    className="flex items-center px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer"
+                    className="grid border-b border-zinc-800/50 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer px-4 py-3"
+                    style={{ gridTemplateColumns: "72px 1fr auto 1fr" }}
                     onClick={() => setSelectedRecentGame(g)}
                   >
                     {/* Time */}
-                    <div className="w-[72px] flex-shrink-0">
-                      <span className="text-[12px] font-medium text-zinc-300 whitespace-nowrap">{fmtTime(g.kickoff)}</span>
-                    </div>
+                    <span className="text-[12px] font-medium text-zinc-400 self-center whitespace-nowrap">{fmtTime(g.kickoff)}</span>
                     {/* Seattle (right-aligned) */}
-                    <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
-                      <span className="text-[13px] font-semibold text-white truncate text-right">{g.seattleTeam.shortName}</span>
-                      <TeamLogo src={seattleLogoUrl} emoji={g.seattleTeam.emoji} abbr={g.seattleTeam.abbr} size={24} />
+                    <div className="flex items-center justify-end gap-2 overflow-hidden">
+                      <span className="text-[13px] font-semibold text-white truncate">{g.seattleTeam.shortName}</span>
+                      <TeamLogo src={seattleLogoUrl} emoji={g.seattleTeam.emoji} abbr={g.seattleTeam.abbr} size={22} />
                     </div>
                     {/* vs */}
-                    <div className="w-10 flex-shrink-0 text-center">
-                      <span className="text-[12px] font-medium text-zinc-500">vs</span>
-                    </div>
+                    <span className="text-[11px] text-zinc-600 self-center px-3">vs</span>
                     {/* Opponent (left-aligned) */}
-                    <div className="flex-1 flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-2 overflow-hidden">
                       {g.opponent.logo
-                        ? <img src={g.opponent.logo} alt={g.opponent.abbr} width={28} height={28} className="object-contain flex-shrink-0" />
-                        : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />
+                        ? <img src={g.opponent.logo} alt={g.opponent.abbr} width={22} height={22} className="object-contain flex-shrink-0" />
+                        : <div className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />
                       }
                       <span className="text-[13px] font-semibold text-white truncate">{g.opponent.shortName || g.opponent.name}</span>
                     </div>
