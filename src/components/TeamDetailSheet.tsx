@@ -69,7 +69,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
             className="absolute top-3 right-4 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 text-sm hover:bg-white/15 transition-colors"
           >✕</button>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {/* Logo */}
             <div className="flex-shrink-0 relative">
               {logo
@@ -92,73 +92,51 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
           </div>
         </div>
 
-        {/* ── LAST 3 GAMES ─────────────────────────────────────────────────────── */}
+        {/* ── FORM (LAST 5) ────────────────────────────────────────────────────── */}
         {data && !loading && data.recentForm.length > 0 && (
           <div className="px-4 pt-5 pb-4 border-t border-white/5">
             <div className="flex items-center gap-2 mb-3">
-              <div className="font-display text-[11px] font-800 uppercase tracking-widest text-zinc-400">Last 3 Games</div>
+              <div className="text-[11px] font-black uppercase tracking-[0.08em]" style={{ color: "#9090b0" }}>Form</div>
               <div className="flex-1 h-px bg-white/5" />
+              <div className="text-[10px]" style={{ color: "#5a5a7a" }}>Last {Math.min(data.recentForm.length, 5)}</div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              {[...data.recentForm].reverse().map((g, i) => {
+            <div className="flex items-center gap-1.5">
+              {[...data.recentForm].slice(0, 5).reverse().map((g, i) => {
                 const win = g.result === "W"
                 const loss = g.result === "L"
-                const rc = win ? "#34d399" : loss ? "#f87171" : "#9ca3af"
-                const awayAbbr = g.isHome ? g.opponent : (data.abbr ?? "SEA")
-                const awayLogo = g.isHome ? g.oppLogo : logo
-                const awayScore = g.isHome ? g.oppScore : g.myScore
-                const homeAbbr = g.isHome ? (data.abbr ?? "SEA") : g.opponent
-                const homeLogo = g.isHome ? logo : g.oppLogo
-                const homeScore = g.isHome ? g.myScore : g.oppScore
                 return (
                   <div
                     key={i}
-                    className="rounded-lg overflow-hidden"
-                    style={{ background: "var(--surface-2)", border: `1px solid ${rc}28` }}
-                  >
-                    {/* Away row */}
-                    <div className="flex items-center px-2.5 pt-2.5 pb-1 gap-1.5">
-                      {awayLogo
-                        ? <img src={awayLogo} alt={awayAbbr} width={28} height={28} className="object-contain flex-shrink-0" />
-                        : <div className="w-4 h-4 rounded-full bg-white/10 flex-shrink-0" />
-                      }
-                      <span className="flex-1 font-display text-[12px] font-600 text-zinc-300 truncate">{awayAbbr}</span>
-                      <span className={`font-display text-[16px] font-800 tabular-nums ${awayScore > homeScore ? "text-white" : "text-zinc-500"}`}>{awayScore}</span>
-                    </div>
-                    {/* Home row */}
-                    <div className="flex items-center px-2.5 pb-2 pt-1 gap-1.5 border-t border-white/5">
-                      {homeLogo
-                        ? <img src={homeLogo} alt={homeAbbr} width={28} height={28} className="object-contain flex-shrink-0" />
-                        : <div className="w-4 h-4 rounded-full bg-white/10 flex-shrink-0" />
-                      }
-                      <span className="flex-1 font-display text-[12px] font-600 text-zinc-300 truncate">{homeAbbr}</span>
-                      <span className={`font-display text-[16px] font-800 tabular-nums ${homeScore > awayScore ? "text-white" : "text-zinc-500"}`}>{homeScore}</span>
-                    </div>
-                    {/* Footer */}
-                    <div className="flex items-center justify-between px-2.5 py-1 border-t border-white/5" style={{ background: "rgba(0,0,0,0.25)" }}>
-                      <span className="font-display text-[10px] font-800 uppercase" style={{ color: rc }}>{win ? "W" : loss ? "L" : "T"}</span>
-                      <span className="font-display text-[9px] text-zinc-600">{fmtShortDate(g.date)}</span>
-                    </div>
-                  </div>
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{
+                      background: win ? "#34d399" : loss ? "#f87171" : "#9ca3af",
+                      boxShadow: win
+                        ? "0 0 6px rgba(52,211,153,0.65), 0 0 2px rgba(52,211,153,0.9)"
+                        : loss
+                        ? "0 0 4px rgba(248,113,113,0.4)"
+                        : "none",
+                    }}
+                    title={`${g.result} vs ${g.opponent} (${g.myScore}–${g.oppScore})`}
+                  />
                 )
               })}
             </div>
           </div>
         )}
 
-        {/* ── NEXT 3 GAMES ─────────────────────────────────────────────────────── */}
+        {/* ── NEXT GAMES ───────────────────────────────────────────────────────── */}
         {data && !loading && data.upcomingGames.length > 0 && (
           <div className="px-4 pt-5 pb-4 border-t border-white/5">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="font-display text-[11px] font-800 uppercase tracking-widest text-zinc-400">Next 3 Games</div>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="text-[11px] font-black uppercase tracking-[0.08em]" style={{ color: "#9090b0" }}>Next Games</div>
               <div className="flex-1 h-px bg-white/5" />
             </div>
-            <div className="space-y-2">
+            <div>
               {data.upcomingGames.map((g, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3 px-3.5 py-3 rounded-lg"
-                  style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+                  className="flex items-center gap-3 py-3"
+                  style={i < data.upcomingGames.length - 1 ? { borderBottom: "1px solid rgba(255,255,255,0.06)" } : {}}
                 >
                   {g.oppLogo
                     ? <img src={g.oppLogo} alt={g.opponent} width={28} height={28} className="object-contain flex-shrink-0" />
@@ -189,7 +167,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
         {data && !loading && data.divisionStandings.length > 0 && (
           <div className="px-4 pt-5 pb-5 border-t border-white/5">
             <div className="flex items-center gap-2 mb-3">
-              <div className="font-display text-[11px] font-800 uppercase tracking-widest text-zinc-400">
+              <div className="text-[11px] font-black uppercase tracking-[0.08em]" style={{ color: "#9090b0" }}>
                 {data.divisionName || "Division"}
               </div>
               <div className="flex-1 h-px bg-white/5" />
