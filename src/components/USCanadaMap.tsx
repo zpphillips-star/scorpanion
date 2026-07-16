@@ -134,7 +134,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
       </div>
 
       {/* Real geographic US SVG map */}
-      <div style={{ width: '100%', position: 'relative' }}>
+      <div style={{ width: '100%', position: 'relative', overflow: 'hidden' }}>
         {/* Glow filter for selected state */}
         <svg width="0" height="0" style={{ position: 'absolute' }}>
           <defs>
@@ -165,7 +165,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
           projectionConfig={{ scale: 1000 }}
           /* viewBox crop drives the zoom — no projection change needed */
           viewBox={neZoom ? VIEWBOX_EAST : VIEWBOX_FULL}
-          style={{ width: '100%', height: 'auto', display: 'block' }}
+          style={{ width: '100%', height: 'auto', display: 'block', maxHeight: '44vw' }}
         >
           <Geographies geography={US_GEO}>
             {({ geographies }: { geographies: GeoFeature[] }) =>
@@ -238,13 +238,13 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
             aria-label="Return to full US map"
             style={{
               position: 'absolute', top: 6, right: 6, zIndex: 3,
-              background: 'rgba(255,255,255,0.07)',
-              border: '1px solid rgba(255,255,255,0.18)',
-              color: '#9ca3af',
-              borderRadius: 5, padding: '3px 8px',
-              fontSize: 10, fontWeight: 700, letterSpacing: '0.03em',
+              background: '#f59e0b',
+              border: 'none',
+              color: '#000',
+              borderRadius: 6, padding: '6px 14px',
+              fontSize: 13, fontWeight: 800, letterSpacing: '0.02em',
               cursor: 'pointer', userSelect: 'none',
-              backdropFilter: 'blur(4px)',
+              boxShadow: '0 2px 10px rgba(245,158,11,0.55)',
             }}
           >
             ← Full US
