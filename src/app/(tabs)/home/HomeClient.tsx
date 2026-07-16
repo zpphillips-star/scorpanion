@@ -123,27 +123,27 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
       onClick={onClick}
       className="flex-shrink-0 w-[148px] text-left active:opacity-70 transition-opacity border-r border-zinc-800 last:border-r-0 pr-8 mr-8 last:pr-0 last:mr-0"
     >
-      {/* Date + league */}
-      <div className="flex items-center justify-between mb-4">
+      {/* Date + league — inset so it doesn't crowd the edges */}
+      <div className="flex items-center justify-between mb-4 px-1">
         <span className="text-[10px] text-zinc-600">{fmtDate(game.kickoff).replace(/,.*/, "")}</span>
         <span className="text-[10px] text-zinc-700 uppercase tracking-wide">{game.league.toUpperCase()}</span>
       </div>
       {/* Logo · Score · Logo */}
       <div className="flex items-center justify-between gap-2">
         {/* Seattle team */}
-        <div className="flex flex-col items-center gap-1.5 flex-1">
+        <div className="flex flex-col items-center flex-1">
           <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={28} />
-          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide">{game.seattleTeam.abbr}</span>
-          <span className={`font-display text-[18px] font-800 tabular-nums leading-none ${seattleLost ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0.5">{game.seattleTeam.abbr}</span>
+          <span className={`font-display text-[18px] font-800 tabular-nums leading-none mt-2 ${seattleLost ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
             {hasScore ? game.seattleScore : "–"}
           </span>
         </div>
-        <span className="text-[11px] text-zinc-700 self-center mb-1">–</span>
+        <span className="text-[11px] text-zinc-700 self-center">–</span>
         {/* Opponent */}
-        <div className="flex flex-col items-center gap-1.5 flex-1">
+        <div className="flex flex-col items-center flex-1">
           <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={28} />
-          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide">{game.opponent.abbr}</span>
-          <span className={`font-display text-[18px] font-800 tabular-nums leading-none ${seattleWon ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0.5">{game.opponent.abbr}</span>
+          <span className={`font-display text-[18px] font-800 tabular-nums leading-none mt-2 ${seattleWon ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
             {hasScore ? game.opponentScore : "–"}
           </span>
         </div>
