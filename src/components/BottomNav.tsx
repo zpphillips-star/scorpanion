@@ -144,7 +144,7 @@ export default function BottomNav() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/scorpion-logo.png"
+                  src="/scorpanion-app-logo.png"
                   alt="Home"
                   width={homeActive ? 30 : 26}
                   height={homeActive ? 30 : 26}
@@ -183,7 +183,7 @@ export default function BottomNav() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/scorpion-logo.png"
+              src="/scorpanion-app-logo.png"
               alt="Home"
               width={homeActive ? 24 : 20}
               height={homeActive ? 24 : 20}
