@@ -97,7 +97,7 @@ function OffSeasonCards({ teams, nextGames }: {
                     </div>
                     <div className="text-[11px] text-zinc-600 mt-0.5">
                       {new Date(next.kickoff).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZoneName: "short" })}
-                      {next.venue?.city ? ` · ${next.venue.city}` : ""}
+                      {next.venue?.city ? ` · ${next.venue.city}${next.venue.state ? `, ${next.venue.state}` : ""}` : ""}
                     </div>
                   </>
                 ) : seasonInfo ? (

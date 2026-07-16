@@ -201,7 +201,7 @@ export default function GameCard({ game }: GameCardProps) {
                 {isFt && seattleWon && <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">W</span>}
                 {isFt && seattleLost && <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider">L</span>}
                 {isLive && game.clock && <span className="text-[11px] font-medium" style={{ color: "var(--accent)" }}>{game.clock}</span>}
-                {game.venue?.city && <span className="text-[11px] text-zinc-600 ml-auto">{game.venue.city}</span>}
+                {game.venue?.city && <span className="text-[11px] text-zinc-600 ml-auto">{game.venue.city}{game.venue.state ? `, ${game.venue.state}` : ""}</span>}
               </div>
             )}
           </div>
@@ -260,7 +260,7 @@ export default function GameCard({ game }: GameCardProps) {
                   {isFt && <span className="text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider" style={{ color: "var(--status-final)", background: "var(--surface-2)", border: "1px solid var(--border-default)" }}>FINAL</span>}
                   {isUp && <span className="text-[11px] text-zinc-400 bg-white/5 px-2.5 py-1 rounded-full">{formatGameDate(game.kickoff)}</span>}
                   {game.broadcast && <span className="text-[11px] text-zinc-400 bg-white/5 px-2.5 py-1 rounded-full">{game.broadcast}</span>}
-                  {game.venue?.city && <span className="text-[11px] text-zinc-500 ml-auto">📍 {game.venue.city}</span>}
+                  {game.venue?.city && <span className="text-[11px] text-zinc-500 ml-auto">📍 {game.venue.city}{game.venue.state ? `, ${game.venue.state}` : ""}</span>}
                 </div>
 
                 {/* Team logos + BIG score — AWAY (left) vs HOME (right) */}
@@ -400,7 +400,7 @@ export default function GameCard({ game }: GameCardProps) {
                 <div className="px-5 pb-5 pt-1 border-t border-white/5">
                   <div className="flex items-center gap-2 text-zinc-600 text-[12px]">
                     <span>📍</span>
-                    <span>{game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}</span>
+                    <span>{game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}{game.venue.state ? `, ${game.venue.state}` : ""}</span>
                   </div>
                 </div>
               )}

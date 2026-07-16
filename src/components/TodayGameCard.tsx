@@ -182,7 +182,7 @@ export function TodayGameCard({ game }: { game: Game }) {
                 <span className="text-[11px] font-medium" style={{ color: "var(--accent)" }}>{game.clock}</span>
               )}
               {game.venue?.city && (
-                <span className="text-[11px] text-zinc-600 ml-auto">{game.venue.city}</span>
+                <span className="text-[11px] text-zinc-600 ml-auto">{game.venue.city}{game.venue.state ? `, ${game.venue.state}` : ""}</span>
               )}
             </div>
           )}

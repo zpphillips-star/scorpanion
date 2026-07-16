@@ -286,27 +286,28 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
               const isSea = (seattleTeamId && team.teamId === seattleTeamId) || team.abbr === "SEA"
               if (teamScorers.length === 0) return null
               return (
-                <div key={team.teamId} className="rounded-lg px-3 py-2.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                  <div className="flex items-center gap-2 mb-2">
+                <div key={team.teamId} className="rounded-xl px-3 py-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  {/* Team label row */}
+                  <div className="flex items-center gap-2 mb-2.5">
                     {team.logo
                       // eslint-disable-next-line @next/next/no-img-element
                       ? <img src={team.logo} alt={team.abbr} width={16} height={16} className="object-contain" />
                       : null}
                     <span className={`font-display text-[11px] font-700 uppercase tracking-wider ${isSea ? "text-zinc-300" : "text-zinc-500"}`}>{team.abbr}</span>
-                    <div className="ml-auto flex gap-3 font-display text-[11px] text-zinc-600 uppercase tracking-wider">
-                      <span className="w-6 text-center">PTS</span>
-                      <span className="w-6 text-center">REB</span>
-                      <span className="w-6 text-center">AST</span>
-                    </div>
+                  </div>
+                  {/* Column header — same grid as data rows so columns align */}
+                  <div className="grid grid-cols-[1fr_30px_30px_30px] gap-x-1 mb-1 px-0.5">
+                    <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider">Player</span>
+                    <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">PTS</span>
+                    <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">REB</span>
+                    <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">AST</span>
                   </div>
                   {teamScorers.map((s, idx) => (
-                    <div key={idx} className="flex items-center py-0.5">
-                      <span className={`flex-1 text-[13px] font-600 truncate ${isSea ? "text-zinc-200" : "text-zinc-400"}`}>{s.name}</span>
-                      <div className="flex gap-3 font-display text-[13px] font-700 tabular-nums">
-                        <span className="w-6 text-center" style={{ color: isSea ? color : "#a1a1aa" }}>{s.pts}</span>
-                        <span className="w-6 text-center text-zinc-500">{s.reb}</span>
-                        <span className="w-6 text-center text-zinc-500">{s.ast}</span>
-                      </div>
+                    <div key={idx} className="grid grid-cols-[1fr_30px_30px_30px] gap-x-1 items-center py-1 px-0.5 border-t border-zinc-800/50 first:border-0">
+                      <span className={`text-[13px] font-600 truncate ${isSea ? "text-zinc-200" : "text-zinc-400"}`}>{s.name}</span>
+                      <span className="font-display text-[13px] font-700 tabular-nums text-center" style={{ color: isSea ? color : "#a1a1aa" }}>{s.pts}</span>
+                      <span className="font-display text-[13px] font-700 tabular-nums text-center text-zinc-500">{s.reb}</span>
+                      <span className="font-display text-[13px] font-700 tabular-nums text-center text-zinc-500">{s.ast}</span>
                     </div>
                   ))}
                 </div>

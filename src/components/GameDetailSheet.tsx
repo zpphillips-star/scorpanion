@@ -292,72 +292,72 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
             style={{ background: "linear-gradient(to bottom, transparent, var(--surface))" }}
           />
 
-          <div className="relative px-4 pt-4 pb-5">
+          <div className="relative px-5 pt-5 pb-7">
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-3 right-4 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white text-sm z-10"
+              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white text-sm z-10"
             >✕</button>
 
             {/* Status + broadcast badges — centered */}
-            <div className="flex items-center justify-center gap-2 mb-5">
+            <div className="flex items-center justify-center gap-2 mb-6">
               {isLive ? (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/15 border border-red-500/30">
-                  <span className="relative flex h-1.5 w-1.5">
+                <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-red-500/15 border border-red-500/30">
+                  <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
                   </span>
-                  <span className="font-display text-[11px] font-800 text-red-400 uppercase tracking-wider">Live</span>
+                  <span className="font-display text-[12px] font-800 text-red-400 uppercase tracking-wider">Live</span>
                 </div>
               ) : isFt ? (
-                <span className="font-display text-[11px] font-700 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full uppercase tracking-wider">Final</span>
+                <span className="font-display text-[12px] font-700 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-1.5 rounded-full uppercase tracking-wider">Final</span>
               ) : (
-                <span className="font-display text-[11px] font-700 text-sky-400 bg-sky-500/10 border border-sky-500/20 px-3 py-1 rounded-full uppercase tracking-wider">Upcoming</span>
+                <span className="font-display text-[12px] font-700 text-sky-400 bg-sky-500/10 border border-sky-500/20 px-3.5 py-1.5 rounded-full uppercase tracking-wider">Upcoming</span>
               )}
               {game.broadcast && (
-                <span className="font-display text-[11px] font-700 text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">{game.broadcast}</span>
+                <span className="font-display text-[12px] font-700 text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3.5 py-1.5 rounded-full">{game.broadcast}</span>
               )}
             </div>
 
             {/* Teams + score / time row */}
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-3">
 
               {/* Away (left) */}
               <button
-                className="flex-1 flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+                className="flex-1 flex flex-col items-center gap-2 active:scale-95 transition-transform"
                 onClick={() => setTeamSheet({ id: awayId, name: awayName, logo: awayLogo })}
               >
                 <div style={{ opacity: hasScore && !awayWon && homeWon ? 0.35 : 1, transition: "opacity 0.2s" }}>
-                  <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={64} />
+                  <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={80} />
                 </div>
-                <span className={`font-display text-[14px] font-700 text-center leading-tight max-w-[95px] ${hasScore && !awayWon && homeWon ? "text-zinc-500" : "text-white"}`}>
+                <span className={`font-display text-[15px] font-700 text-center leading-tight max-w-[100px] ${hasScore && !awayWon && homeWon ? "text-zinc-500" : "text-white"}`}>
                   {awayName}
                 </span>
                 {awayRecord && (
-                  <span className="font-display text-[11px] text-zinc-400 tabular-nums">{formatRecord(awayRecord)}</span>
+                  <span className="font-display text-[12px] text-zinc-400 tabular-nums -mt-1">{formatRecord(awayRecord)}</span>
                 )}
-                <span className="font-display text-[9px] text-zinc-600 uppercase tracking-widest">Away</span>
+                <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-[0.18em] bg-white/5 px-2 py-0.5 rounded-full">Away</span>
               </button>
 
               {/* Center — score OR vs+time */}
-              <div className="flex flex-col items-center gap-1 flex-shrink-0 min-w-[88px]">
+              <div className="flex flex-col items-center gap-1.5 flex-shrink-0 min-w-[96px]">
                 {hasScore ? (
                   <>
                     <div
                       className={`font-display font-800 tabular-nums leading-none ${isLive ? "text-red-300" : "text-white"}`}
-                      style={{ fontSize: "72px" }}
+                      style={{ fontSize: "76px" }}
                     >
                       <span style={{ color: isLive ? undefined : (awayWon || (!awayWon && !homeWon)) ? "#f0f0f8" : "#5a5a7a" }}>{awayScore}</span>
-                      <span className="text-zinc-600 mx-0.5" style={{ fontSize: "28px" }}>–</span>
+                      <span className="text-zinc-600 mx-1" style={{ fontSize: "30px" }}>–</span>
                       <span style={{ color: isLive ? undefined : (homeWon || (!awayWon && !homeWon)) ? "#f0f0f8" : "#5a5a7a" }}>{homeScore}</span>
                     </div>
                     {isLive && liveDetail && (
-                      <div className="mt-1 px-3 py-1 rounded-full bg-red-500/15 border border-red-500/25">
-                        <span className="font-display text-[12px] font-700 text-red-300">{liveDetail}</span>
+                      <div className="mt-1 px-3.5 py-1.5 rounded-full bg-red-500/15 border border-red-500/25">
+                        <span className="font-display text-[13px] font-700 text-red-300">{liveDetail}</span>
                       </div>
                     )}
                     {isFt && (
-                      <span className="font-display text-[20px] leading-none mt-0.5" style={{ color: awayWon || homeWon ? "#00d4ff" : "#52525b" }}>
+                      <span className="font-display text-[22px] leading-none mt-1" style={{ color: awayWon || homeWon ? "#00d4ff" : "#52525b" }}>
                         {awayWon ? "◀" : homeWon ? "▶" : "—"}
                       </span>
                     )}
@@ -365,10 +365,10 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                 ) : (
                   <>
                     <span className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-[0.25em]">vs</span>
-                    <span className="font-display text-[19px] font-800 text-white text-center leading-tight">
+                    <span className="font-display text-[22px] font-800 text-white text-center leading-tight">
                       {new Date(game.kickoff).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
                     </span>
-                    <span className="font-display text-[10px] text-zinc-400 text-center">
+                    <span className="font-display text-[11px] text-zinc-400 text-center">
                       {new Date(game.kickoff).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                     </span>
                   </>
@@ -377,27 +377,27 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
               {/* Home (right) */}
               <button
-                className="flex-1 flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+                className="flex-1 flex flex-col items-center gap-2 active:scale-95 transition-transform"
                 onClick={() => setTeamSheet({ id: homeId, name: homeName, logo: homeLogo })}
               >
                 <div style={{ opacity: hasScore && !homeWon && awayWon ? 0.35 : 1, transition: "opacity 0.2s" }}>
-                  <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={64} />
+                  <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={80} />
                 </div>
-                <span className={`font-display text-[14px] font-700 text-center leading-tight max-w-[95px] ${hasScore && !homeWon && awayWon ? "text-zinc-500" : "text-white"}`}>
+                <span className={`font-display text-[15px] font-700 text-center leading-tight max-w-[100px] ${hasScore && !homeWon && awayWon ? "text-zinc-500" : "text-white"}`}>
                   {homeName}
                 </span>
                 {homeRecord && (
-                  <span className="font-display text-[11px] text-zinc-400 tabular-nums">{formatRecord(homeRecord)}</span>
+                  <span className="font-display text-[12px] text-zinc-400 tabular-nums -mt-1">{formatRecord(homeRecord)}</span>
                 )}
-                <span className="font-display text-[9px] text-zinc-600 uppercase tracking-widest">Home</span>
+                <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-[0.18em] bg-white/5 px-2 py-0.5 rounded-full">Home</span>
               </button>
             </div>
 
             {/* Venue pill — always, if available */}
             {game.venue?.name && (
-              <div className="flex justify-center mt-4">
-                <span className="text-[11px] text-zinc-400 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                  📍 {game.venue.name}
+              <div className="flex justify-center mt-5">
+                <span className="text-[12px] text-zinc-400 bg-white/5 border border-white/10 px-4 py-2 rounded-full flex items-center gap-2">
+                  📍 {game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}{game.venue.state ? `, ${game.venue.state}` : ""}
                 </span>
               </div>
             )}
@@ -406,7 +406,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
         {/* Box score for live/completed games */}
         {canShowBoxScore && (
-          <div className="px-4 pb-3 -mt-1">
+          <div className="px-4 pb-4 -mt-1">
             <BoxScore
               eventId={game.id.includes("|") ? game.id.split("|")[1] : game.id}
               league={game.league}
@@ -418,8 +418,8 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
         {/* Team context cards — upcoming games only */}
         {isUpcoming && (
-          <div className="px-4 pt-3 pb-4 border-t border-zinc-800/60">
-            <div className="flex items-center gap-3 mb-3">
+          <div className="px-5 pt-4 pb-5 border-t border-zinc-800/60">
+            <div className="flex items-center gap-3 mb-4">
               <div className="flex-1 h-px bg-zinc-800" />
               <span className="font-display text-[9px] font-700 uppercase tracking-[0.18em] text-zinc-500 px-0.5">Team Overview</span>
               <div className="flex-1 h-px bg-zinc-800" />
@@ -439,37 +439,37 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
         {/* Season records — live/completed games */}
         {!isUpcoming && (game.seattleRecord || game.opponentRecord) && (
-          <div className="px-4 py-4 border-t border-zinc-800/60">
-            <div className="flex items-center gap-3 mb-3">
+          <div className="px-5 py-5 border-t border-zinc-800/60">
+            <div className="flex items-center gap-3 mb-4">
               <div className="flex-1 h-px bg-zinc-800" />
               <span className="font-display text-[9px] font-700 uppercase tracking-[0.18em] text-zinc-500 px-0.5">Season Records</span>
               <div className="flex-1 h-px bg-zinc-800" />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl px-4 py-3 bg-zinc-900/50" style={{ border: `1px solid ${seattleColor}30` }}>
-                <div className="flex items-center gap-2 mb-2">
-                  <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={22} />
+              <div className="rounded-2xl px-5 py-4 bg-zinc-900/50" style={{ border: `1px solid ${seattleColor}30` }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={24} />
                   <span className="font-display text-[12px] font-700 text-white truncate">{game.seattleTeam.shortName}</span>
                 </div>
-                <div className="font-display text-[26px] font-800 text-white tabular-nums leading-none">
+                <div className="font-display text-[30px] font-800 text-white tabular-nums leading-none">
                   {game.seattleRecord ? `${game.seattleRecord.wins}–${game.seattleRecord.losses}` : "–"}
                 </div>
                 {game.seattleRecord && (
-                  <div className="text-[10px] text-zinc-500 mt-1">
+                  <div className="text-[11px] text-zinc-500 mt-1.5">
                     {((game.seattleRecord.wins / Math.max(game.seattleRecord.wins + game.seattleRecord.losses, 1)) * 100).toFixed(1)}% win rate
                   </div>
                 )}
               </div>
-              <div className="rounded-xl px-4 py-3 bg-zinc-900/50" style={{ border: "1px solid var(--border)" }}>
-                <div className="flex items-center gap-2 mb-2">
-                  <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={22} />
+              <div className="rounded-2xl px-5 py-4 bg-zinc-900/50" style={{ border: "1px solid var(--border)" }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={24} />
                   <span className="font-display text-[12px] font-700 text-zinc-300 truncate">{game.opponent.shortName || game.opponent.abbr}</span>
                 </div>
-                <div className="font-display text-[26px] font-800 text-zinc-300 tabular-nums leading-none">
+                <div className="font-display text-[30px] font-800 text-zinc-300 tabular-nums leading-none">
                   {game.opponentRecord ? `${game.opponentRecord.wins}–${game.opponentRecord.losses}` : "–"}
                 </div>
                 {game.opponentRecord && (
-                  <div className="text-[10px] text-zinc-500 mt-1">
+                  <div className="text-[11px] text-zinc-500 mt-1.5">
                     {((game.opponentRecord.wins / Math.max(game.opponentRecord.wins + game.opponentRecord.losses, 1)) * 100).toFixed(1)}% win rate
                   </div>
                 )}
