@@ -117,41 +117,36 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
   const hasScore = game.seattleScore !== undefined && game.opponentScore !== undefined
   const seattleWon = hasScore && game.seattleScore! > game.opponentScore!
   const seattleLost = hasScore && game.seattleScore! < game.opponentScore!
-  const color = game.seattleTeam.primaryColor
-  const resultColor = !hasScore ? "#52525b" : seattleWon ? "#34d399" : seattleLost ? "#f87171" : "#9ca3af"
-  const resultLabel = !hasScore ? "Final" : seattleWon ? "W" : seattleLost ? "L" : "T"
 
   return (
     <button
       onClick={onClick}
-      className="flex-shrink-0 w-[140px] text-left active:opacity-70 transition-opacity border-r border-zinc-800 last:border-r-0 pr-4 mr-4 last:pr-0 last:mr-0"
+      className="flex-shrink-0 w-[148px] text-left active:opacity-70 transition-opacity border-r border-zinc-800 last:border-r-0 pr-8 mr-8 last:pr-0 last:mr-0"
     >
-      {/* W/L + date */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: resultColor }}>
-          {resultLabel}
-        </span>
+      {/* Date + league */}
+      <div className="flex items-center justify-between mb-4">
         <span className="text-[10px] text-zinc-600">{fmtDate(game.kickoff).replace(/,.*/, "")}</span>
+        <span className="text-[10px] text-zinc-700 uppercase tracking-wide">{game.league.toUpperCase()}</span>
       </div>
-      {/* Teams + scores */}
-      <div className="flex items-center justify-between gap-1.5">
-        <div className="flex flex-col items-center gap-1 flex-1">
-          <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={26} />
-          <span className={`font-display text-[14px] font-800 tabular-nums ${seattleLost ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+      {/* Logo · Score · Logo */}
+      <div className="flex items-center justify-between gap-2">
+        {/* Seattle team */}
+        <div className="flex flex-col items-center gap-1.5 flex-1">
+          <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={28} />
+          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide">{game.seattleTeam.abbr}</span>
+          <span className={`font-display text-[18px] font-800 tabular-nums leading-none ${seattleLost ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
             {hasScore ? game.seattleScore : "–"}
           </span>
         </div>
-        <span className="font-display text-[10px] text-zinc-700 font-600 self-center pb-3">–</span>
-        <div className="flex flex-col items-center gap-1 flex-1">
-          <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={26} />
-          <span className={`font-display text-[14px] font-800 tabular-nums ${seattleWon ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+        <span className="text-[11px] text-zinc-700 self-center mb-1">–</span>
+        {/* Opponent */}
+        <div className="flex flex-col items-center gap-1.5 flex-1">
+          <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={28} />
+          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide">{game.opponent.abbr}</span>
+          <span className={`font-display text-[18px] font-800 tabular-nums leading-none ${seattleWon ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
             {hasScore ? game.opponentScore : "–"}
           </span>
         </div>
-      </div>
-      {/* Opponent name */}
-      <div className="mt-2">
-        <span className="text-[10px] text-zinc-600 truncate block">vs {game.opponent.shortName || game.opponent.abbr}</span>
       </div>
     </button>
   )
