@@ -14,6 +14,10 @@ function formatRecord(r?: { wins: number; losses: number; ties?: number }): stri
   return r.ties ? `${r.wins}-${r.losses}-${r.ties}` : `${r.wins}-${r.losses}`
 }
 
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+}
+
 function getLiveDetail(game: Game): string {
   const p = game.period ? Number(game.period) : null
   const clk = game.clock
@@ -302,13 +306,6 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                   <span className="text-[22px] font-bold text-zinc-500">vs</span>
                   <span className="text-[12px] text-zinc-500">{new Date(game.kickoff).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span>
                 </div>
-              ) : isFt ? (
-                <span className="font-display text-[13px] font-700 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-full uppercase tracking-wider">Final</span>
-              ) : (
-                <span className="font-display text-[13px] font-700 text-sky-400 bg-sky-500/10 border border-sky-500/20 px-4 py-2 rounded-full uppercase tracking-wider">Upcoming</span>
-              )}
-              {game.broadcast && (
-                <span className="font-display text-[13px] font-700 text-amber-400 bg-amber-500/10 border border-amber-500/20 px-4 py-2 rounded-full">{game.broadcast}</span>
               )}
             </div>
 
@@ -340,7 +337,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
               eventId={game.id.includes("|") ? game.id.split("|")[1] : game.id}
               league={game.league}
               seattleTeamId={game.seattleTeam.espnId}
-              color={isLive ? "#ef4444" : color}
+              color={isLive ? "#ef4444" : (game.seattleTeam.primaryColor ?? "#00d4ff")}
             />
           )}
 
