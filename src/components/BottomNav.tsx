@@ -2,44 +2,47 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-// Inline SVG scorpion — never fails, no external file dependency.
-// scorpion-mono.png was a solid white rectangle, not a transparent silhouette,
-// so it was invisible on both the dark inactive and cyan active button states.
+// Inline SVG scorpion — pixel-perfect at 22–26 px, no external dependency.
+// Uses a filled silhouette so it's readable at small sizes on both the dark
+// inactive button and the cyan active button.
 function ScorpionIcon({ size, active }: { size: number; active: boolean }) {
-  const color = active ? "white" : "rgba(255,255,255,0.45)"
+  // Active = white icon on cyan pill; inactive = visible white-ish on dark pill.
+  const fill = active ? "#ffffff" : "rgba(255,255,255,0.65)"
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 24 24"
-      fill="none"
+      viewBox="0 0 32 32"
       aria-hidden="true"
-      style={{ color }}
     >
-      {/* Body */}
-      <ellipse cx="11" cy="13.5" rx="4" ry="3" fill="currentColor" />
-      {/* Head */}
-      <ellipse cx="6.2" cy="13.5" rx="2.5" ry="2" fill="currentColor" />
-      {/* Tail curls up and over */}
+      {/* ── Chunky body (rounded rect) ───────────────────────── */}
+      <rect x="10" y="13" width="11" height="8" rx="3.5" fill={fill} />
+
+      {/* ── Head (left of body) ──────────────────────────────── */}
+      <ellipse cx="7" cy="17" rx="3" ry="2.5" fill={fill} />
+
+      {/* ── Chelicerae / pincers ─────────────────────────────── */}
+      <line x1="4.5" y1="15" x2="2"  y2="12.5" stroke={fill} strokeWidth="2.2" strokeLinecap="round" />
+      <line x1="4.5" y1="19" x2="2"  y2="21.5" stroke={fill} strokeWidth="2.2" strokeLinecap="round" />
+
+      {/* ── Tail — thick C-curve sweeping up and hooking forward */}
       <path
-        d="M15 11.5 C17 8 20.5 6.5 21.5 8.5 C22.5 10.5 20.5 12.5 19 13"
-        stroke="currentColor"
-        strokeWidth="2"
+        d="M21 14 C24 10 28 10 28 14 C28 18 24 19.5 22 18"
+        stroke={fill}
+        strokeWidth="2.8"
         strokeLinecap="round"
         fill="none"
       />
-      {/* Stinger */}
-      <path d="M19 13 L21.5 11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      {/* Claws */}
-      <path d="M3.8 12 L1.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M3.8 15 L1.5 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      {/* Legs — 3 pairs */}
-      <line x1="9" y1="16.5" x2="7.5" y2="19.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="12" y1="16.5" x2="11" y2="19.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="14.5" y1="16" x2="14" y2="19" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="9" y1="10.5" x2="7.5" y2="7.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="12" y1="10.5" x2="11" y2="7.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="14.5" y1="11" x2="14" y2="8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      {/* Stinger tip */}
+      <line x1="22" y1="18" x2="24" y2="16" stroke={fill} strokeWidth="2.2" strokeLinecap="round" />
+
+      {/* ── Legs (3 pairs, short and chunky) ─────────────────── */}
+      <line x1="13" y1="21" x2="11" y2="24.5" stroke={fill} strokeWidth="1.8" strokeLinecap="round" />
+      <line x1="16" y1="21" x2="15" y2="25"   stroke={fill} strokeWidth="1.8" strokeLinecap="round" />
+      <line x1="19" y1="21" x2="19" y2="24.5" stroke={fill} strokeWidth="1.8" strokeLinecap="round" />
+      <line x1="13" y1="13" x2="11" y2="9.5"  stroke={fill} strokeWidth="1.8" strokeLinecap="round" />
+      <line x1="16" y1="13" x2="15" y2="9"    stroke={fill} strokeWidth="1.8" strokeLinecap="round" />
+      <line x1="19" y1="13" x2="19" y2="9.5"  stroke={fill} strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   )
 }

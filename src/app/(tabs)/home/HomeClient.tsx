@@ -543,13 +543,13 @@ export default function HomeClient() {
 
   // Categorize
   const today = todayStr()
-  const cutoff3 = daysAgo(3)
+  const cutoff7 = daysAgo(7)
   const cutoff14 = daysFromNow(14)
 
   const recent = filtered.filter(g => {
     const d = dateStr(new Date(g.kickoff))
-    // Exclude today — those show in the featured section
-    return g.status === "ft" && d >= cutoff3 && d < today
+    // Exclude today — those show in the featured section; show last 7 days
+    return g.status === "ft" && d >= cutoff7 && d < today
   }).sort((a, b) => new Date(b.kickoff).getTime() - new Date(a.kickoff).getTime()).slice(0, 12)
 
   const todayGames = filtered.filter(g => dateStr(new Date(g.kickoff)) === today)
@@ -702,7 +702,7 @@ export default function HomeClient() {
           <div className="flex items-center gap-3 px-4 mb-3">
             <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Recent</span>
             <div className="flex-1 h-px bg-zinc-800" />
-            <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">Last 3 days</span>
+            <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">Last 7 days</span>
           </div>
           <div className="overflow-x-auto no-scrollbar px-4">
             <div className="flex gap-3 min-w-max pb-1">
