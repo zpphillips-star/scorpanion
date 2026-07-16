@@ -160,13 +160,23 @@ export async function GET() {
             )
             if (!seattleTeam) continue
 
+            // Skip injecting score updates for scheduled games — scores are 0/"" pre-game
+            // and would overwrite the schedule API's cleaner undefined values.
+            // The live-scores endpoint is only useful for live/final state changes.
+            if (status === 'upcoming') continue
+
             const opponentComp = comp.competitors?.find((c: any) => c.homeAway !== competitor.homeAway)
             const gameId = `${seattleTeam.id}|${event.id}`
+            const parseScore = (val: unknown): number => {
+              if (val === undefined || val === null || val === '') return 0
+              const n = Number(val)
+              return isNaN(n) ? 0 : n
+            }
             updates[gameId] = {
               gameId,
               seattleTeamId: seattleTeam.id,
-              seattleScore: competitor.score !== undefined ? Number(competitor.score) : 0,
-              opponentScore: opponentComp?.score !== undefined ? Number(opponentComp.score) : 0,
+              seattleScore: parseScore(competitor.score),
+              opponentScore: parseScore(opponentComp?.score),
               status,
               clock: comp.status?.displayClock,
               period: comp.status?.period?.toString(),

@@ -146,11 +146,14 @@ const STANDINGS_LEAGUE_MAP: Record<string, string> = {
 function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void }) {
   const [standings, setStandings] = useState<Division[]>([])
   const [teamSheet, setTeamSheet] = useState<{ id: string; name: string; logo: string } | null>(null)
-  const seattleWon = (game.seattleScore ?? 0) > (game.opponentScore ?? 0)
-  const seattleLost = (game.seattleScore ?? 0) < (game.opponentScore ?? 0)
-  const color = game.seattleTeam.primaryColor
   const isLive = game.status === "live"
   const isFt = game.status === "ft"
+  const isUpcoming = game.status === "upcoming"
+  // Only render scores when the game is live or final AND scores are actually available
+  const hasScore = (isLive || isFt) && game.seattleScore !== undefined && game.opponentScore !== undefined
+  const seattleWon = hasScore && game.seattleScore! > game.opponentScore!
+  const seattleLost = hasScore && game.seattleScore! < game.opponentScore!
+  const color = game.seattleTeam.primaryColor
   const canShowBoxScore = (isLive || isFt) && !!game.id && game.league !== "whl" && game.league !== "pwhl"
   const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
 
@@ -184,7 +187,19 @@ function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void })
 
           {/* Status + date */}
           <div className="flex items-center gap-2 mb-3">
-            <span className="font-display text-[11px] font-700 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider">Final</span>
+            {isLive ? (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/15 border border-red-500/30">
+                <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
+                </span>
+                <span className="font-display text-[11px] font-800 text-red-400 uppercase tracking-wider">Live</span>
+              </div>
+            ) : isFt ? (
+              <span className="font-display text-[11px] font-700 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider">Final</span>
+            ) : (
+              <span className="font-display text-[11px] font-700 text-zinc-400 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full uppercase tracking-wider">Upcoming</span>
+            )}
             <span className="text-[11px] text-zinc-400 bg-white/5 px-2.5 py-1 rounded-full">{fmtDate(game.kickoff)}</span>
             {game.broadcast && <span className="text-[11px] text-zinc-400 bg-white/5 px-2.5 py-1 rounded-full">{game.broadcast}</span>}
             {game.venue?.city && <span className="text-[11px] text-zinc-500 ml-auto">📍 {game.venue.city}</span>}
@@ -205,14 +220,28 @@ function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void })
             </button>
 
             <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
-              <div className="font-display font-800 tabular-nums text-[48px] leading-none text-white">
-                <span className={game.isHome ? (seattleWon ? "text-zinc-400" : "") : (seattleLost ? "text-zinc-400" : "")}>{game.isHome ? game.opponentScore : game.seattleScore}</span>
-                <span className="text-zinc-600 text-[32px] mx-1.5">–</span>
-                <span className={game.isHome ? (seattleLost ? "text-zinc-400" : "") : (seattleWon ? "text-zinc-400" : "")}>{game.isHome ? game.seattleScore : game.opponentScore}</span>
-              </div>
-              <span className={`font-display text-[13px] font-800 uppercase tracking-widest ${seattleWon ? "text-emerald-400" : seattleLost ? "text-red-400" : "text-zinc-500"}`}>
-                {seattleWon ? "Win" : seattleLost ? "Loss" : "Tie"}
-              </span>
+              {hasScore ? (
+                <>
+                  <div className={`font-display font-800 tabular-nums text-[48px] leading-none ${isLive ? "text-red-300" : "text-white"}`}>
+                    <span className={game.isHome ? (seattleWon ? "text-zinc-400" : "") : (seattleLost ? "text-zinc-400" : "")}>{game.isHome ? game.opponentScore : game.seattleScore}</span>
+                    <span className="text-zinc-600 text-[32px] mx-1.5">–</span>
+                    <span className={game.isHome ? (seattleLost ? "text-zinc-400" : "") : (seattleWon ? "text-zinc-400" : "")}>{game.isHome ? game.seattleScore : game.opponentScore}</span>
+                  </div>
+                  {isFt && (
+                    <span className={`font-display text-[13px] font-800 uppercase tracking-widest ${seattleWon ? "text-emerald-400" : seattleLost ? "text-red-400" : "text-zinc-500"}`}>
+                      {seattleWon ? "Win" : seattleLost ? "Loss" : "Tie"}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <div className="flex flex-col items-center gap-1">
+                  <span className="font-display text-[22px] font-800 text-zinc-500">vs</span>
+                  <span className="text-[11px] text-zinc-500">{new Date(game.kickoff).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span>
+                  {isUpcoming && game.venue?.name && (
+                    <span className="text-[10px] text-zinc-600 text-center mt-0.5">{game.venue.name}</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Right = HOME */}
