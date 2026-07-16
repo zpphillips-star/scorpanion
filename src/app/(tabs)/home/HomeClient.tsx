@@ -449,33 +449,37 @@ export default function HomeClient() {
         </div>
       )}
 
-      {/* ── FEATURED: Live + Today ───────────────────────────────────────── */}
-      {(liveGames.length > 0 || todayGames.length > 0) && (() => {
+      {/* ── FEATURED: Always-on Today section ───────────────────────────── */}
+      {(() => {
         const hasLive = liveGames.length > 0
+        const hasGames = liveGames.length > 0 || todayGames.length > 0
         const todayDate = new Date()
-        const dateLabel = todayDate.toLocaleDateString("en-US", { month: "long", day: "numeric" })
+        const dateLabel = todayDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
 
         return (
           <div className="mt-8">
-            {/* Section header — same style as Recent/Upcoming */}
-            <div className="flex items-center gap-3 px-4 mb-2">
+            {/* Section header */}
+            <div className="flex items-center gap-3 px-4 mb-3">
               {hasLive && (
                 <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
                 </span>
               )}
-              <span
-                className={`text-[10px] font-bold uppercase tracking-widest ${hasLive ? "text-red-400" : "text-zinc-500"}`}
-              >
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${hasLive ? "text-red-400" : "text-zinc-500"}`}>
                 {hasLive ? "Live Now" : "Today"}
               </span>
               <div className="flex-1 h-px bg-zinc-800" />
               <span className="text-[10px] text-zinc-600 uppercase tracking-wider">{dateLabel}</span>
             </div>
 
-            {/* Featured cards */}
-            {todayGames.map(g => <TodayGameCard key={g.id} game={g} />)}
+            {hasGames ? (
+              todayGames.map(g => <TodayGameCard key={g.id} game={g} />)
+            ) : (
+              <div className="px-4 py-8 flex items-center justify-center">
+                <span className="text-[15px] text-zinc-600 font-medium">No games today</span>
+              </div>
+            )}
           </div>
         )
       })()}
@@ -489,15 +493,6 @@ export default function HomeClient() {
           </div>
           <OffSeasonCards teams={teamsWithNoGames.length > 0 ? teamsWithNoGames : followedTeams} nextGames={nextGameByTeam} />
         </>
-      )}
-
-      {/* ── Rest Day card — teams exist, but nothing today ─────────────────── */}
-      {selectedTeamIds.length > 0 && todayGames.length === 0 && !hasAnyLive && (recent.length > 0 || allUpcoming.length > 0) && (
-        <div className="flex items-center gap-3 px-4 mt-6 mb-1">
-          <div className="flex-1 h-px bg-zinc-800/60" />
-          <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Rest day</span>
-          <div className="flex-1 h-px bg-zinc-800/60" />
-        </div>
       )}
 
       {/* ── Upcoming — WC compact rows ───────────────────────────────────── */}
