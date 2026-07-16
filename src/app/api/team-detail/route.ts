@@ -19,12 +19,171 @@ const STANDINGS_LEAGUE: Record<string, string> = {
   "usa.1": "mls", mls: "mls", nba: "nba",
 }
 
+// ── WHL team ID mapping (internal name → WHL numeric ID) ─────────────────────
+const WHL_ID_MAP: Record<string, string> = {
+  thunderbirds: "214",
+  silvertips:   "226",
+}
+const WHL_BASE = "https://cluster.leaguestat.com/feed/?feed=modulekit&key=41b145a848f4bd67&client_code=whl&fmt=json&lang=en"
+const WHL_SEASON_IDS = [293]
+
+async function handleWHLTeamDetail(rawTeamId: string): Promise<Response> {
+  // Map named ID → numeric; otherwise assume it's already numeric
+  const whlNumericId = WHL_ID_MAP[rawTeamId] ?? rawTeamId
+  const logoUrl = `https://assets.leaguestat.com/whl/logos/${whlNumericId}.png`
+
+  let upcomingGames: { opponent: string; oppLogo: string; date: string; isHome: boolean; time: string }[] = []
+  let recentForm: { result: "W" | "L" | "T"; myScore: number; oppScore: number; isHome: boolean; opponent: string; oppLogo: string; date: string }[] = []
+
+  for (const seasonId of WHL_SEASON_IDS) {
+    try {
+      const url = `${WHL_BASE}&view=schedule&team_id=${whlNumericId}&season_id=${seasonId}`
+      const res = await fetch(url, { next: { revalidate: 300 } })
+      if (!res.ok) continue
+      const data = await res.json()
+      const schedule: any[] = data?.SiteKit?.Schedule ?? []
+      const now = new Date()
+
+      const completed = schedule.filter((g: any) => {
+        const status = String(g.game_status ?? "").toLowerCase()
+        return status.includes("final")
+      })
+      const upcoming = schedule.filter((g: any) => {
+        const status = String(g.game_status ?? "").toLowerCase()
+        if (status.includes("final") || status.includes("progress")) return false
+        const date = g.GameDateISO8601 ?? `${g.date_played}T${g.schedule_time ?? "00:00:00"}`
+        return new Date(date) > now
+      })
+
+      recentForm = completed.slice(-5).map((g: any) => {
+        const isHome = String(g.home_team) === whlNumericId
+        const myScore  = isHome ? Number(g.home_goal_count ?? 0) : Number(g.visiting_goal_count ?? 0)
+        const oppScore = isHome ? Number(g.visiting_goal_count ?? 0) : Number(g.home_goal_count ?? 0)
+        const oppId    = String(isHome ? g.visiting_team : g.home_team)
+        return {
+          result: myScore > oppScore ? "W" : myScore < oppScore ? "L" : "T",
+          myScore, oppScore, isHome,
+          opponent: isHome ? (g.visiting_team_code ?? oppId) : (g.home_team_code ?? oppId),
+          oppLogo: `https://assets.leaguestat.com/whl/logos/${oppId}.png`,
+          date: g.GameDateISO8601 ?? `${g.date_played}T${g.schedule_time ?? "00:00:00"}`,
+        }
+      })
+
+      upcomingGames = upcoming.slice(0, 3).map((g: any) => {
+        const isHome = String(g.home_team) === whlNumericId
+        const oppId  = String(isHome ? g.visiting_team : g.home_team)
+        const date   = g.GameDateISO8601 ?? `${g.date_played}T${g.schedule_time ?? "00:00:00"}`
+        return {
+          opponent: isHome ? (g.visiting_team_code ?? oppId) : (g.home_team_code ?? oppId),
+          oppLogo: `https://assets.leaguestat.com/whl/logos/${oppId}.png`,
+          date, isHome, time: date,
+        }
+      })
+      break
+    } catch { /* ignore */ }
+  }
+
+  return NextResponse.json({
+    id: whlNumericId, name: "", shortName: "", abbr: "",
+    logo: logoUrl, color: "#C8102E", altColor: "#FFFFFF",
+    wins: 0, losses: 0,
+    recentForm, upcomingGames,
+    divisionRank: null, divisionName: "", divisionStandings: [],
+    venue: null, location: null,
+  })
+}
+
+// ── PWHL team detail ──────────────────────────────────────────────────────────
+const PWHL_ID_MAP: Record<string, string> = {
+  torrent: "8",
+}
+const PWHL_BASE = "https://lscluster.hockeytech.com/feed/index.php?feed=modulekit&key=446521baf8c38984&client_code=pwhl&fmt=json"
+const PWHL_SEASON_IDS = [8, 9]
+
+async function handlePWHLTeamDetail(rawTeamId: string): Promise<Response> {
+  const pwhlNumericId = PWHL_ID_MAP[rawTeamId] ?? rawTeamId
+
+  let upcomingGames: { opponent: string; oppLogo: string; date: string; isHome: boolean; time: string }[] = []
+  let recentForm: { result: "W" | "L" | "T"; myScore: number; oppScore: number; isHome: boolean; opponent: string; oppLogo: string; date: string }[] = []
+
+  for (const seasonId of PWHL_SEASON_IDS) {
+    try {
+      const url = `${PWHL_BASE}&view=schedule&season_id=${seasonId}`
+      const res = await fetch(url, { next: { revalidate: 300 } })
+      if (!res.ok) continue
+      const data = await res.json()
+      const schedule: any[] = (data?.SiteKit?.Schedule ?? [])
+        .filter((g: any) => String(g.home_team) === pwhlNumericId || String(g.visiting_team) === pwhlNumericId)
+      const now = new Date()
+
+      const completed = schedule.filter((g: any) => String(g.game_status ?? "").toLowerCase().includes("final"))
+      const upcoming  = schedule.filter((g: any) => {
+        const status = String(g.game_status ?? "").toLowerCase()
+        if (status.includes("final") || status.includes("progress")) return false
+        const rawDate: string = g.GameDateISO8601 ?? `${g.date_played} ${g.schedule_time ?? "00:00:00"}`
+        const [datePart, timePart] = rawDate.includes("T") ? rawDate.split("T") : rawDate.split(" ")
+        const [m, d, y] = (datePart ?? "").includes("/") ? (datePart ?? "").split("/") : ["0","1","2000"]
+        const iso = datePart?.includes("-") ? rawDate : `${y}-${m?.padStart(2,"0")}-${d?.padStart(2,"0")}T${timePart ?? "00:00:00"}`
+        return new Date(iso) > now
+      })
+
+      const parseDate = (g: any): string => {
+        const raw: string = g.GameDateISO8601 ?? `${g.date_played} ${g.schedule_time ?? "00:00:00"}`
+        if (raw.includes("T")) return raw
+        const [datePart, timePart] = raw.split(" ")
+        if (!datePart) return raw
+        if (datePart.includes("-")) return `${datePart}T${timePart ?? "00:00:00"}`
+        const [m, d, y] = datePart.split("/")
+        return `${y}-${m?.padStart(2,"0")}-${d?.padStart(2,"0")}T${timePart ?? "00:00:00"}`
+      }
+
+      recentForm = completed.slice(-5).map((g: any) => {
+        const isHome = String(g.home_team) === pwhlNumericId
+        const myScore  = isHome ? Number(g.home_goal_count ?? 0) : Number(g.visiting_goal_count ?? 0)
+        const oppScore = isHome ? Number(g.visiting_goal_count ?? 0) : Number(g.home_goal_count ?? 0)
+        const oppId    = String(isHome ? g.visiting_team : g.home_team)
+        return {
+          result: myScore > oppScore ? "W" : myScore < oppScore ? "L" : "T",
+          myScore, oppScore, isHome,
+          opponent: isHome ? (g.visiting_team_code ?? oppId) : (g.home_team_code ?? oppId),
+          oppLogo: "",
+          date: parseDate(g),
+        }
+      })
+
+      upcomingGames = upcoming.slice(0, 3).map((g: any) => {
+        const isHome = String(g.home_team) === pwhlNumericId
+        const oppId  = String(isHome ? g.visiting_team : g.home_team)
+        const date   = parseDate(g)
+        return {
+          opponent: isHome ? (g.visiting_team_code ?? oppId) : (g.home_team_code ?? oppId),
+          oppLogo: "", date, isHome, time: date,
+        }
+      })
+      break
+    } catch { /* ignore */ }
+  }
+
+  return NextResponse.json({
+    id: pwhlNumericId, name: "", shortName: "", abbr: "",
+    logo: "", color: "#006272", altColor: "#00243D",
+    wins: 0, losses: 0,
+    recentForm, upcomingGames,
+    divisionRank: null, divisionName: "", divisionStandings: [],
+    venue: null, location: null,
+  })
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const teamId = searchParams.get("teamId")  // ESPN team ID
   const league = (searchParams.get("league") ?? "").toLowerCase()
 
   if (!teamId || !league) return NextResponse.json({ error: "Missing params" }, { status: 400 })
+
+  // ── WHL / PWHL: handled by their own APIs, not ESPN ──────────────────────────
+  if (league === "whl")  return handleWHLTeamDetail(teamId)
+  if (league === "pwhl") return handlePWHLTeamDetail(teamId)
 
   const sportPath = SPORT_PATH[league]
   if (!sportPath) return NextResponse.json({ error: `Unknown league: ${league}` }, { status: 400 })

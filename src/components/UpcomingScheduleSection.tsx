@@ -26,11 +26,12 @@ export default function UpcomingScheduleSection({ game }: Props) {
   const [loading, setLoading] = useState(true)
 
   const league = game.league
-  const seaId = game.seattleTeam.espnId
+  // For WHL/PWHL teams espnId is empty — fall back to internal team id
+  const seaId = game.seattleTeam.espnId || game.seattleTeam.id
   const oppId = game.opponent.id
 
   useEffect(() => {
-    if (!seaId || !oppId || league === "whl" || league === "pwhl") {
+    if (!seaId || !oppId) {
       setLoading(false)
       return
     }

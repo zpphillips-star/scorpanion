@@ -201,14 +201,15 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
   const seattleColor   = game.seattleTeam.primaryColor
   const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
   const liveDetail     = isLive ? getLiveDetail(game) : ""
-  const canShowBoxScore = (isLive || isFt) && !!game.id && game.league !== "whl" && game.league !== "pwhl"
+  const canShowBoxScore = (isLive || isFt) && !!game.id
 
   const league = game.league
-  const seaId  = game.seattleTeam.espnId
+  // For WHL/PWHL teams espnId is empty — fall back to internal team id so team-detail API can handle them
+  const seaId  = game.seattleTeam.espnId || game.seattleTeam.id
   const oppId  = game.opponent.id
 
   useEffect(() => {
-    if (!seaId || !oppId || league === "whl" || league === "pwhl") return
+    if (!seaId || !oppId) return
     Promise.all([
       fetch(`/api/team-detail?teamId=${encodeURIComponent(seaId)}&league=${encodeURIComponent(league)}`).then(r => r.ok ? r.json() : null),
       fetch(`/api/team-detail?teamId=${encodeURIComponent(oppId)}&league=${encodeURIComponent(league)}`).then(r => r.ok ? r.json() : null),
@@ -251,12 +252,12 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
     <>
       <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50" onClick={onClose} />
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-3xl lg:mx-auto rounded-t-2xl overflow-hidden flex flex-col animate-slide-up"
-        style={{ background: "#0f0f18", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "94dvh" }}
+        className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-4xl lg:mx-auto rounded-t-2xl overflow-hidden flex flex-col animate-slide-up"
+        style={{ background: "#0f0f18", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "96dvh" }}
         onClick={e => e.stopPropagation()}
       >
         {/* Fixed header */}
-        <div className="relative bg-gradient-to-b from-[#0a1628] to-[#0f0f18] px-5 pt-4 pb-6 flex-shrink-0">
+        <div className="relative bg-gradient-to-b from-[#0a1628] to-[#0f0f18] px-5 pt-4 pb-8 flex-shrink-0">
           <div className="w-10 h-1 rounded-full bg-white/20 mx-auto mb-4" />
           <button onClick={onClose} className="absolute top-4 right-5 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-sm hover:bg-white/20 transition-colors">✕</button>
 
@@ -287,7 +288,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
               className="flex-1 flex flex-col items-center gap-2 active:scale-95 transition-transform"
               onClick={() => setTeamSheet(game.isHome ? { id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo } : { id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl })}
             >
-              <TeamLogo src={game.isHome ? game.opponent.logo : seattleLogoUrl} emoji={game.isHome ? "🏟️" : game.seattleTeam.emoji} abbr={game.isHome ? game.opponent.abbr : game.seattleTeam.abbr} size={64} />
+              <TeamLogo src={game.isHome ? game.opponent.logo : seattleLogoUrl} emoji={game.isHome ? "🏟️" : game.seattleTeam.emoji} abbr={game.isHome ? game.opponent.abbr : game.seattleTeam.abbr} size={72} />
               <span className="font-display text-[14px] font-semibold text-white text-center leading-tight">
                 {game.isHome ? (game.opponent.shortName || game.opponent.name) : game.seattleTeam.shortName}
               </span>
@@ -296,7 +297,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
             {/* Score */}
             <div className="flex flex-col items-center gap-1 flex-shrink-0">
               {hasScore ? (
-                <span className={`text-[44px] font-black tabular-nums leading-none ${isLive ? "text-red-400" : "text-white"}`}>
+                <span className={`text-[52px] font-black tabular-nums leading-none ${isLive ? "text-red-400" : "text-white"}`}>
                   {game.isHome ? game.opponentScore : game.seattleScore}
                   <span className="text-zinc-500 text-[28px] mx-2">–</span>
                   {game.isHome ? game.seattleScore : game.opponentScore}
@@ -314,7 +315,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
               className="flex-1 flex flex-col items-center gap-2 active:scale-95 transition-transform"
               onClick={() => setTeamSheet(game.isHome ? { id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl } : { id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo })}
             >
-              <TeamLogo src={game.isHome ? seattleLogoUrl : game.opponent.logo} emoji={game.isHome ? game.seattleTeam.emoji : "🏟️"} abbr={game.isHome ? game.seattleTeam.abbr : game.opponent.abbr} size={64} />
+              <TeamLogo src={game.isHome ? seattleLogoUrl : game.opponent.logo} emoji={game.isHome ? game.seattleTeam.emoji : "🏟️"} abbr={game.isHome ? game.seattleTeam.abbr : game.opponent.abbr} size={72} />
               <span className="font-display text-[14px] font-semibold text-white text-center leading-tight">
                 {game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)}
               </span>
@@ -331,10 +332,10 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
         </div>
 
         {/* Scrollable body */}
-        <div className="overflow-y-auto flex-1 px-4 pt-3 pb-8">
+        <div className="overflow-y-auto flex-1 px-4 pt-4 pb-10">
           {canShowBoxScore && (
             <BoxScore
-              eventId={game.id.includes("|") ? game.id.split("|")[1] : game.id}
+              eventId={game.id.includes("|") ? game.id.split("|").at(-1)! : game.id}
               league={game.league}
               seattleTeamId={game.seattleTeam.espnId}
               color={isLive ? "#ef4444" : (game.seattleTeam.primaryColor ?? "#00d4ff")}
@@ -356,7 +357,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                     <TeamLogo src={game.isHome ? game.opponent.logo : seattleLogoUrl} emoji={game.isHome ? "🏟️" : game.seattleTeam.emoji} abbr={game.isHome ? game.opponent.abbr : game.seattleTeam.abbr} size={18} />
                     <span className="text-[12px] font-semibold text-white">{game.isHome ? (game.opponent.shortName || game.opponent.abbr) : game.seattleTeam.shortName}</span>
                   </div>
-                  <span className="text-[28px] font-black text-white tabular-nums leading-none">
+                  <span className="text-[36px] font-black text-white tabular-nums leading-none">
                     {(game.isHome ? game.opponentRecord : game.seattleRecord) ? `${(game.isHome ? game.opponentRecord : game.seattleRecord)!.wins}-${(game.isHome ? game.opponentRecord : game.seattleRecord)!.losses}` : "–"}
                   </span>
                 </div>
@@ -367,7 +368,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                     <TeamLogo src={game.isHome ? seattleLogoUrl : game.opponent.logo} emoji={game.isHome ? game.seattleTeam.emoji : "🏟️"} abbr={game.isHome ? game.seattleTeam.abbr : game.opponent.abbr} size={18} />
                     <span className="text-[12px] font-semibold text-white">{game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.abbr)}</span>
                   </div>
-                  <span className="text-[28px] font-black text-white tabular-nums leading-none">
+                  <span className="text-[36px] font-black text-white tabular-nums leading-none">
                     {(game.isHome ? game.seattleRecord : game.opponentRecord) ? `${(game.isHome ? game.seattleRecord : game.opponentRecord)!.wins}-${(game.isHome ? game.seattleRecord : game.opponentRecord)!.losses}` : "–"}
                   </span>
                 </div>

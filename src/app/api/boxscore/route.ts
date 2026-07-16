@@ -19,6 +19,130 @@ const SPORT_PATH: Record<string, string> = {
   "womens-college-basketball": "basketball/womens-college-basketball",
 }
 
+// ── WHL boxscore via leaguestat.com ──────────────────────────────────────────
+const WHL_LOGO_BASE = "https://assets.leaguestat.com/whl/logos"
+const WHL_BASE = "https://cluster.leaguestat.com/feed/?feed=modulekit&key=41b145a848f4bd67&client_code=whl&fmt=json&lang=en"
+
+async function fetchWHLBoxScore(gameId: string): Promise<Record<string, unknown> | null> {
+  const url = `${WHL_BASE}&view=gameSummary&game_id=${gameId}`
+  const res = await fetch(url, { next: { revalidate: 60 } })
+  if (!res.ok) return null
+  const data = await res.json()
+
+  const game: any = data?.SiteKit?.Game?.[0]
+  if (!game) return null
+
+  const homeId   = String(game.home_team   ?? "")
+  const visitorId = String(game.visiting_team ?? "")
+  const homeAbbr   = game.home_team_code    ?? "HOME"
+  const visitorAbbr = game.visiting_team_code ?? "AWAY"
+  const homeLogo    = `${WHL_LOGO_BASE}/${homeId}.png`
+  const visitorLogo = `${WHL_LOGO_BASE}/${visitorId}.png`
+
+  // Parse per-period goals — HockeyTech wraps these in Periods.home[] / Periods.visitor[]
+  // or sometimes under ByPeriod; be defensive about both shapes.
+  const periodsSrc: any = game.Periods ?? game.ByPeriod ?? {}
+  const homePeriods: any[]    = Array.isArray(periodsSrc.home)    ? periodsSrc.home
+    : Array.isArray(periodsSrc.Home)    ? periodsSrc.Home    : []
+  const visitorPeriods: any[] = Array.isArray(periodsSrc.visitor) ? periodsSrc.visitor
+    : Array.isArray(periodsSrc.Visitor) ? periodsSrc.Visitor : []
+
+  const numPeriods = Math.max(3, homePeriods.length, visitorPeriods.length)
+  const homeGoals: number[]    = []
+  const visitorGoals: number[] = []
+  for (let i = 0; i < numPeriods; i++) {
+    homeGoals.push(   Number(homePeriods[i]?.goals    ?? homePeriods[i]?.goal_count    ?? 0))
+    visitorGoals.push(Number(visitorPeriods[i]?.goals ?? visitorPeriods[i]?.goal_count ?? 0))
+  }
+
+  const periodLabels: string[] = numPeriods <= 3
+    ? ["P1", "P2", "P3"].slice(0, numPeriods)
+    : ["P1", "P2", "P3", ...Array.from({ length: numPeriods - 3 }, (_, i) =>
+        i === 0 ? "OT" : `OT${i + 1}`)]
+
+  const homeScore    = Number(game.home_goal_count    ?? 0)
+  const visitorScore = Number(game.visiting_goal_count ?? 0)
+
+  const linescores = [
+    { teamId: visitorId, abbr: visitorAbbr, logo: visitorLogo, homeAway: "away",
+      score: visitorScore, linescores: visitorGoals, record: "" },
+    { teamId: homeId,    abbr: homeAbbr,    logo: homeLogo,    homeAway: "home",
+      score: homeScore,   linescores: homeGoals,    record: "" },
+  ]
+
+  const shotsOnGoal = [
+    { teamId: visitorId, abbr: visitorAbbr, value: String(game.visiting_shots ?? "–") },
+    { teamId: homeId,    abbr: homeAbbr,    value: String(game.home_shots    ?? "–") },
+  ]
+
+  return {
+    sportType: "hockey", periodLabels, linescores, stats: [], keyPlays: [],
+    currentPeriod: null, pitchers: null, topScorers: [], shotsOnGoal,
+    isShootout: false, goalScorers: [],
+  }
+}
+
+// ── PWHL boxscore via hockeytech.com ─────────────────────────────────────────
+const PWHL_LOGO_BASE = "https://lscluster.hockeytech.com/img/pwhl"
+const PWHL_BASE = "https://lscluster.hockeytech.com/feed/index.php?feed=modulekit&key=446521baf8c38984&client_code=pwhl&fmt=json"
+
+async function fetchPWHLBoxScore(gameId: string): Promise<Record<string, unknown> | null> {
+  const url = `${PWHL_BASE}&view=gameSummary&game_id=${gameId}`
+  const res = await fetch(url, { next: { revalidate: 60 } })
+  if (!res.ok) return null
+  const data = await res.json()
+
+  const game: any = data?.SiteKit?.Game?.[0]
+  if (!game) return null
+
+  const homeId    = String(game.home_team    ?? "")
+  const visitorId = String(game.visiting_team ?? "")
+  const homeAbbr   = game.home_team_code    ?? "HOME"
+  const visitorAbbr = game.visiting_team_code ?? "AWAY"
+  const homeLogo    = `${PWHL_LOGO_BASE}/${homeId}.png`
+  const visitorLogo = `${PWHL_LOGO_BASE}/${visitorId}.png`
+
+  const periodsSrc: any = game.Periods ?? game.ByPeriod ?? {}
+  const homePeriods: any[]    = Array.isArray(periodsSrc.home)    ? periodsSrc.home
+    : Array.isArray(periodsSrc.Home)    ? periodsSrc.Home    : []
+  const visitorPeriods: any[] = Array.isArray(periodsSrc.visitor) ? periodsSrc.visitor
+    : Array.isArray(periodsSrc.Visitor) ? periodsSrc.Visitor : []
+
+  const numPeriods = Math.max(3, homePeriods.length, visitorPeriods.length)
+  const homeGoals: number[]    = []
+  const visitorGoals: number[] = []
+  for (let i = 0; i < numPeriods; i++) {
+    homeGoals.push(   Number(homePeriods[i]?.goals    ?? homePeriods[i]?.goal_count    ?? 0))
+    visitorGoals.push(Number(visitorPeriods[i]?.goals ?? visitorPeriods[i]?.goal_count ?? 0))
+  }
+
+  const periodLabels: string[] = numPeriods <= 3
+    ? ["P1", "P2", "P3"].slice(0, numPeriods)
+    : ["P1", "P2", "P3", ...Array.from({ length: numPeriods - 3 }, (_, i) =>
+        i === 0 ? "OT" : `OT${i + 1}`)]
+
+  const homeScore    = Number(game.home_goal_count    ?? 0)
+  const visitorScore = Number(game.visiting_goal_count ?? 0)
+
+  const linescores = [
+    { teamId: visitorId, abbr: visitorAbbr, logo: visitorLogo, homeAway: "away",
+      score: visitorScore, linescores: visitorGoals, record: "" },
+    { teamId: homeId,    abbr: homeAbbr,    logo: homeLogo,    homeAway: "home",
+      score: homeScore,   linescores: homeGoals,    record: "" },
+  ]
+
+  const shotsOnGoal = [
+    { teamId: visitorId, abbr: visitorAbbr, value: String(game.visiting_shots ?? "–") },
+    { teamId: homeId,    abbr: homeAbbr,    value: String(game.home_shots    ?? "–") },
+  ]
+
+  return {
+    sportType: "hockey", periodLabels, linescores, stats: [], keyPlays: [],
+    currentPeriod: null, pitchers: null, topScorers: [], shotsOnGoal,
+    isShootout: false, goalScorers: [],
+  }
+}
+
 // ── MLB official boxscore via statsapi.mlb.com ───────────────────────────────
 async function fetchMLBBoxScore(gamePk: string): Promise<Record<string, unknown> | null> {
   const url = `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`
@@ -494,6 +618,22 @@ export async function GET(req: Request) {
         const cached = bsCache.get(cacheKey)
         if (cached) return NextResponse.json(cached)
         return NextResponse.json({ error: "NHL API error" }, { status: 502 })
+      }
+    } else if (league === "whl") {
+      // ── WHL (leaguestat API) ────────────────────────────────────────────
+      payload = await fetchWHLBoxScore(eventId)
+      if (!payload) {
+        const cached = bsCache.get(cacheKey)
+        if (cached) return NextResponse.json(cached)
+        return NextResponse.json({ error: "WHL API error" }, { status: 502 })
+      }
+    } else if (league === "pwhl") {
+      // ── PWHL (hockeytech API) ───────────────────────────────────────────
+      payload = await fetchPWHLBoxScore(eventId)
+      if (!payload) {
+        const cached = bsCache.get(cacheKey)
+        if (cached) return NextResponse.json(cached)
+        return NextResponse.json({ error: "PWHL API error" }, { status: 502 })
       }
     } else {
       // ── ESPN fallback for all other leagues ─────────────────────────────
