@@ -67,9 +67,10 @@ export default function UpcomingScheduleSection({ game }: Props) {
   return (
     <div className="px-4 pb-6 border-t border-white/8 mt-1">
       {/* Section header */}
-      <div className="flex items-center gap-3 pt-5 pb-4">
-        <span className="font-display text-[15px] font-800 text-zinc-200 uppercase tracking-wider">Upcoming Schedule</span>
-        <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.12)" }} />
+      <div className="flex items-center gap-2 pt-5 pb-4">
+        <div className="flex-1 h-px bg-zinc-800" />
+        <span className="font-display text-[9px] font-700 uppercase tracking-[0.18em] text-zinc-500 px-0.5">Upcoming Schedule</span>
+        <div className="flex-1 h-px bg-zinc-800" />
       </div>
 
       <div className="grid grid-cols-2 gap-3">

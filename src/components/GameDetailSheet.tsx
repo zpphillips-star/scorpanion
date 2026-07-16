@@ -30,6 +30,15 @@ function getLiveDetail(game: Game): string {
 
 // ── Team detail shape (from /api/team-detail) ────────────────────────────────
 
+interface DivStandingRow {
+  abbr: string
+  logo: string
+  wins: number
+  losses: number
+  winPct: number
+  isThis: boolean
+}
+
 interface TeamDetail {
   color: string
   altColor: string
@@ -39,19 +48,45 @@ interface TeamDetail {
   wins: number
   losses: number
   ties?: number
+  divisionStandings: DivStandingRow[]
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
+/** ALL-CAPS section label flanked by hairline dividers */
+function SectionHeader({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-2 mb-2.5">
+      <div className="flex-1 h-px bg-zinc-800" />
+      <span className="font-display text-[9px] font-700 uppercase tracking-[0.18em] text-zinc-500 px-0.5">
+        {label}
+      </span>
+      <div className="flex-1 h-px bg-zinc-800" />
+    </div>
+  )
+}
+
+/** Form dots — up to 5, larger (11 px), green glow on wins, inset shadow on losses */
 function RecentFormDots({ form }: { form: { result: "W" | "L" | "T" }[] }) {
   if (!form || form.length === 0) return null
+  const dots = form.slice(0, 5)
   return (
-    <div className="flex items-center gap-1">
-      {form.map((f, i) => (
+    <div className="flex items-center gap-1.5">
+      {dots.map((f, i) => (
         <div
           key={i}
-          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-          style={{ background: f.result === "W" ? "#34d399" : f.result === "L" ? "#f87171" : "#9ca3af" }}
+          className="rounded-full flex-shrink-0"
+          style={{
+            width: 11,
+            height: 11,
+            background: f.result === "W" ? "#34d399" : f.result === "L" ? "#f87171" : "#6b7280",
+            boxShadow:
+              f.result === "W"
+                ? "0 0 7px #34d399bb, inset 0 1px 1px rgba(255,255,255,0.25)"
+                : f.result === "L"
+                ? "inset 0 2px 4px rgba(0,0,0,0.55)"
+                : "none",
+          }}
           title={f.result}
         />
       ))}
@@ -68,16 +103,19 @@ function TeamContextCard({
   detail: TeamDetail | null
   label: "Away" | "Home"
 }) {
-  const wins   = detail?.wins   ?? record?.wins
-  const losses = detail?.losses ?? record?.losses
-  const ties   = record?.ties
-  const divRank = detail?.divisionRank
-  const divName = detail?.divisionName
-  const form = detail?.recentForm ?? []
+  const wins      = detail?.wins   ?? record?.wins
+  const losses    = detail?.losses ?? record?.losses
+  const ties      = record?.ties
+  const divRank   = detail?.divisionRank
+  const divName   = detail?.divisionName ?? ""
+  const form      = (detail?.recentForm ?? []).slice(0, 5)
+  const standings = detail?.divisionStandings ?? []
 
   return (
-    <div className="rounded-xl px-3 py-3" style={{ background: `${color}18`, border: `1px solid ${color}35` }}>
-      <div className="flex items-center gap-2 mb-2">
+    <div className="rounded-xl px-3 py-3 space-y-3" style={{ background: `${color}18`, border: `1px solid ${color}35` }}>
+
+      {/* Team header */}
+      <div className="flex items-center gap-2">
         <TeamLogo src={logo} emoji={emoji} abbr={abbr} size={22} />
         <div className="flex-1 min-w-0">
           <div className="font-display text-[12px] font-700 text-white truncate">{name}</div>
@@ -85,22 +123,77 @@ function TeamContextCard({
         </div>
       </div>
 
+      {/* Record + division rank */}
       {wins !== undefined && losses !== undefined && (
-        <div className="font-display text-[24px] font-800 text-white tabular-nums leading-none mb-1">
-          {wins}–{losses}{ties !== undefined && ties > 0 ? `–${ties}` : ""}
+        <div>
+          <div className="font-display text-[24px] font-800 text-white tabular-nums leading-none">
+            {wins}–{losses}{ties !== undefined && ties > 0 ? `–${ties}` : ""}
+          </div>
+          {divRank !== null && divRank !== undefined && divName && (
+            <div className="font-display text-[10px] text-zinc-500 mt-0.5">
+              #{divRank} {divName}
+            </div>
+          )}
         </div>
       )}
 
-      {divRank !== null && divRank !== undefined && divName && (
-        <div className="font-display text-[10px] text-zinc-500 mb-2">
-          #{divRank} {divName}
-        </div>
-      )}
-
+      {/* Last 5 Games form dots */}
       {form.length > 0 && (
-        <div className="mt-1.5">
-          <div className="font-display text-[9px] text-zinc-600 uppercase tracking-widest mb-1.5">Last {form.length}</div>
+        <div>
+          <SectionHeader label="Last 5 Games" />
           <RecentFormDots form={form} />
+        </div>
+      )}
+
+      {/* Conference / division standings with team row highlighted */}
+      {standings.length > 0 && (
+        <div>
+          <SectionHeader label={divName || "Division"} />
+          <div className="space-y-0.5">
+            {standings.map((row, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-1.5 px-2 py-1 rounded-md"
+                style={{
+                  background: row.isThis
+                    ? `${color}22`
+                    : i % 2 === 1
+                    ? "rgba(255,255,255,0.025)"
+                    : "transparent",
+                  borderLeft: row.isThis
+                    ? `2.5px solid ${color}`
+                    : "2.5px solid transparent",
+                }}
+              >
+                {row.logo ? (
+                  <img
+                    src={row.logo}
+                    alt={row.abbr}
+                    width={14}
+                    height={14}
+                    className="object-contain flex-shrink-0"
+                    style={{ opacity: row.isThis ? 1 : 0.65 }}
+                  />
+                ) : (
+                  <div className="w-3.5 h-3.5 rounded-full bg-white/10 flex-shrink-0" />
+                )}
+                <span
+                  className={`font-display text-[11px] flex-1 truncate ${
+                    row.isThis ? "font-700 text-white" : "text-zinc-400"
+                  }`}
+                >
+                  {row.abbr}
+                </span>
+                <span
+                  className={`font-display text-[11px] tabular-nums ${
+                    row.isThis ? "font-700 text-white" : "text-zinc-500"
+                  }`}
+                >
+                  {row.wins}–{row.losses}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -181,12 +274,17 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
         {/* ═══ HERO — dual-color split gradient ═══ */}
         <div className="relative overflow-hidden">
-          {/* Left panel (away color) */}
+          {/* Dual-color wash */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
               background: `linear-gradient(to right, ${awayColor}70 0%, ${awayColor}30 42%, transparent 50%, ${homeColor}30 58%, ${homeColor}70 100%)`,
             }}
+          />
+          {/* Top gradient fade behind status badges for readability */}
+          <div
+            className="absolute top-0 left-0 right-0 h-24 pointer-events-none"
+            style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.38), transparent)" }}
           />
           {/* Bottom fade into surface */}
           <div
@@ -320,8 +418,12 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
         {/* Team context cards — upcoming games only */}
         {isUpcoming && (
-          <div className="px-4 pt-2 pb-4 border-t border-white/5">
-            <div className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-600 mb-3">Team Overview</div>
+          <div className="px-4 pt-3 pb-4 border-t border-zinc-800/60">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex-1 h-px bg-zinc-800" />
+              <span className="font-display text-[9px] font-700 uppercase tracking-[0.18em] text-zinc-500 px-0.5">Team Overview</span>
+              <div className="flex-1 h-px bg-zinc-800" />
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <TeamContextCard
                 name={awayName} logo={awayLogo} emoji={awayEmoji} abbr={awayAbbr}
@@ -337,10 +439,14 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
         {/* Season records — live/completed games */}
         {!isUpcoming && (game.seattleRecord || game.opponentRecord) && (
-          <div className="px-4 py-4 border-t border-white/5">
-            <div className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-600 mb-3">Season Records</div>
+          <div className="px-4 py-4 border-t border-zinc-800/60">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex-1 h-px bg-zinc-800" />
+              <span className="font-display text-[9px] font-700 uppercase tracking-[0.18em] text-zinc-500 px-0.5">Season Records</span>
+              <div className="flex-1 h-px bg-zinc-800" />
+            </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl px-4 py-3" style={{ background: `${seattleColor}15`, border: `1px solid ${seattleColor}30` }}>
+              <div className="rounded-xl px-4 py-3 bg-zinc-900/50" style={{ border: `1px solid ${seattleColor}30` }}>
                 <div className="flex items-center gap-2 mb-2">
                   <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={22} />
                   <span className="font-display text-[12px] font-700 text-white truncate">{game.seattleTeam.shortName}</span>
@@ -354,7 +460,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                   </div>
                 )}
               </div>
-              <div className="rounded-xl px-4 py-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+              <div className="rounded-xl px-4 py-3 bg-zinc-900/50" style={{ border: "1px solid var(--border)" }}>
                 <div className="flex items-center gap-2 mb-2">
                   <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={22} />
                   <span className="font-display text-[12px] font-700 text-zinc-300 truncate">{game.opponent.shortName || game.opponent.abbr}</span>
