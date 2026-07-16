@@ -1,15 +1,16 @@
 'use client'
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { Game, ScoreUpdate } from '@/lib/types'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { Game } from '@/lib/types'
 import { SEATTLE_TEAMS, getTeamLogoUrl } from '@/lib/teams'
-import { useSelectedTeams } from '@/hooks/useSelectedTeams'
 import { useTeamClickCounts } from '@/hooks/useTeamClickCounts'
+import { useSportsData } from '@/context/SportsDataContext'
 import TeamLogo from '@/components/TeamLogo'
 import TeamFilterBar, { getCollegeGroupKey } from '@/components/TeamFilterBar'
 import PageHeader from '@/components/PageHeader'
 import GameDetailSheet from '@/components/GameDetailSheet'
 import { SEASON_START_MONTH, LEAGUE_DISPLAY } from '@/lib/seasonStatus'
 import { getActivePlayoffInfo, formatPlayoffDate, PlayoffDateInfo } from '@/lib/playoffDates'
+import { getApproxNextSeason } from '@/lib/seasonDates'
 
 // Map league ID to canonical standings-API key (for leagues that have standings)
 const STANDINGS_LEAGUE_KEY: Record<string, string> = {
@@ -17,18 +18,6 @@ const STANDINGS_LEAGUE_KEY: Record<string, string> = {
 }
 
 interface SeasonInfo { status: string; nextStartApprox: string | null; label: string }
-
-function getApproxNextSeason(leagueId: string): string | null {
-  const month = SEASON_START_MONTH[leagueId]
-  if (!month) return null
-  const now = new Date()
-  const m = now.getMonth() // 0-indexed
-  // Fall-start leagues (NHL, NBA, NFL, WHL): year increments after June
-  const fallStart = ['nhl', 'nba', 'nfl', 'whl', 'college-football',
-    'mens-college-basketball', 'womens-college-basketball']
-  const year = fallStart.includes(leagueId) && m >= 6 ? now.getFullYear() + 1 : now.getFullYear()
-  return `${month} ${year}`
-}
 
 function OffseasonEmptyState({ leagues }: { leagues: string[] }) {
   if (leagues.length === 0) return null
@@ -329,111 +318,22 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
 }
 
 export default function ScheduleClient() {
-  const { selectedTeamIds, loaded } = useSelectedTeams()
+  const { selectedTeamIds, allGames, loading, error } = useSportsData()
   const { counts: teamClickCounts, recordClick: recordTeamClick } = useTeamClickCounts()
-  const [games, setGames] = useState<Game[]>([])
-  const [liveScores, setLiveScores] = useState<Record<string, ScoreUpdate>>({})
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [activeTeamFilter, setActiveTeamFilter] = useState<string>('all')
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [seasonInfoByLeague, setSeasonInfoByLeague] = useState<Record<string, SeasonInfo>>({})
 
-  const fetchSchedule = useCallback(async () => {
-    if (!loaded || selectedTeamIds.length === 0) return
-    try {
-      const WHL_TEAM_IDS = ['thunderbirds', 'silvertips']
-      const NCAA_TEAM_IDS = ['uw-softball', 'uw-soccer']
-      const espnTeamIds = selectedTeamIds.filter(
-        id => id !== 'torrent' && !WHL_TEAM_IDS.includes(id) && !NCAA_TEAM_IDS.includes(id)
-      )
-      const fetches: Promise<Game[]>[] = []
-
-      if (espnTeamIds.length > 0) {
-        fetches.push(
-          fetch(`/api/schedule?teams=${espnTeamIds.join(',')}`).then(r => {
-            if (!r.ok) throw new Error('Failed to fetch schedule')
-            return r.json()
-          })
-        )
-      }
-
-      if (selectedTeamIds.includes('torrent')) {
-        fetches.push(fetch('/api/pwhl').then(r => r.ok ? r.json() : []))
-      }
-
-      if (WHL_TEAM_IDS.some(id => selectedTeamIds.includes(id))) {
-        fetches.push(
-          fetch('/api/whl').then(r => r.ok ? r.json() as Promise<Game[]> : [])
-            .then(gs => gs.filter(g => selectedTeamIds.includes(g.seattleTeamId)))
-        )
-      }
-
-      if (NCAA_TEAM_IDS.some(id => selectedTeamIds.includes(id))) {
-        fetches.push(
-          fetch('/api/ncaa', { signal: AbortSignal.timeout(8000) })
-            .then(r => r.ok ? r.json() as Promise<Game[]> : [])
-            .then(gs => gs.filter(g => selectedTeamIds.includes(g.seattleTeamId)))
-            .catch(() => [])
-        )
-      }
-
-      const results = await Promise.all(fetches)
-      const merged = results.flat().sort(
-        (a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime()
-      )
-      setGames(merged)
-      setError(null)
-    } catch {
-      setError('Unable to load schedule. Check your connection.')
-    } finally {
-      setLoading(false)
-    }
-  }, [loaded, selectedTeamIds])
-
-  const fetchLiveScores = useCallback(async () => {
-    try {
-      const res = await fetch('/api/live-scores')
-      if (!res.ok) return
-      const data: Record<string, ScoreUpdate> = await res.json()
-      setLiveScores(data)
-    } catch {}
-  }, [])
-
-  useEffect(() => {
-    if (loaded) { setLoading(true); fetchSchedule() }
-  }, [loaded, fetchSchedule])
-
-  const liveScoresRef = useRef(liveScores)
-  useEffect(() => { liveScoresRef.current = liveScores }, [liveScores])
-
-  useEffect(() => {
-    fetchLiveScores()
-    let interval = setInterval(fetchLiveScores, 30_000)
-    const adaptivePoller = setInterval(() => {
-      const hasLive = Object.values(liveScoresRef.current).some(s => s.status === 'live')
-      clearInterval(interval)
-      interval = setInterval(fetchLiveScores, hasLive ? 2_000 : 30_000)
-    }, 5_000)
-    return () => { clearInterval(interval); clearInterval(adaptivePoller) }
-  }, [fetchLiveScores])
-
-  const mergedGames = games.map(g => {
-    const update = liveScores[g.id]
-    if (!update) return g
-    return { ...g, status: update.status, seattleScore: update.seattleScore, opponentScore: update.opponentScore, clock: update.clock, period: update.period }
-  })
-
   const filteredGames = (() => {
-    if (activeTeamFilter === 'all') return mergedGames
+    if (activeTeamFilter === 'all') return allGames
     const item = SEATTLE_TEAMS.find(t => t.id === activeTeamFilter)
-    if (!item) return mergedGames
+    if (!item) return allGames
     const gk = getCollegeGroupKey(activeTeamFilter)
     if (gk) {
       const ids = SEATTLE_TEAMS.filter(t => getCollegeGroupKey(t.id) === gk).map(t => t.id)
-      return mergedGames.filter(g => ids.includes(g.seattleTeamId))
+      return allGames.filter(g => ids.includes(g.seattleTeamId))
     }
-    return mergedGames.filter(g => g.seattleTeamId === activeTeamFilter)
+    return allGames.filter(g => g.seattleTeamId === activeTeamFilter)
   })()
 
   // Detect leagues that have no upcoming games (all games are final or schedule is empty)
@@ -458,11 +358,11 @@ export default function ScheduleClient() {
       if (seenLeagues.has(team.league)) continue
       seenLeagues.add(team.league)
 
-      const hasUpcoming = mergedGames.some(g => g.seattleTeamId === teamId && g.status !== 'ft')
+      const hasUpcoming = allGames.some(g => g.seattleTeamId === teamId && g.status !== 'ft')
       if (!hasUpcoming) result.push(team.league)
     }
     return result
-  }, [activeTeamFilter, selectedTeamIds, mergedGames])
+  }, [activeTeamFilter, selectedTeamIds, allGames])
 
   // Fetch season status from standings API for leagues with no upcoming games
   useEffect(() => {
@@ -501,9 +401,9 @@ export default function ScheduleClient() {
       // If no API data yet but the team has past games and no upcoming, assume offseason
       const team = SEATTLE_TEAMS.find(t => t.league === league && selectedTeamIds.includes(t.id))
       if (!team) return false
-      return mergedGames.some(g => g.seattleTeamId === team.id && g.status === 'ft')
+      return allGames.some(g => g.seattleTeamId === team.id && g.status === 'ft')
     })
-  }, [offseasonLeagues, seasonInfoByLeague, mergedGames, selectedTeamIds])
+  }, [offseasonLeagues, seasonInfoByLeague, allGames, selectedTeamIds])
 
   // Build per-league display info for offseason banners/empty states
   const offseasonDisplayLeagues = useMemo(() => {

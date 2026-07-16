@@ -34,6 +34,8 @@ export function useSelectedTeams() {
     setSelectedTeamIds(prev => {
       const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+      // Notify SportsDataContext so it can refetch with the new team selection
+      window.dispatchEvent(new CustomEvent('scorpanion:teams-changed', { detail: next }))
       return next
     })
   }

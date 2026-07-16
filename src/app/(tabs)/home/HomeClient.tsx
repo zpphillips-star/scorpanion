@@ -1,15 +1,16 @@
 "use client"
-import { useState, useEffect, useCallback, useRef } from "react"
-import { Game, ScoreUpdate } from "@/lib/types"
+import { useState, useEffect } from "react"
+import { Game } from "@/lib/types"
 import { SEATTLE_TEAMS, getTeamLogoUrl } from "@/lib/teams"
-import { useSelectedTeams } from "@/hooks/useSelectedTeams"
 import { useTeamClickCounts } from "@/hooks/useTeamClickCounts"
+import { useSportsData } from "@/context/SportsDataContext"
 import GameCard from "@/components/GameCard"
 import TeamLogo from "@/components/TeamLogo"
 import BoxScore from "@/components/BoxScore"
 import TeamDetailSheet from "@/components/TeamDetailSheet"
 import PageHeader from "@/components/PageHeader"
 import { TodayGameCard, TodayBanner } from "@/components/TodayGameCard"
+import { OFFSEASON_DISPLAY } from "@/lib/seasonDates"
 
 // Use explicit timezone for all date comparisons (matches phone's local time)
 function getTimezone(): string {
@@ -50,20 +51,9 @@ const SPORT_LABELS: Record<string, string> = {
   volleyball: "Volleyball", lacrosse: "Lacrosse", softball: "Softball", soccer: "Soccer", hockey: "Hockey",
 }
 
-// ── Off-season / no-games context ─────────────────────────────────────────
-const NEXT_SEASON: Record<string, { label: string; detail: string; icon: string }> = {
-  mlb:        { label: "Spring Training", detail: "Opens mid-February",     icon: "⚾" },
-  nfl:        { label: "Training Camp",   detail: "Opens late July",        icon: "🏈" },
-  nhl:        { label: "New Season",      detail: "Begins early October",   icon: "🏒" },
-  wnba:       { label: "New Season",      detail: "Begins mid-May",         icon: "🏀" },
-  "usa.1":    { label: "New Season",      detail: "Begins late February",   icon: "⚽" },
-  "usa.nwsl": { label: "New Season",      detail: "Begins mid-March",       icon: "⚽" },
-  "college-football": { label: "Fall Season", detail: "Begins late August", icon: "🏈" },
-  "mens-college-basketball":   { label: "New Season", detail: "Begins November", icon: "🏀" },
-  "womens-college-basketball": { label: "New Season", detail: "Begins November", icon: "🏀" },
-  whl:        { label: "New Season",      detail: "Begins late September",  icon: "🏒" },
-  pwhl:       { label: "New Season",      detail: "Begins January",         icon: "🏒" },
-}
+// Off-season display info — imported from @/lib/seasonDates (OFFSEASON_DISPLAY)
+// Alias so existing code in OffSeasonCards still works as-is.
+const NEXT_SEASON = OFFSEASON_DISPLAY
 
 function OffSeasonCards({ teams, nextGames }: {
   teams: typeof SEATTLE_TEAMS
@@ -444,61 +434,11 @@ function CollegeSportPicker({
 }
 
 export default function HomeClient() {
-  const { selectedTeamIds, loaded } = useSelectedTeams()
+  const { selectedTeamIds, loaded, allGames, loading } = useSportsData()
   const { counts: teamClickCounts, recordClick } = useTeamClickCounts()
-  const [games, setGames] = useState<Game[]>([])
-  const [liveScores, setLiveScores] = useState<Record<string, ScoreUpdate>>({})
-  const [loading, setLoading] = useState(true)
   const [activeFilter, setActiveFilter] = useState<string>("all")
   const [collegePicker, setCollegePicker] = useState<string | null>(null) // groupKey "uw" | "wsu"
   const [selectedRecentGame, setSelectedRecentGame] = useState<Game | null>(null)
-  const liveScoresRef = useRef(liveScores)
-  useEffect(() => { liveScoresRef.current = liveScores }, [liveScores])
-
-  const fetchGames = useCallback(async () => {
-    if (!loaded || selectedTeamIds.length === 0) return
-    try {
-      const WHL = ["thunderbirds", "silvertips"]
-      const NCAA = ["uw-softball", "uw-soccer"]
-      const espnIds = selectedTeamIds.filter(id => id !== "torrent" && !WHL.includes(id) && !NCAA.includes(id))
-      const fetches: Promise<Game[]>[] = []
-      if (espnIds.length > 0) fetches.push(fetch(`/api/schedule?teams=${espnIds.join(",")}`).then(r => r.ok ? r.json() : []))
-      if (selectedTeamIds.includes("torrent")) fetches.push(fetch("/api/pwhl").then(r => r.ok ? r.json() : []))
-      if (WHL.some(id => selectedTeamIds.includes(id))) {
-        fetches.push(fetch("/api/whl").then(r => r.ok ? r.json() as Promise<Game[]> : []).then(gs => gs.filter(g => selectedTeamIds.includes(g.seattleTeamId))))
-      }
-      if (NCAA.some(id => selectedTeamIds.includes(id))) {
-        fetches.push(fetch("/api/ncaa", { signal: AbortSignal.timeout(8000) }).then(r => r.ok ? r.json() as Promise<Game[]> : []).then(gs => gs.filter(g => selectedTeamIds.includes(g.seattleTeamId))).catch(() => []))
-      }
-      const results = await Promise.all(fetches)
-      setGames(results.flat().sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime()))
-    } catch { /* silent */ }
-    finally { setLoading(false) }
-  }, [loaded, selectedTeamIds])
-
-  const fetchLive = useCallback(async () => {
-    try {
-      const r = await fetch("/api/live-scores"); if (!r.ok) return
-      setLiveScores(await r.json())
-    } catch { /* silent */ }
-  }, [])
-
-  useEffect(() => { if (loaded) { setLoading(true); fetchGames() } }, [loaded, fetchGames])
-
-  useEffect(() => {
-    fetchLive()
-    let interval = setInterval(fetchLive, 30_000)
-    const adaptive = setInterval(() => {
-      const hasLive = Object.values(liveScoresRef.current).some(s => s.status === "live")
-      clearInterval(interval); interval = setInterval(fetchLive, hasLive ? 2_000 : 30_000)
-    }, 5_000)
-    return () => { clearInterval(interval); clearInterval(adaptive) }
-  }, [fetchLive])
-
-  // Merge live scores
-  const allGames = games.map(g => {
-    const u = liveScores[g.id]; return u ? { ...g, status: u.status, seattleScore: u.seattleScore, opponentScore: u.opponentScore } : g
-  })
 
   // Build filter items — one per unique logo, sorted by aggregated click count
   // College schools get click counts summed across all their sport variants
