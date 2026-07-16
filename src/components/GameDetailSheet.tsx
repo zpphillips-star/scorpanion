@@ -401,16 +401,16 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
         {/* Team context cards — upcoming games only */}
         {isUpcoming && (
           <div className="border-t border-zinc-800/60">
-            <div className="px-5 pt-5 pb-2">
+            <div className="px-5 pt-7 pb-3">
               <span className="font-display text-[10px] font-700 uppercase tracking-[0.18em] text-zinc-500">Team Overview</span>
             </div>
-            <div className="px-5 py-4 border-t border-zinc-800/40">
+            <div className="px-5 py-5 border-t border-zinc-800/40">
               <TeamContextCard
                 name={awayName} logo={awayLogo} emoji={awayEmoji} abbr={awayAbbr}
                 color={awayColor} record={awayRecord} detail={awayDetail} label="Away"
               />
             </div>
-            <div className="px-5 py-4 border-t border-zinc-800/60">
+            <div className="px-5 py-5 border-t border-zinc-800/60">
               <TeamContextCard
                 name={homeName} logo={homeLogo} emoji={homeEmoji} abbr={homeAbbr}
                 color={homeColor} record={homeRecord} detail={homeDetail} label="Home"
@@ -422,34 +422,34 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
         {/* Season records — live/completed games */}
         {!isUpcoming && (game.seattleRecord || game.opponentRecord) && (
           <div className="border-t border-zinc-800/60">
-            <div className="px-5 pt-5 pb-2">
+            <div className="px-5 pt-7 pb-3">
               <span className="font-display text-[10px] font-700 uppercase tracking-[0.18em] text-zinc-500">Season Records</span>
             </div>
             <div className="grid grid-cols-2 divide-x divide-zinc-800/60">
-              <div className="px-5 py-4">
-                <div className="flex items-center gap-2 mb-3">
+              <div className="px-5 py-6">
+                <div className="flex items-center gap-2 mb-4">
                   <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={22} />
                   <span className="font-display text-[12px] font-700 text-white truncate">{game.seattleTeam.shortName}</span>
                 </div>
-                <div className="font-display text-[30px] font-800 text-white tabular-nums leading-none">
+                <div className="font-display text-[34px] font-800 text-white tabular-nums leading-none">
                   {game.seattleRecord ? `${game.seattleRecord.wins}–${game.seattleRecord.losses}` : "–"}
                 </div>
                 {game.seattleRecord && (
-                  <div className="text-[11px] text-zinc-500 mt-1.5">
+                  <div className="text-[12px] text-zinc-500 mt-2">
                     {((game.seattleRecord.wins / Math.max(game.seattleRecord.wins + game.seattleRecord.losses, 1)) * 100).toFixed(1)}% win rate
                   </div>
                 )}
               </div>
-              <div className="px-5 py-4">
-                <div className="flex items-center gap-2 mb-3">
+              <div className="px-5 py-6">
+                <div className="flex items-center gap-2 mb-4">
                   <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={22} />
                   <span className="font-display text-[12px] font-700 text-zinc-300 truncate">{game.opponent.shortName || game.opponent.abbr}</span>
                 </div>
-                <div className="font-display text-[30px] font-800 text-zinc-300 tabular-nums leading-none">
+                <div className="font-display text-[34px] font-800 text-zinc-300 tabular-nums leading-none">
                   {game.opponentRecord ? `${game.opponentRecord.wins}–${game.opponentRecord.losses}` : "–"}
                 </div>
                 {game.opponentRecord && (
-                  <div className="text-[11px] text-zinc-500 mt-1.5">
+                  <div className="text-[12px] text-zinc-500 mt-2">
                     {((game.opponentRecord.wins / Math.max(game.opponentRecord.wins + game.opponentRecord.losses, 1)) * 100).toFixed(1)}% win rate
                   </div>
                 )}

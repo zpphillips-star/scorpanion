@@ -83,9 +83,9 @@ interface Props {
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
-const CELL  = "px-2 py-2.5 font-display tabular-nums text-center"
-const HDR   = "pb-2 px-2 font-display text-[12px] font-700 text-zinc-500 uppercase tracking-wider text-center"
-const TEAM_CELL = "pr-3 py-2.5 text-left"
+const CELL  = "px-2 py-4 font-display tabular-nums text-center"
+const HDR   = "pb-3 px-2 font-display text-[12px] font-700 text-zinc-500 uppercase tracking-wider text-center"
+const TEAM_CELL = "pr-3 py-4 text-left"
 
 /** Returns true when the column index corresponds to the live period */
 function isCurrentCol(periodIdx: number, currentPeriod: number | null, sportType: string): boolean {
@@ -118,7 +118,7 @@ function TeamCell({ team, isSea }: { team: LineTeam; isSea: boolean }) {
 
 function SectionHeader({ label, first = false }: { label: string; first?: boolean }) {
   return (
-    <div className={`px-5 pb-3 ${first ? "pt-5" : "pt-7 border-t border-zinc-800/60"}`}>
+    <div className={`px-5 pb-4 ${first ? "pt-6" : "pt-8 border-t border-zinc-800/60"}`}>
       <span className="font-display text-[10px] font-700 uppercase tracking-[0.16em] text-zinc-500">{label}</span>
     </div>
   )
@@ -280,7 +280,7 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
         <>
           <SectionHeader label="Top Scorers" />
           {/* Column headers */}
-          <div className="grid grid-cols-[1fr_32px_32px_32px] gap-x-2 items-center px-5 pb-1.5 border-b border-zinc-800/60">
+          <div className="grid grid-cols-[1fr_32px_32px_32px] gap-x-2 items-center px-5 pb-2 border-b border-zinc-800/60">
             <span />
             <span className="font-display text-[10px] font-700 text-zinc-600 uppercase tracking-wider text-center">PTS</span>
             <span className="font-display text-[10px] font-700 text-zinc-600 uppercase tracking-wider text-center">REB</span>
@@ -293,7 +293,7 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
               ?? []
             if (teamScorers.length === 0) return null
             return (
-              <div key={team.teamId} className={`relative overflow-hidden${teamIdx > 0 ? " mt-3 border-t-4 border-zinc-800" : ""}`}>
+              <div key={team.teamId} className={`relative overflow-hidden${teamIdx > 0 ? " mt-4 border-t-4 border-zinc-800" : ""}`}>
                 {/* Watermark logo — centered behind all player rows */}
                 {team.logo && (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -316,7 +316,7 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
                   />
                 )}
                 {teamScorers.map((s, idx) => (
-                  <div key={idx} className="relative grid grid-cols-[1fr_32px_32px_32px] gap-x-2 items-center px-5 py-3.5 border-b border-zinc-800/40 last:border-0">
+                  <div key={idx} className="relative grid grid-cols-[1fr_32px_32px_32px] gap-x-2 items-center px-5 py-5 border-b border-zinc-800/40 last:border-0">
                     <span className="text-[14px] font-600 truncate text-zinc-200">{s.name}</span>
                     <span className="font-display text-[14px] font-600 tabular-nums text-center text-zinc-200">{s.pts}</span>
                     <span className="font-display text-[14px] font-600 tabular-nums text-center text-zinc-400">{s.reb}</span>
@@ -468,19 +468,19 @@ function SoccerScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattle
   return (
     <>
       <SectionHeader label="Match Summary" first />
-      <div className="px-4 pb-2">
+      <div className="px-5 pb-4">
         {/* Scorers */}
         {goalScorers.length > 0 && (
-          <div className="grid grid-cols-[1fr_auto_1fr] gap-x-2 mt-1">
+          <div className="grid grid-cols-[1fr_auto_1fr] gap-x-2 mt-2">
             {Array.from({ length: maxGoals }).map((_, i) => {
               const ag = awayGoals[i]
               const hg = homeGoals[i]
               return (
                 <div key={i} className="contents">
                   {/* Away scorer */}
-                  <div className="text-right py-0.5">
+                  <div className="text-right py-2">
                     {ag ? (
-                      <span className={`text-[12px] font-600 ${away.teamId === (seattleTeamId ?? "") ? "text-zinc-200" : "text-zinc-400"}`}>
+                      <span className={`text-[13px] font-600 ${away.teamId === (seattleTeamId ?? "") ? "text-zinc-200" : "text-zinc-400"}`}>
                         {ag.name}
                         {ag.type === "Own Goal" ? " (OG)" : ag.type === "Penalty" ? " (P)" : ""}
                         <span className="text-zinc-500 ml-1">{ag.minute}′</span>
@@ -489,9 +489,9 @@ function SoccerScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattle
                   </div>
                   <div className="w-4" />
                   {/* Home scorer */}
-                  <div className="py-0.5">
+                  <div className="py-2">
                     {hg ? (
-                      <span className={`text-[12px] font-600 ${home.teamId === (seattleTeamId ?? "") ? "text-zinc-200" : "text-zinc-400"}`}>
+                      <span className={`text-[13px] font-600 ${home.teamId === (seattleTeamId ?? "") ? "text-zinc-200" : "text-zinc-400"}`}>
                         {hg.name}
                         {hg.type === "Own Goal" ? " (OG)" : hg.type === "Penalty" ? " (P)" : ""}
                         <span className="text-zinc-500 ml-1">{hg.minute}′</span>
@@ -506,10 +506,10 @@ function SoccerScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattle
 
         {/* Half-time breakdown if available */}
         {(away.linescores.length > 0 || home.linescores.length > 0) && (
-          <div className="mt-3 flex items-center justify-between text-[11px] text-zinc-600 border-t border-zinc-800 pt-2">
-            <span className="tabular-nums">{away.linescores[0] ?? 0} – {home.linescores[0] ?? 0}</span>
-            <span>Half Time</span>
-            <span className="tabular-nums">{away.linescores[1] ?? 0} – {home.linescores[1] ?? 0}</span>
+          <div className="mt-5 flex items-center justify-between text-[12px] text-zinc-500 border-t border-zinc-800 pt-4">
+            <span className="tabular-nums font-600">{away.linescores[0] ?? 0} – {home.linescores[0] ?? 0}</span>
+            <span className="uppercase tracking-wider text-[10px]">Half Time</span>
+            <span className="tabular-nums font-600">{away.linescores[1] ?? 0} – {home.linescores[1] ?? 0}</span>
           </div>
         )}
       </div>
@@ -598,8 +598,8 @@ function TeamStatsSection({ data, color }: { data: BoxScoreData; color: string }
           const total = numA + numB || 1
           const pctA = numA / total
           return (
-            <div key={key} className="px-5 py-3 border-b border-zinc-800/50 last:border-0">
-              <div className="flex justify-between items-baseline mb-2">
+            <div key={key} className="px-5 py-5 border-b border-zinc-800/50 last:border-0">
+              <div className="flex justify-between items-baseline mb-3">
                 <span className="font-display text-[15px] font-700 text-white tabular-nums">{vA}</span>
                 <span className="font-display text-[10px] font-700 text-zinc-500 uppercase tracking-[0.12em]">{label}</span>
                 <span className="font-display text-[15px] font-700 text-zinc-400 tabular-nums">{vB}</span>
