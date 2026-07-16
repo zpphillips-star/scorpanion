@@ -279,9 +279,8 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
       {topScorers.length > 0 && (
         <>
           <SectionHeader label="Top Scorers" />
-          {/* One shared column-header row */}
-          <div className="grid grid-cols-[20px_1fr_32px_32px_32px] gap-x-2 items-center px-5 pb-1.5 border-b border-zinc-800/60">
-            <span />
+          {/* Column headers */}
+          <div className="grid grid-cols-[1fr_32px_32px_32px] gap-x-2 items-center px-5 pb-1.5 border-b border-zinc-800/60">
             <span />
             <span className="font-display text-[10px] font-700 text-zinc-600 uppercase tracking-wider text-center">PTS</span>
             <span className="font-display text-[10px] font-700 text-zinc-600 uppercase tracking-wider text-center">REB</span>
@@ -292,14 +291,30 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
             const isSea = (seattleTeamId && team.teamId === seattleTeamId) || team.abbr === "SEA"
             if (teamScorers.length === 0) return null
             return (
-              <div key={team.teamId} className={teamIdx > 0 ? "border-t border-zinc-800/60" : ""}>
+              <div key={team.teamId} className={`relative overflow-hidden${teamIdx > 0 ? " border-t border-zinc-800/60" : ""}`}>
+                {/* Watermark logo — centered behind all player rows */}
+                {team.logo && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={team.logo}
+                    alt=""
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      width: 80,
+                      height: 80,
+                      objectFit: "contain",
+                      opacity: 0.055,
+                      pointerEvents: "none",
+                      userSelect: "none",
+                    }}
+                  />
+                )}
                 {teamScorers.map((s, idx) => (
-                  <div key={idx} className="grid grid-cols-[20px_1fr_32px_32px_32px] gap-x-2 items-center px-5 py-3 border-b border-zinc-800/40 last:border-0">
-                    {/* Logo only on the first player row per team */}
-                    {idx === 0 && team.logo
-                      // eslint-disable-next-line @next/next/no-img-element
-                      ? <img src={team.logo} alt={team.abbr} width={16} height={16} className="object-contain flex-shrink-0" />
-                      : <span />}
+                  <div key={idx} className="relative grid grid-cols-[1fr_32px_32px_32px] gap-x-2 items-center px-5 py-3 border-b border-zinc-800/40 last:border-0">
                     <span className={`text-[13px] font-600 truncate ${isSea ? "text-zinc-200" : "text-zinc-400"}`}>{s.name}</span>
                     <span className="font-display text-[13px] font-700 tabular-nums text-center" style={{ color: isSea ? color : "#a1a1aa" }}>{s.pts}</span>
                     <span className="font-display text-[13px] font-600 tabular-nums text-center text-zinc-500">{s.reb}</span>
