@@ -103,7 +103,7 @@ function mlbLogoUrl(fileCode: string): string {
 async function fetchMLBSchedule(team: SeattleTeam): Promise<Game[]> {
   const year = new Date().getFullYear()
   const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&teamId=${MLB_MARINERS_TEAM_ID}&season=${year}&hydrate=linescore,team`
-  const res = await fetch(url, { next: { revalidate: 300 } })
+  const res = await fetch(url, { next: { revalidate: 60 } })
   if (!res.ok) return []
   const data = await res.json()
 
@@ -171,7 +171,7 @@ async function fetchMLBSchedule(team: SeattleTeam): Promise<Game[]> {
 async function fetchNHLSchedule(team: SeattleTeam): Promise<Game[]> {
   const seasonId = getNHLSeasonId()
   const url = `https://api-web.nhle.com/v1/club-schedule-season/${NHL_KRAKEN_ABBREV}/${seasonId}`
-  const res = await fetch(url, { next: { revalidate: 300 } })
+  const res = await fetch(url, { next: { revalidate: 60 } })
   if (!res.ok) return []
   const data = await res.json()
 
@@ -252,7 +252,7 @@ function parseRecord(comp: any): TeamRecord | undefined {
 
 async function fetchESPNSchedule(team: SeattleTeam): Promise<Game[]> {
   const url = `https://site.api.espn.com/apis/site/v2/sports/${team.sport}/${team.league}/teams/${team.espnId}/schedule`
-  const res = await fetch(url, { next: { revalidate: 300 } })
+  const res = await fetch(url, { next: { revalidate: 60 } })
   if (!res.ok) return []
   const data = await res.json()
 
