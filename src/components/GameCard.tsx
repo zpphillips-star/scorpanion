@@ -62,149 +62,78 @@ export default function GameCard({ game }: GameCardProps) {
   const gcAwayAbbr   = game.isHome ? game.opponent.abbr  : game.seattleTeam.abbr
   const gcAwayName   = game.isHome ? (game.opponent.shortName || game.opponent.name) : game.seattleTeam.shortName
   const gcAwayScore  = game.isHome ? game.opponentScore  : game.seattleScore
-  const gcAwayRecord = game.isHome ? game.opponentRecord : game.seattleRecord
   const gcHomeLogo   = game.isHome ? seattleLogoUrl      : game.opponent.logo
   const gcHomeEmoji  = game.isHome ? game.seattleTeam.emoji : "🏟️"
   const gcHomeAbbr   = game.isHome ? game.seattleTeam.abbr  : game.opponent.abbr
   const gcHomeName   = game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)
   const gcHomeScore  = game.isHome ? game.seattleScore   : game.opponentScore
-  const gcHomeRecord = game.isHome ? game.seattleRecord  : game.opponentRecord
   const gcAwayWon = isFt && game.seattleScore !== undefined && game.opponentScore !== undefined && (gcAwayScore ?? 0) > (gcHomeScore ?? 0)
   const gcHomeWon = isFt && game.seattleScore !== undefined && game.opponentScore !== undefined && (gcHomeScore ?? 0) > (gcAwayScore ?? 0)
 
   const cardStyle: React.CSSProperties = isLive ? {
-    background: "#13131e",
-    border: "1px solid rgba(0,212,255,0.2)",
-    borderLeftWidth: "3px",
-    borderLeftColor: "#00d4ff",
-    boxShadow: "0 0 0 1px rgba(0,212,255,0.1), 0 2px 20px rgba(0,212,255,0.06)",
-  } : {
-    background: "var(--surface)",
-    border: "1px solid #1e1e2e",
-  }
+    background: "rgba(239,68,68,0.04)",
+    borderLeft: "2px solid #ef4444",
+  } : {}
 
   return (
     <>
-      {/* ── Compact row card ─────────────────────────────────────────────── */}
+      {/* ── Compact flat row ─────────────────────────────────────────────── */}
       <button className="w-full text-left group" onClick={() => setOpen(true)}>
         <div
-          className="mx-3 my-1 rounded-xl overflow-hidden transition-all duration-150 active:scale-[0.985]"
+          className="flex items-center px-4 py-3 border-b border-zinc-800/50 hover:bg-white/[0.02] active:bg-white/[0.03] transition-colors"
           style={cardStyle}
         >
-          {/* ── Header: status badge + date/league pill ── */}
-          <div className="flex items-center justify-between px-4 pt-3 pb-2">
+          {/* Left: status/time — fixed 64px */}
+          <div className="w-16 flex-shrink-0 flex flex-col gap-0.5">
             {isLive ? (
-              <div
-                className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
-                style={{ background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.25)" }}
-              >
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "var(--accent)" }} />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ background: "var(--accent)" }} />
+              <div className="flex items-center gap-1">
+                <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
                 </span>
-                <span className="font-medium text-[11px] uppercase tracking-widest" style={{ color: "var(--accent)" }}>LIVE</span>
+                <span className="text-[11px] font-bold text-red-400 uppercase tracking-wide">Live</span>
               </div>
             ) : isFt ? (
-              <span
-                className="font-medium text-[11px] uppercase tracking-widest rounded-full px-2.5 py-1"
-                style={{ color: "var(--status-final)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-              >FINAL</span>
+              <span className="text-[11px] text-zinc-500 uppercase tracking-wide">Final</span>
             ) : (
-              <span className="font-medium text-[11px] text-zinc-500 uppercase tracking-widest">{formatGameDate(game.kickoff)}</span>
+              <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap">{formatGameTime(game.kickoff)}</span>
             )}
-            <div className="flex items-center gap-2">
-              {game.broadcast && (
-                <span className="text-[10px] text-zinc-600">{game.broadcast}</span>
-              )}
-              <span className="text-[10px] font-medium" style={{ color: "#9090b0" }}>{game.league.toUpperCase()}</span>
-              <svg className="w-3 h-3 text-zinc-700 group-hover:text-zinc-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
+            <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">{game.league}</span>
           </div>
 
-          {/* ── Team rows ── */}
-          <div className="px-4 pb-3">
+          {/* Away team (right-aligned) */}
+          <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
+            <span className={`text-[13px] font-semibold truncate text-right leading-tight ${isFt && gcHomeWon ? "text-zinc-500" : "text-white"}`}>
+              {gcAwayName}
+            </span>
+            <TeamLogo src={gcAwayLogo} emoji={gcAwayEmoji} abbr={gcAwayAbbr} size={26}
+              className={`flex-shrink-0 transition-opacity${isFt && gcHomeWon ? " opacity-40" : ""}`} />
+          </div>
 
-            {/* Away team row */}
-            <div className="flex items-center gap-3 py-1">
-              <button
-                className="flex-shrink-0 active:scale-95 transition-transform"
-                onClick={e => { e.stopPropagation(); setTeamSheet(game.isHome ? { id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo } : { id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl }) }}
-              >
-                <TeamLogo
-                  src={gcAwayLogo} emoji={gcAwayEmoji} abbr={gcAwayAbbr} size={40}
-                  className={`rounded-lg transition-opacity${isFt && !gcAwayWon && gcHomeWon ? " opacity-60" : ""}`}
-                />
-              </button>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[12px]" style={{ color: "#9090b0" }}>{gcAwayAbbr}</span>
-                  {gcAwayRecord && <span className="text-[10px] text-zinc-700">{formatRecord(gcAwayRecord)}</span>}
-                </div>
-                <div
-                  className="font-display text-[16px] font-700 leading-tight truncate"
-                  style={{ color: isFt && !gcAwayWon && gcHomeWon ? "#5a5a7a" : "#f0f0f8" }}
-                >{gcAwayName}</div>
-              </div>
-              {hasScore && gcAwayScore !== undefined && (
-                <div
-                  className="font-display font-700 tabular-nums leading-none flex-shrink-0"
-                  style={{ fontSize: "40px", color: isFt && !gcAwayWon && gcHomeWon ? "#5a5a7a" : "#f0f0f8" }}
-                >{gcAwayScore}</div>
-              )}
-            </div>
-
-            {/* Upcoming only: time / vs separator */}
-            {isUp && (
-              <div className="flex items-center gap-2 py-1">
-                <div className="flex-1 h-px" style={{ background: "rgba(144,144,176,0.15)" }} />
-                <span className="text-[12px] font-medium" style={{ color: "#9090b0" }}>
-                  {formatGameTime(game.kickoff)} · {game.isHome ? "Home" : "Away"}
-                </span>
-                <div className="flex-1 h-px" style={{ background: "rgba(144,144,176,0.15)" }} />
-              </div>
-            )}
-
-            {/* Home team row */}
-            <div className="flex items-center gap-3 py-1">
-              <button
-                className="flex-shrink-0 active:scale-95 transition-transform"
-                onClick={e => { e.stopPropagation(); setTeamSheet(game.isHome ? { id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl } : { id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo }) }}
-              >
-                <TeamLogo
-                  src={gcHomeLogo} emoji={gcHomeEmoji} abbr={gcHomeAbbr} size={40}
-                  className={`rounded-lg transition-opacity${isFt && !gcHomeWon && gcAwayWon ? " opacity-60" : ""}`}
-                />
-              </button>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[12px]" style={{ color: "#9090b0" }}>{gcHomeAbbr}</span>
-                  {gcHomeRecord && <span className="text-[10px] text-zinc-700">{formatRecord(gcHomeRecord)}</span>}
-                </div>
-                <div
-                  className="font-display text-[16px] font-700 leading-tight truncate"
-                  style={{ color: isFt && !gcHomeWon && gcAwayWon ? "#5a5a7a" : "#f0f0f8" }}
-                >{gcHomeName}</div>
-              </div>
-              {hasScore && gcHomeScore !== undefined && (
-                <div
-                  className="font-display font-700 tabular-nums leading-none flex-shrink-0"
-                  style={{ fontSize: "40px", color: isFt && !gcHomeWon && gcAwayWon ? "#5a5a7a" : "#f0f0f8" }}
-                >{gcHomeScore}</div>
-              )}
-            </div>
-
-            {/* Win/loss label + venue footer */}
-            {(isFt || isLive) && (
-              <div className="flex items-center gap-2 mt-1.5 pt-1.5" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-                {isFt && seattleWon && <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">W</span>}
-                {isFt && seattleLost && <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider">L</span>}
-                {isLive && game.clock && <span className="text-[11px] font-medium" style={{ color: "var(--accent)" }}>{game.clock}</span>}
-                {game.venue?.city && <span className="text-[11px] text-zinc-600 ml-auto">{game.venue.city}{game.venue.state ? `, ${game.venue.state}` : ""}</span>}
-              </div>
+          {/* Score / vs — center */}
+          <div className="w-14 flex-shrink-0 text-center">
+            {hasScore && gcAwayScore !== undefined && gcHomeScore !== undefined ? (
+              <span className={`text-[14px] font-bold tabular-nums ${isLive ? "text-red-300" : "text-white"}`}>
+                {gcAwayScore}–{gcHomeScore}
+              </span>
+            ) : (
+              <span className="text-[12px] text-zinc-600">vs</span>
             )}
           </div>
+
+          {/* Home team (left-aligned) */}
+          <div className="flex-1 flex items-center gap-2 min-w-0">
+            <TeamLogo src={gcHomeLogo} emoji={gcHomeEmoji} abbr={gcHomeAbbr} size={26}
+              className={`flex-shrink-0 transition-opacity${isFt && gcAwayWon ? " opacity-40" : ""}`} />
+            <span className={`text-[13px] font-semibold truncate leading-tight ${isFt && gcAwayWon ? "text-zinc-500" : "text-white"}`}>
+              {gcHomeName}
+            </span>
+          </div>
+
+          {/* Chevron */}
+          <svg className="w-3 h-3 text-zinc-700 group-hover:text-zinc-500 flex-shrink-0 ml-2 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </div>
       </button>
 

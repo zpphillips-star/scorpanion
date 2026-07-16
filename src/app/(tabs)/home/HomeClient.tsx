@@ -60,7 +60,7 @@ function OffSeasonCards({ teams, nextGames }: {
   if (teams.length === 0) return null
 
   return (
-    <div className="mx-3 mt-4 space-y-3">
+    <div className="mt-2">
       {teams.map(team => {
         const next = nextGames[team.id]
         const seasonInfo = NEXT_SEASON[team.league]
@@ -69,60 +69,38 @@ function OffSeasonCards({ teams, nextGames }: {
         return (
           <div
             key={team.id}
-            className="rounded-2xl overflow-hidden"
-            style={{ background: "var(--surface)", border: `1px solid ${team.primaryColor}30` }}
+            className="flex items-center gap-3 px-4 py-3.5 border-b border-zinc-800/50"
           >
-            {/* Top color bar */}
-            <div className="h-1" style={{ background: `linear-gradient(to right, ${team.primaryColor}, ${team.secondaryColor}55, transparent)` }} />
+            {/* Team logo */}
+            <TeamLogo src={logoUrl} emoji={team.emoji} abbr={team.abbr} size={32} />
 
-            <div className="px-4 py-4 flex items-center gap-4">
-              {/* Team logo */}
-              <div className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center" style={{ background: `${team.primaryColor}20` }}>
-                <TeamLogo src={logoUrl} emoji={team.emoji} abbr={team.abbr} size={36} />
-              </div>
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-semibold text-white leading-tight">{team.shortName}</div>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="font-display text-[15px] font-700 text-white leading-tight">{team.shortName}</div>
-
-                {next ? (
-                  <>
-                    <div className="font-display text-[11px] font-600 uppercase tracking-widest mt-0.5" style={{ color: team.primaryColor === "#001628" || team.primaryColor === "#002244" || team.primaryColor === "#0C2C56" ? "#99D9D9" : team.primaryColor }}>
-                      Next game
-                    </div>
-                    <div className="text-[13px] text-zinc-300 mt-0.5 font-semibold">
-                      {new Date(next.kickoff).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
-                      <span className="text-zinc-500 font-normal mx-1.5">·</span>
-                      <span className="text-zinc-400">{next.isHome ? "vs" : "@"} {next.opponent.shortName || next.opponent.abbr}</span>
-                    </div>
-                    <div className="text-[11px] text-zinc-600 mt-0.5">
-                      {new Date(next.kickoff).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZoneName: "short" })}
-                      {next.venue?.city ? ` · ${next.venue.city}${next.venue.state ? `, ${next.venue.state}` : ""}` : ""}
-                    </div>
-                  </>
-                ) : seasonInfo ? (
-                  <>
-                    <div className="font-display text-[11px] font-600 uppercase tracking-widest mt-0.5 text-zinc-500">Off-season</div>
-                    <div className="text-[13px] text-zinc-400 mt-0.5">
-                      {seasonInfo.icon} {seasonInfo.label} <span className="text-zinc-600">· {seasonInfo.detail}</span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-[12px] text-zinc-500 mt-0.5">No games scheduled</div>
-                )}
-              </div>
-
-              {/* Days until badge */}
-              {next && (() => {
-                const days = Math.ceil((new Date(next.kickoff).getTime() - Date.now()) / 86400000)
-                return days >= 0 ? (
-                  <div className="flex-shrink-0 flex flex-col items-center justify-center w-12 h-12 rounded-lg" style={{ background: `${team.primaryColor}25`, border: `1px solid ${team.primaryColor}40` }}>
-                    <span className="font-display text-[18px] font-800 leading-none" style={{ color: team.primaryColor === "#001628" || team.primaryColor === "#0C2C56" || team.primaryColor === "#002244" ? "#99D9D9" : team.primaryColor }}>{days}</span>
-                    <span className="font-display text-[8px] font-600 text-zinc-500 uppercase tracking-wide">{days === 1 ? "day" : "days"}</span>
-                  </div>
-                ) : null
-              })()}
+              {next ? (
+                <div className="text-[11px] text-zinc-500 mt-0.5 truncate">
+                  Next: {new Date(next.kickoff).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                  <span className="mx-1">·</span>
+                  {next.isHome ? "vs" : "@"} {next.opponent.shortName || next.opponent.abbr}
+                </div>
+              ) : seasonInfo ? (
+                <div className="text-[11px] text-zinc-600 mt-0.5">{seasonInfo.label} · Off-season</div>
+              ) : (
+                <div className="text-[11px] text-zinc-600 mt-0.5">No games scheduled</div>
+              )}
             </div>
+
+            {/* Days until */}
+            {next && (() => {
+              const days = Math.ceil((new Date(next.kickoff).getTime() - Date.now()) / 86400000)
+              return days >= 0 ? (
+                <div className="flex-shrink-0 text-right">
+                  <div className="text-[18px] font-bold text-zinc-300 tabular-nums leading-none">{days}</div>
+                  <div className="text-[9px] text-zinc-600 uppercase tracking-wide">{days === 1 ? "day" : "days"}</div>
+                </div>
+              ) : null
+            })()}
           </div>
         )
       })}
@@ -480,19 +458,18 @@ export default function HomeClient() {
             {/* Section header — same style as Recent/Upcoming */}
             <div className="flex items-center gap-3 px-4 mb-2">
               {hasLive && (
-                <span className="relative flex h-2 w-2 flex-shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "var(--accent)" }} />
-                  <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "var(--accent)" }} />
+                <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
                 </span>
               )}
               <span
-                className="font-display text-[13px] font-800 uppercase tracking-widest"
-                style={{ color: hasLive ? "var(--accent)" : "white" }}
+                className={`text-[10px] font-bold uppercase tracking-widest ${hasLive ? "text-red-400" : "text-zinc-500"}`}
               >
                 {hasLive ? "Live Now" : "Today"}
               </span>
               <div className="flex-1 h-px bg-zinc-800" />
-              <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">{dateLabel}</span>
+              <span className="text-[10px] text-zinc-600 uppercase tracking-wider">{dateLabel}</span>
             </div>
 
             {/* Featured cards */}
@@ -514,35 +491,10 @@ export default function HomeClient() {
 
       {/* ── Rest Day card — teams exist, but nothing today ─────────────────── */}
       {selectedTeamIds.length > 0 && todayGames.length === 0 && !hasAnyLive && (recent.length > 0 || allUpcoming.length > 0) && (
-        <div
-          className="mx-3 mt-5 rounded-xl overflow-hidden flex items-stretch"
-          style={{ background: "var(--surface)", border: "1px solid #1e1e2e" }}
-        >
-          {/* Left teal accent bar */}
-          <div className="w-1 flex-shrink-0 rounded-r-sm" style={{ background: "#00d4ff" }} />
-          {/* Content */}
-          <div className="flex-1 py-4 px-4 flex items-center justify-between gap-4">
-            <div>
-              <div
-                className="font-display text-[18px] font-bold uppercase tracking-tight leading-none"
-                style={{ color: "#f0f0f8" }}
-              >
-                NO GAMES TODAY
-              </div>
-              <div className="text-[13px] mt-1.5" style={{ color: "#9090b0" }}>
-                Your teams are off. Check back tomorrow.
-              </div>
-            </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/scorpion-logo.png"
-              alt=""
-              width={32}
-              height={32}
-              className="object-contain flex-shrink-0"
-              style={{ opacity: 0.15 }}
-            />
-          </div>
+        <div className="flex items-center gap-3 px-4 mt-6 mb-1">
+          <div className="flex-1 h-px bg-zinc-800/60" />
+          <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Rest day</span>
+          <div className="flex-1 h-px bg-zinc-800/60" />
         </div>
       )}
 

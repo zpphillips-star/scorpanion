@@ -49,16 +49,19 @@ export function TodayGameCard({ game }: { game: Game }) {
   const seattleWon  = isFt && hasScores && game.seattleScore! > game.opponentScore!
   const seattleLost = isFt && hasScores && game.seattleScore! < game.opponentScore!
 
-  // Card container style
+  // Card container style — subtle, clean. Live gets a red left accent (no glow).
   const cardStyle: React.CSSProperties = isLive ? {
-    background: "#13131e",
-    border: "1px solid rgba(0,212,255,0.2)",
-    borderLeftWidth: "3px",
-    borderLeftColor: "#00d4ff",
-    boxShadow: "0 0 0 1px rgba(0,212,255,0.1), 0 2px 20px rgba(0,212,255,0.06)",
+    background: "#18181f",
+    border: "1px solid rgba(255,255,255,0.07)",
+    borderLeftWidth: "2px",
+    borderLeftColor: "#ef4444",
+  } : isFt ? {
+    background: "#141419",
+    border: "1px solid rgba(255,255,255,0.06)",
+    opacity: 0.88,
   } : {
-    background: "var(--surface)",
-    border: "1px solid #1e1e2e",
+    background: "#18181f",
+    border: "1px solid rgba(255,255,255,0.07)",
   }
 
   return (
@@ -71,23 +74,17 @@ export function TodayGameCard({ game }: { game: Game }) {
         {/* ── Header: status badge + league pill ── */}
         <div className="flex items-center justify-between px-4 pt-3 pb-2">
           {isLive ? (
-            <div
-              className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
-              style={{ background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.25)" }}
-            >
+            <div className="flex items-center gap-1.5">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "var(--accent)" }} />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ background: "var(--accent)" }} />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
               </span>
-              <span className="font-medium text-[11px] uppercase tracking-widest" style={{ color: "var(--accent)" }}>LIVE</span>
+              <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider">Live</span>
             </div>
           ) : isFt ? (
-            <span
-              className="font-medium text-[11px] uppercase tracking-widest rounded-full px-2.5 py-1"
-              style={{ color: "var(--status-final)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-            >FINAL</span>
+            <span className="text-[11px] text-zinc-500 uppercase tracking-wide">Final</span>
           ) : (
-            <span className="font-medium text-[11px] uppercase tracking-widest text-zinc-500">Today</span>
+            <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-widest">Today</span>
           )}
           <div className="flex items-center gap-2">
             {game.broadcast && <span className="text-[10px] text-zinc-600">{game.broadcast}</span>}
@@ -179,7 +176,7 @@ export function TodayGameCard({ game }: { game: Game }) {
                   )
                 })()}
               {isLive && game.clock && (
-                <span className="text-[11px] font-medium" style={{ color: "var(--accent)" }}>{game.clock}</span>
+                <span className="text-[11px] font-medium text-red-400">{game.clock}</span>
               )}
               {game.venue?.city && (
                 <span className="text-[11px] text-zinc-600 ml-auto">{game.venue.city}{game.venue.state ? `, ${game.venue.state}` : ""}</span>
@@ -218,36 +215,18 @@ export function TodayBanner({ gameCount, hasLive }: { gameCount: number; hasLive
   const dateLabel = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
 
   return (
-    <div
-      className="mx-3 mt-4 mb-1 px-4 py-3 rounded-lg flex items-center gap-3"
-      style={{
-        background: "linear-gradient(135deg, rgba(0,212,255,0.1) 0%, rgba(0,212,255,0.04) 100%)",
-        border: "1.5px solid rgba(0,212,255,0.25)",
-      }}
-    >
-      {hasLive ? (
-        <span className="relative flex h-3 w-3 flex-shrink-0">
+    <div className="flex items-center gap-3 px-4 mt-6 mb-2">
+      {hasLive && (
+        <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
-        </span>
-      ) : (
-        <span className="relative flex h-3 w-3 flex-shrink-0">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: "var(--accent)" }} />
-          <span className="relative inline-flex rounded-full h-3 w-3" style={{ background: "var(--accent)" }} />
+          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
         </span>
       )}
-      <div className="flex-1 min-w-0">
-        <div className="font-display text-[20px] font-800 uppercase tracking-tight leading-none" style={{ color: "var(--accent)" }}>
-          Today
-        </div>
-        <div className="font-display text-[12px] text-zinc-500 mt-0.5">{dateLabel}</div>
-      </div>
-      <div
-        className="flex-shrink-0 font-display text-[13px] font-700 px-3 py-1.5 rounded-full"
-        style={{ background: "rgba(0,212,255,0.12)", color: "var(--accent)", border: "1px solid rgba(0,212,255,0.2)" }}
-      >
-        {gameCount} Game{gameCount !== 1 ? "s" : ""}
-      </div>
+      <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: hasLive ? "#f87171" : "#71717a" }}>
+        {hasLive ? "Live Now" : "Today"}
+      </span>
+      <div className="flex-1 h-px bg-zinc-800" />
+      <span className="text-[10px] text-zinc-600 uppercase tracking-wider">{dateLabel}</span>
     </div>
   )
 }

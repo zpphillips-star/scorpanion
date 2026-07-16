@@ -3,10 +3,10 @@
 /* ── Tailwind v4 theme extension (CSS-first config) ───────────────────────── */
 @theme {
   /* Brand backgrounds */
-  --color-bg-base:     #0a0a0f;
-  --color-bg-surface:  #12121a;
-  --color-bg-elevated: #1c1c28;
-  --color-bg-subtle:   #242433;
+  --color-bg-base:     #0f0f18;
+  --color-bg-surface:  #161620;
+  --color-bg-elevated: #1e1e2c;
+  --color-bg-subtle:   #262636;
 
   /* Borders */
   --color-border-subtle:  #1e1e2e;
@@ -46,10 +46,10 @@
 /* ── Design tokens (CSS vars — primary runtime mechanism) ─────────────────── */
 :root {
   /* Backgrounds */
-  --bg:           #0a0a0f;
-  --surface:      #12121a;
-  --surface-2:    #1c1c28;
-  --surface-3:    #242433;
+  --bg:           #0f0f18;
+  --surface:      #161620;
+  --surface-2:    #1e1e2c;
+  --surface-3:    #262636;
 
   /* Borders */
   --border:         #1e1e2e;
@@ -79,7 +79,7 @@
 * { box-sizing: border-box; padding: 0; margin: 0; }
 
 html, body {
-  background: var(--bg);
+  background: #0f0f18;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
