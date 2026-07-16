@@ -118,9 +118,10 @@ function TeamCell({ team, isSea }: { team: LineTeam; isSea: boolean }) {
 
 function SectionHeader({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-3 px-5 pt-5 pb-3">
-      <span className="font-display text-[13px] font-800 text-zinc-300 uppercase tracking-widest">{label}</span>
-      <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.10)" }} />
+    <div className="flex items-center gap-2 pt-6 pb-3 px-1">
+      <div className="flex-1 h-px bg-zinc-800" />
+      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{label}</span>
+      <div className="flex-1 h-px bg-zinc-800" />
     </div>
   )
 }
@@ -280,32 +281,39 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
       {topScorers.length > 0 && (
         <>
           <SectionHeader label="Top Scorers" />
-          <div className="px-3 pb-2 space-y-1.5">
-            {linescores.map(team => {
+          <div className="pb-2">
+            {/* Column header — matches player rows */}
+            <div className="flex items-center pb-1.5 mb-1 border-b border-zinc-800/60">
+              <div className="flex-1" />
+              <div className="flex gap-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest tabular-nums">
+                <span className="w-8 text-center">PTS</span>
+                <span className="w-8 text-center">REB</span>
+                <span className="w-8 text-center">AST</span>
+              </div>
+            </div>
+            {linescores.map((team, teamIdx) => {
               const teamScorers = scoresByTeam[team.teamId] ?? []
-              const isSea = (seattleTeamId && team.teamId === seattleTeamId) || team.abbr === "SEA"
               if (teamScorers.length === 0) return null
               return (
-                <div key={team.teamId} className="rounded-lg px-3 py-2.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                  <div className="flex items-center gap-2 mb-2">
-                    {team.logo
-                      // eslint-disable-next-line @next/next/no-img-element
-                      ? <img src={team.logo} alt={team.abbr} width={16} height={16} className="object-contain" />
-                      : null}
-                    <span className={`font-display text-[11px] font-700 uppercase tracking-wider ${isSea ? "text-zinc-300" : "text-zinc-500"}`}>{team.abbr}</span>
-                    <div className="ml-auto flex gap-3 font-display text-[11px] text-zinc-600 uppercase tracking-wider">
-                      <span className="w-6 text-center">PTS</span>
-                      <span className="w-6 text-center">REB</span>
-                      <span className="w-6 text-center">AST</span>
-                    </div>
-                  </div>
+                <div key={team.teamId} className={`relative ${teamIdx > 0 ? "mt-3 pt-3 border-t-2 border-zinc-800" : ""}`}>
+                  {/* Ghost watermark */}
+                  {team.logo && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={team.logo}
+                      alt=""
+                      aria-hidden
+                      className="absolute inset-0 m-auto pointer-events-none select-none"
+                      style={{ width: 80, height: 80, opacity: 0.09, objectFit: "contain", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
+                    />
+                  )}
                   {teamScorers.map((s, idx) => (
-                    <div key={idx} className="flex items-center py-0.5">
-                      <span className={`flex-1 text-[13px] font-600 truncate ${isSea ? "text-zinc-200" : "text-zinc-400"}`}>{s.name}</span>
-                      <div className="flex gap-3 font-display text-[13px] font-700 tabular-nums">
-                        <span className="w-6 text-center" style={{ color: isSea ? color : "#a1a1aa" }}>{s.pts}</span>
-                        <span className="w-6 text-center text-zinc-500">{s.reb}</span>
-                        <span className="w-6 text-center text-zinc-500">{s.ast}</span>
+                    <div key={idx} className="relative flex items-center py-2.5">
+                      <span className="flex-1 text-[13px] font-semibold text-zinc-200 truncate">{s.name}</span>
+                      <div className="flex gap-3 text-[13px] font-bold tabular-nums">
+                        <span className="w-8 text-center text-zinc-200">{s.pts}</span>
+                        <span className="w-8 text-center text-zinc-400">{s.reb}</span>
+                        <span className="w-8 text-center text-zinc-400">{s.ast}</span>
                       </div>
                     </div>
                   ))}
@@ -448,55 +456,43 @@ function SoccerScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattle
   const away = linescores.find(t => t.homeAway === "away") ?? linescores[0]
   const home = linescores.find(t => t.homeAway === "home") ?? linescores[1]
 
-  const awayGoals = goalScorers.filter(g => g.teamId === away.teamId)
-  const homeGoals = goalScorers.filter(g => g.teamId === home.teamId)
-  const maxGoals = Math.max(awayGoals.length, homeGoals.length, 1)
+  // Sort all scorers chronologically
+  const sorted = [...goalScorers].sort((a, b) => parseInt(a.minute) - parseInt(b.minute))
 
   return (
     <>
-      <SectionHeader label="Match Summary" />
-      <div className="px-4 pb-2">
-        {/* Scorers */}
-        {goalScorers.length > 0 && (
-          <div className="grid grid-cols-[1fr_auto_1fr] gap-x-2 mt-1">
-            {Array.from({ length: maxGoals }).map((_, i) => {
-              const ag = awayGoals[i]
-              const hg = homeGoals[i]
+      <SectionHeader label="Goals" />
+      <div className="pb-2">
+        {goalScorers.length === 0 ? (
+          <div className="text-center text-[12px] text-zinc-600 py-3">No goals recorded</div>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            {sorted.map((s, i) => {
+              const isAway = s.teamId === away.teamId
+              const suffix = s.type === "Own Goal" ? " (OG)" : s.type === "Penalty" ? " (P)" : ""
               return (
-                <div key={i} className="contents">
-                  {/* Away scorer */}
-                  <div className="text-right py-0.5">
-                    {ag ? (
-                      <span className={`text-[12px] font-600 ${away.teamId === (seattleTeamId ?? "") ? "text-zinc-200" : "text-zinc-400"}`}>
-                        {ag.name}
-                        {ag.type === "Own Goal" ? " (OG)" : ag.type === "Penalty" ? " (P)" : ""}
-                        <span className="text-zinc-500 ml-1">{ag.minute}′</span>
-                      </span>
-                    ) : <span />}
-                  </div>
-                  <div className="w-4" />
-                  {/* Home scorer */}
-                  <div className="py-0.5">
-                    {hg ? (
-                      <span className={`text-[12px] font-600 ${home.teamId === (seattleTeamId ?? "") ? "text-zinc-200" : "text-zinc-400"}`}>
-                        {hg.name}
-                        {hg.type === "Own Goal" ? " (OG)" : hg.type === "Penalty" ? " (P)" : ""}
-                        <span className="text-zinc-500 ml-1">{hg.minute}′</span>
-                      </span>
-                    ) : <span />}
-                  </div>
+                <div key={i} className="grid items-center w-full" style={{ gridTemplateColumns: "1fr 40px 1fr", columnGap: "8px" }}>
+                  <span className="text-[12px] text-white font-semibold text-right leading-none">
+                    {isAway ? `${s.name}${suffix}` : ""}
+                  </span>
+                  <span className="text-[11px] text-zinc-500 font-medium leading-none text-center">{s.minute}′</span>
+                  <span className="text-[12px] text-white font-semibold text-left leading-none">
+                    {!isAway ? `${s.name}${suffix}` : ""}
+                  </span>
                 </div>
               )
             })}
           </div>
         )}
 
-        {/* Half-time breakdown if available */}
+        {/* Half-time breakdown */}
         {(away.linescores.length > 0 || home.linescores.length > 0) && (
-          <div className="mt-3 flex items-center justify-between text-[11px] text-zinc-600 border-t border-zinc-800 pt-2">
-            <span className="tabular-nums">{away.linescores[0] ?? 0} – {home.linescores[0] ?? 0}</span>
-            <span>Half Time</span>
-            <span className="tabular-nums">{away.linescores[1] ?? 0} – {home.linescores[1] ?? 0}</span>
+          <div className="flex items-center gap-2 mt-4">
+            <div className="flex-1 h-px bg-zinc-800" />
+            <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
+              HT {away.linescores[0] ?? 0} – {home.linescores[0] ?? 0}
+            </span>
+            <div className="flex-1 h-px bg-zinc-800" />
           </div>
         )}
       </div>
