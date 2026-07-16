@@ -454,6 +454,15 @@ export default function ScheduleClient() {
   const hasLiveGames = filteredGames.some(g => g.status === 'live')
   const hasUpcomingInFilter = filteredGames.some(g => g.status !== 'ft')
 
+  // Always include today in the rendered date list when there are any games at all,
+  // so the auto-scroll and "Today" button always land on an anchor — even on rest days.
+  const datesWithToday = useMemo(() => {
+    if (filteredGames.length === 0) return sortedDates
+    const set = new Set(sortedDates)
+    set.add(todayStr)
+    return [...set].sort()
+  }, [sortedDates, todayStr, filteredGames.length])
+
   // Refs for date section jumping
   const dateRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
@@ -545,9 +554,12 @@ export default function ScheduleClient() {
             </div>
           )
         ) : (
-          sortedDates.map((dateStr, idx) => {
+          // datesWithToday always contains todayStr so the scroll-to-today anchor
+          // is always present in the DOM, even on rest days.
+          datesWithToday.map((dateStr, idx) => {
             const isToday = dateStr === todayStr
             const label = formatDateHeader(dateStr)
+            const gamesForDate = grouped.get(dateStr) ?? []
             return (
               <div key={dateStr} ref={el => { dateRefs.current[dateStr] = el }}>
                 {idx > 0 && <div className="h-3" />}
@@ -577,14 +589,25 @@ export default function ScheduleClient() {
                   </div>
                 )}
 
-                {/* Game rows */}
-                {grouped.get(dateStr)!.map(g => (
-                  <ScheduleRow
-                    key={g.id}
-                    game={g}
-                    onTap={() => setSelectedGame(g)}
-                  />
-                ))}
+                {/* Game rows — or a friendly rest-day card for today */}
+                {gamesForDate.length > 0 ? (
+                  gamesForDate.map(g => (
+                    <ScheduleRow
+                      key={g.id}
+                      game={g}
+                      onTap={() => setSelectedGame(g)}
+                    />
+                  ))
+                ) : isToday ? (
+                  <div className="mx-4 my-3 flex items-center gap-3 px-4 py-4 rounded-2xl"
+                    style={{ background: 'rgba(0,212,255,0.04)', border: '1px solid rgba(0,212,255,0.12)' }}>
+                    <span className="text-2xl select-none">😴</span>
+                    <div>
+                      <div className="text-[13px] font-semibold text-zinc-300">No games today</div>
+                      <div className="text-[12px] text-zinc-500 mt-0.5">None of your teams play today — enjoy the rest day!</div>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             )
           })

@@ -1,6 +1,41 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useState } from "react"
+
+// Fallback rendered when scorpion-mono.png fails to load (SW cache miss, network error, etc.)
+function ScorpionFallback({ size, active }: { size: number; active: boolean }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      style={{ color: active ? "white" : "rgba(255,255,255,0.45)" }}
+      aria-hidden="true"
+    >
+      {/* Simple home / shield silhouette as safe fallback */}
+      <path d="M12 3L2 9v1h2v10h5v-6h6v6h5V10h2V9L12 3z" />
+    </svg>
+  )
+}
+
+function HomeIcon({ size, active }: { size: number; active: boolean }) {
+  const [failed, setFailed] = useState(false)
+  if (failed) return <ScorpionFallback size={size} active={active} />
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/scorpion-mono.png"
+      alt="Home"
+      width={size}
+      height={size}
+      className="object-contain"
+      style={{ filter: active ? "none" : "brightness(0.5)" }}
+      onError={() => setFailed(true)}
+    />
+  )
+}
 
 // Side tabs — Schedule, Calendar on left; Standings, Teams on right
 const leftTabs = [
@@ -97,7 +132,7 @@ export default function BottomNav() {
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/scorpion-mono.png" alt="Home" width={26} height={26} className="object-contain" style={{ filter: homeActive ? "none" : "brightness(0.5)" }} />
+                <HomeIcon size={26} active={homeActive} />
               </div>
               <span
                 className="text-[10px] font-semibold mt-1 transition-colors"
@@ -129,7 +164,7 @@ export default function BottomNav() {
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/scorpion-mono.png" alt="Home" width={22} height={22} className="object-contain" />
+            <HomeIcon size={22} active={homeActive} />
           </div>
         </Link>
 
