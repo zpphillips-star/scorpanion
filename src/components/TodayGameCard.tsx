@@ -58,13 +58,13 @@ export function TodayGameCard({ game }: { game: Game }) {
     boxShadow: "0 0 0 1px rgba(0,212,255,0.1), 0 2px 20px rgba(0,212,255,0.06)",
   } : {
     background: "var(--surface)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    border: "1px solid #1e1e2e",
   }
 
   return (
     <>
       <div
-        className="mx-4 my-1.5 rounded-2xl overflow-hidden cursor-pointer active:scale-[0.985] transition-transform"
+        className="mx-3 my-1.5 rounded-xl overflow-hidden cursor-pointer active:scale-[0.985] transition-transform"
         style={cardStyle}
         onClick={() => setShowDetail(true)}
       >

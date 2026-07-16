@@ -515,13 +515,13 @@ export default function HomeClient() {
       {/* ── Rest Day card — teams exist, but nothing today ─────────────────── */}
       {selectedTeamIds.length > 0 && todayGames.length === 0 && !hasAnyLive && (recent.length > 0 || allUpcoming.length > 0) && (
         <div
-          className="mx-4 my-3 rounded-2xl overflow-hidden flex items-stretch relative"
-          style={{ background: "var(--surface)", border: "1px solid rgba(255,255,255,0.08)" }}
+          className="mx-3 mt-5 rounded-xl overflow-hidden flex items-stretch"
+          style={{ background: "var(--surface)", border: "1px solid #1e1e2e" }}
         >
-          {/* Left teal accent bar — 4px, full height */}
-          <div className="w-1 flex-shrink-0" style={{ background: "#00d4ff" }} />
+          {/* Left teal accent bar */}
+          <div className="w-1 flex-shrink-0 rounded-r-sm" style={{ background: "#00d4ff" }} />
           {/* Content */}
-          <div className="flex-1 px-5 py-5 flex items-center justify-between gap-4">
+          <div className="flex-1 py-4 px-4 flex items-center justify-between gap-4">
             <div>
               <div
                 className="font-display text-[18px] font-bold uppercase tracking-tight leading-none"
@@ -537,10 +537,10 @@ export default function HomeClient() {
             <img
               src="/scorpion-logo.png"
               alt=""
-              width={28}
-              height={28}
+              width={32}
+              height={32}
               className="object-contain flex-shrink-0"
-              style={{ opacity: 0.12 }}
+              style={{ opacity: 0.15 }}
             />
           </div>
         </div>
