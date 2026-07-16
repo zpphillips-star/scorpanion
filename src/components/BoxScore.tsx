@@ -280,30 +280,31 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
       {topScorers.length > 0 && (
         <>
           <SectionHeader label="Top Scorers" />
-          <div className="px-3 pb-2 space-y-1.5">
-            {linescores.map(team => {
+          <div className="px-5 pb-4">
+            {linescores.map((team, teamIdx) => {
               const teamScorers = scoresByTeam[team.teamId] ?? []
               const isSea = (seattleTeamId && team.teamId === seattleTeamId) || team.abbr === "SEA"
               if (teamScorers.length === 0) return null
               return (
-                <div key={team.teamId} className="rounded-xl px-3 py-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                  {/* Team label row */}
-                  <div className="flex items-center gap-2 mb-2.5">
+                <div key={team.teamId}>
+                  {teamIdx > 0 && <div className="border-t border-zinc-800/60 mt-4 mb-3" />}
+                  {/* Team label */}
+                  <div className="flex items-center gap-2 mb-2">
                     {team.logo
                       // eslint-disable-next-line @next/next/no-img-element
                       ? <img src={team.logo} alt={team.abbr} width={16} height={16} className="object-contain" />
                       : null}
                     <span className={`font-display text-[11px] font-700 uppercase tracking-wider ${isSea ? "text-zinc-300" : "text-zinc-500"}`}>{team.abbr}</span>
                   </div>
-                  {/* Column header — same grid as data rows so columns align */}
-                  <div className="grid grid-cols-[1fr_30px_30px_30px] gap-x-1 mb-1 px-0.5">
+                  {/* Column header — same grid as data rows */}
+                  <div className="grid grid-cols-[1fr_30px_30px_30px] gap-x-1 pb-1.5 border-b border-zinc-800/60">
                     <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider">Player</span>
                     <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">PTS</span>
                     <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">REB</span>
                     <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider text-center">AST</span>
                   </div>
                   {teamScorers.map((s, idx) => (
-                    <div key={idx} className="grid grid-cols-[1fr_30px_30px_30px] gap-x-1 items-center py-1 px-0.5 border-t border-zinc-800/50 first:border-0">
+                    <div key={idx} className="grid grid-cols-[1fr_30px_30px_30px] gap-x-1 items-center py-2 border-b border-zinc-800/40">
                       <span className={`text-[13px] font-600 truncate ${isSea ? "text-zinc-200" : "text-zinc-400"}`}>{s.name}</span>
                       <span className="font-display text-[13px] font-700 tabular-nums text-center" style={{ color: isSea ? color : "#a1a1aa" }}>{s.pts}</span>
                       <span className="font-display text-[13px] font-700 tabular-nums text-center text-zinc-500">{s.reb}</span>
@@ -678,7 +679,7 @@ export default function BoxScore({ eventId, league, seattleTeamId, color = "#00d
   const showStats = sportType !== "soccer" // soccer stats shown elsewhere
 
   return (
-    <div className="mt-1 rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+    <div className="mt-1 border-t border-zinc-800/60">
       {/* Sport-specific scoreboard */}
       {sportType === "baseball"   && <BaseballScoreboard    data={data} seattleTeamId={seattleTeamId} />}
       {sportType === "basketball" && <BasketballScoreboard  data={data} seattleTeamId={seattleTeamId} color={color} />}

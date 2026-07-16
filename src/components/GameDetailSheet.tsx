@@ -112,57 +112,47 @@ function TeamContextCard({
   const standings = detail?.divisionStandings ?? []
 
   return (
-    <div className="rounded-xl px-3 py-3 space-y-3" style={{ background: `${color}18`, border: `1px solid ${color}35` }}>
+    <div className="space-y-4">
 
       {/* Team header */}
       <div className="flex items-center gap-2">
-        <TeamLogo src={logo} emoji={emoji} abbr={abbr} size={22} />
+        <TeamLogo src={logo} emoji={emoji} abbr={abbr} size={24} />
         <div className="flex-1 min-w-0">
-          <div className="font-display text-[12px] font-700 text-white truncate">{name}</div>
-          <div className="font-display text-[9px] uppercase tracking-widest text-zinc-600">{label}</div>
+          <div className="font-display text-[13px] font-700 text-white truncate">{name}</div>
+          <div className="font-display text-[10px] uppercase tracking-widest text-zinc-600">{label}</div>
         </div>
-      </div>
-
-      {/* Record + division rank */}
-      {wins !== undefined && losses !== undefined && (
-        <div>
-          <div className="font-display text-[24px] font-800 text-white tabular-nums leading-none">
-            {wins}–{losses}{ties !== undefined && ties > 0 ? `–${ties}` : ""}
-          </div>
-          {divRank !== null && divRank !== undefined && divName && (
-            <div className="font-display text-[10px] text-zinc-500 mt-0.5">
-              #{divRank} {divName}
+        {wins !== undefined && losses !== undefined && (
+          <div className="text-right">
+            <div className="font-display text-[22px] font-800 text-white tabular-nums leading-none">
+              {wins}–{losses}{ties !== undefined && ties > 0 ? `–${ties}` : ""}
             </div>
-          )}
-        </div>
-      )}
+            {divRank !== null && divRank !== undefined && divName && (
+              <div className="font-display text-[10px] text-zinc-500 mt-0.5 text-right">#{divRank} {divName}</div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Last 5 Games form dots */}
       {form.length > 0 && (
         <div>
-          <SectionHeader label="Last 5 Games" />
+          <div className="font-display text-[10px] font-700 uppercase tracking-wider text-zinc-600 mb-1.5">Last 5</div>
           <RecentFormDots form={form} />
         </div>
       )}
 
-      {/* Conference / division standings with team row highlighted */}
+      {/* Conference / division standings */}
       {standings.length > 0 && (
         <div>
-          <SectionHeader label={divName || "Division"} />
-          <div className="space-y-0.5">
+          <div className="font-display text-[10px] font-700 uppercase tracking-wider text-zinc-600 mb-1.5">{divName || "Division"}</div>
+          <div>
             {standings.map((row, i) => (
               <div
                 key={i}
-                className="flex items-center gap-1.5 px-2 py-1 rounded-md"
+                className="flex items-center gap-2 py-1.5 border-b border-zinc-800/50 last:border-0"
                 style={{
-                  background: row.isThis
-                    ? `${color}22`
-                    : i % 2 === 1
-                    ? "rgba(255,255,255,0.025)"
-                    : "transparent",
-                  borderLeft: row.isThis
-                    ? `2.5px solid ${color}`
-                    : "2.5px solid transparent",
+                  borderLeft: row.isThis ? `3px solid ${color}` : "3px solid transparent",
+                  paddingLeft: "6px",
                 }}
               >
                 {row.logo ? (
@@ -172,23 +162,15 @@ function TeamContextCard({
                     width={14}
                     height={14}
                     className="object-contain flex-shrink-0"
-                    style={{ opacity: row.isThis ? 1 : 0.65 }}
+                    style={{ opacity: row.isThis ? 1 : 0.55 }}
                   />
                 ) : (
                   <div className="w-3.5 h-3.5 rounded-full bg-white/10 flex-shrink-0" />
                 )}
-                <span
-                  className={`font-display text-[11px] flex-1 truncate ${
-                    row.isThis ? "font-700 text-white" : "text-zinc-400"
-                  }`}
-                >
+                <span className={`font-display text-[12px] flex-1 truncate ${row.isThis ? "font-700 text-white" : "text-zinc-500"}`}>
                   {row.abbr}
                 </span>
-                <span
-                  className={`font-display text-[11px] tabular-nums ${
-                    row.isThis ? "font-700 text-white" : "text-zinc-500"
-                  }`}
-                >
+                <span className={`font-display text-[12px] tabular-nums ${row.isThis ? "font-700 text-white" : "text-zinc-500"}`}>
                   {row.wins}–{row.losses}
                 </span>
               </div>
@@ -418,17 +400,17 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
         {/* Team context cards — upcoming games only */}
         {isUpcoming && (
-          <div className="px-5 pt-4 pb-5 border-t border-zinc-800/60">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex-1 h-px bg-zinc-800" />
-              <span className="font-display text-[9px] font-700 uppercase tracking-[0.18em] text-zinc-500 px-0.5">Team Overview</span>
-              <div className="flex-1 h-px bg-zinc-800" />
+          <div className="border-t border-zinc-800/60">
+            <div className="px-5 pt-5 pb-2">
+              <span className="font-display text-[10px] font-700 uppercase tracking-[0.18em] text-zinc-500">Team Overview</span>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="px-5 py-4 border-t border-zinc-800/40">
               <TeamContextCard
                 name={awayName} logo={awayLogo} emoji={awayEmoji} abbr={awayAbbr}
                 color={awayColor} record={awayRecord} detail={awayDetail} label="Away"
               />
+            </div>
+            <div className="px-5 py-4 border-t border-zinc-800/60">
               <TeamContextCard
                 name={homeName} logo={homeLogo} emoji={homeEmoji} abbr={homeAbbr}
                 color={homeColor} record={homeRecord} detail={homeDetail} label="Home"
@@ -439,16 +421,14 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
         {/* Season records — live/completed games */}
         {!isUpcoming && (game.seattleRecord || game.opponentRecord) && (
-          <div className="px-5 py-5 border-t border-zinc-800/60">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex-1 h-px bg-zinc-800" />
-              <span className="font-display text-[9px] font-700 uppercase tracking-[0.18em] text-zinc-500 px-0.5">Season Records</span>
-              <div className="flex-1 h-px bg-zinc-800" />
+          <div className="border-t border-zinc-800/60">
+            <div className="px-5 pt-5 pb-2">
+              <span className="font-display text-[10px] font-700 uppercase tracking-[0.18em] text-zinc-500">Season Records</span>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl px-5 py-4 bg-zinc-900/50" style={{ border: `1px solid ${seattleColor}30` }}>
+            <div className="grid grid-cols-2 divide-x divide-zinc-800/60">
+              <div className="px-5 py-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={24} />
+                  <TeamLogo src={seattleLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={22} />
                   <span className="font-display text-[12px] font-700 text-white truncate">{game.seattleTeam.shortName}</span>
                 </div>
                 <div className="font-display text-[30px] font-800 text-white tabular-nums leading-none">
@@ -460,9 +440,9 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                   </div>
                 )}
               </div>
-              <div className="rounded-2xl px-5 py-4 bg-zinc-900/50" style={{ border: "1px solid var(--border)" }}>
+              <div className="px-5 py-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={24} />
+                  <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={22} />
                   <span className="font-display text-[12px] font-700 text-zinc-300 truncate">{game.opponent.shortName || game.opponent.abbr}</span>
                 </div>
                 <div className="font-display text-[30px] font-800 text-zinc-300 tabular-nums leading-none">
