@@ -357,8 +357,8 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                       </div>
                     )}
                     {isFt && (
-                      <span className={`font-display text-[12px] font-800 uppercase tracking-widest mt-0.5 ${seattleWon ? "text-emerald-400" : seattleLost ? "text-red-400" : "text-zinc-500"}`}>
-                        {seattleWon ? "Win" : seattleLost ? "Loss" : "Tie"}
+                      <span className="font-display text-[20px] leading-none mt-0.5" style={{ color: awayWon || homeWon ? "#00d4ff" : "#52525b" }}>
+                        {awayWon ? "◀" : homeWon ? "▶" : "—"}
                       </span>
                     )}
                   </>

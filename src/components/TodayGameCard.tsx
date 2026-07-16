@@ -170,11 +170,14 @@ export function TodayGameCard({ game }: { game: Game }) {
           {/* Win / loss label + venue footer */}
           {(isFt || isLive) && (
             <div className="flex items-center gap-2 mt-1.5 pt-1.5" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-              {isFt && (
-                <span className={`text-[11px] font-bold uppercase tracking-wider ${seattleWon ? "text-emerald-400" : seattleLost ? "text-red-400" : "text-zinc-500"}`}>
-                  {seattleWon ? "Win" : seattleLost ? "Loss" : "Tie"}
-                </span>
-              )}
+              {isFt && (() => {
+                  const triangle = awayWon ? "▲" : homeWon ? "▼" : "—"
+                  return (
+                    <span className="font-display text-[16px] leading-none" style={{ color: (awayWon || homeWon) ? "#00d4ff" : "#52525b" }}>
+                      {triangle}
+                    </span>
+                  )
+                })()}
               {isLive && game.clock && (
                 <span className="text-[11px] font-medium" style={{ color: "var(--accent)" }}>{game.clock}</span>
               )}

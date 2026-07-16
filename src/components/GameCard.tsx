@@ -283,11 +283,15 @@ export default function GameCard({ game }: GameCardProps) {
                         <div className="font-display font-800 tabular-nums text-[48px] leading-none text-white">
                           {game.isHome ? game.opponentScore : game.seattleScore}<span className="text-zinc-600 text-[32px] mx-1.5">–</span>{game.isHome ? game.seattleScore : game.opponentScore}
                         </div>
-                        {isFt && (
-                          <span className={`font-display text-[13px] font-800 uppercase tracking-widest ${seattleWon ? "text-[#22c55e]" : seattleLost ? "text-[#ef4444]" : "text-zinc-500"}`}>
-                            {seattleWon ? "Win" : seattleLost ? "Loss" : "Tie"}
-                          </span>
-                        )}
+                        {isFt && (() => {
+                          const leftWon  = game.isHome ? seattleLost : seattleWon  // away = left
+                          const rightWon = game.isHome ? seattleWon  : seattleLost // home = right
+                          return (
+                            <span className="font-display text-[20px] leading-none" style={{ color: (leftWon || rightWon) ? "#00d4ff" : "#52525b" }}>
+                              {leftWon ? "◀" : rightWon ? "▶" : "—"}
+                            </span>
+                          )
+                        })()}
                       </>
                     ) : (
                       <>
