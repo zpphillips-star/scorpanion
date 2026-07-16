@@ -451,17 +451,6 @@ export default function HomeClient() {
         </div>
       </PageHeader>
 
-      {/* ── Rest day indicator — has teams, nothing today ──────────────────── */}
-      {selectedTeamIds.length > 0 && todayGames.length === 0 && !hasAnyLive && (recent.length > 0 || allUpcoming.length > 0) && (
-        <div className="mt-5 mx-4 flex items-center gap-3">
-          <span className="font-display text-[13px] font-800 uppercase tracking-[0.08em]" style={{ color: "var(--text-muted)" }}>
-            Rest day 😴
-          </span>
-          <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-          <span className="text-[11px]" style={{ color: "var(--text-faint)" }}>None of your teams play today.</span>
-        </div>
-      )}
-
       {/* ── Recent results (horizontal scroll, tappable) ─────────────────── */}
       {recent.length > 0 && (
         <div className="mt-5">
@@ -521,6 +510,40 @@ export default function HomeClient() {
           </div>
           <OffSeasonCards teams={teamsWithNoGames.length > 0 ? teamsWithNoGames : followedTeams} nextGames={nextGameByTeam} />
         </>
+      )}
+
+      {/* ── Rest Day card — teams exist, but nothing today ─────────────────── */}
+      {selectedTeamIds.length > 0 && todayGames.length === 0 && !hasAnyLive && (recent.length > 0 || allUpcoming.length > 0) && (
+        <div
+          className="mx-3 mt-5 rounded-xl overflow-hidden flex items-stretch"
+          style={{ background: "var(--surface)", border: "1px solid #1e1e2e" }}
+        >
+          {/* Left teal accent bar */}
+          <div className="w-1 flex-shrink-0 rounded-r-sm" style={{ background: "#00d4ff" }} />
+          {/* Content */}
+          <div className="flex-1 py-4 px-4 flex items-center justify-between gap-4">
+            <div>
+              <div
+                className="font-display text-[18px] font-bold uppercase tracking-tight leading-none"
+                style={{ color: "#f0f0f8" }}
+              >
+                NO GAMES TODAY
+              </div>
+              <div className="text-[13px] mt-1.5" style={{ color: "#9090b0" }}>
+                Your teams are off. Check back tomorrow.
+              </div>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/scorpion-logo.png"
+              alt=""
+              width={32}
+              height={32}
+              className="object-contain flex-shrink-0"
+              style={{ opacity: 0.15 }}
+            />
+          </div>
+        </div>
       )}
 
       {/* ── Upcoming — WC compact rows ───────────────────────────────────── */}

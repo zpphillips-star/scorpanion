@@ -328,7 +328,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                 onClick={() => setTeamSheet({ id: awayId, name: awayName, logo: awayLogo })}
               >
                 <div style={{ opacity: hasScore && !awayWon && homeWon ? 0.35 : 1, transition: "opacity 0.2s" }}>
-                  <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={72} />
+                  <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={64} />
                 </div>
                 <span className={`font-display text-[14px] font-700 text-center leading-tight max-w-[95px] ${hasScore && !awayWon && homeWon ? "text-zinc-500" : "text-white"}`}>
                   {awayName}
@@ -345,11 +345,11 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                   <>
                     <div
                       className={`font-display font-800 tabular-nums leading-none ${isLive ? "text-red-300" : "text-white"}`}
-                      style={{ fontSize: "50px" }}
+                      style={{ fontSize: "72px" }}
                     >
-                      <span style={{ opacity: !awayWon && homeWon ? 0.35 : 1 }}>{awayScore}</span>
+                      <span style={{ color: isLive ? undefined : (awayWon || (!awayWon && !homeWon)) ? "#f0f0f8" : "#5a5a7a" }}>{awayScore}</span>
                       <span className="text-zinc-600 mx-0.5" style={{ fontSize: "28px" }}>–</span>
-                      <span style={{ opacity: !homeWon && awayWon ? 0.35 : 1 }}>{homeScore}</span>
+                      <span style={{ color: isLive ? undefined : (homeWon || (!awayWon && !homeWon)) ? "#f0f0f8" : "#5a5a7a" }}>{homeScore}</span>
                     </div>
                     {isLive && liveDetail && (
                       <div className="mt-1 px-3 py-1 rounded-full bg-red-500/15 border border-red-500/25">
@@ -381,7 +381,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                 onClick={() => setTeamSheet({ id: homeId, name: homeName, logo: homeLogo })}
               >
                 <div style={{ opacity: hasScore && !homeWon && awayWon ? 0.35 : 1, transition: "opacity 0.2s" }}>
-                  <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={72} />
+                  <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={64} />
                 </div>
                 <span className={`font-display text-[14px] font-700 text-center leading-tight max-w-[95px] ${hasScore && !homeWon && awayWon ? "text-zinc-500" : "text-white"}`}>
                   {homeName}

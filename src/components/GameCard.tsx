@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { Game } from "@/lib/types"
 import { getTeamLogoUrl } from "@/lib/teams"
 import TeamLogo from "./TeamLogo"
@@ -56,115 +56,155 @@ export default function GameCard({ game }: GameCardProps) {
 
   const seattleDivision = standings.find(div => div.entries.some(e => e.isSeattle))
 
+  // Resolve away / home sides for compact card
+  const gcAwayLogo   = game.isHome ? game.opponent.logo  : seattleLogoUrl
+  const gcAwayEmoji  = game.isHome ? "🏟️"               : game.seattleTeam.emoji
+  const gcAwayAbbr   = game.isHome ? game.opponent.abbr  : game.seattleTeam.abbr
+  const gcAwayName   = game.isHome ? (game.opponent.shortName || game.opponent.name) : game.seattleTeam.shortName
+  const gcAwayScore  = game.isHome ? game.opponentScore  : game.seattleScore
+  const gcAwayRecord = game.isHome ? game.opponentRecord : game.seattleRecord
+  const gcHomeLogo   = game.isHome ? seattleLogoUrl      : game.opponent.logo
+  const gcHomeEmoji  = game.isHome ? game.seattleTeam.emoji : "🏟️"
+  const gcHomeAbbr   = game.isHome ? game.seattleTeam.abbr  : game.opponent.abbr
+  const gcHomeName   = game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)
+  const gcHomeScore  = game.isHome ? game.seattleScore   : game.opponentScore
+  const gcHomeRecord = game.isHome ? game.seattleRecord  : game.opponentRecord
+  const gcAwayWon = isFt && game.seattleScore !== undefined && game.opponentScore !== undefined && (gcAwayScore ?? 0) > (gcHomeScore ?? 0)
+  const gcHomeWon = isFt && game.seattleScore !== undefined && game.opponentScore !== undefined && (gcHomeScore ?? 0) > (gcAwayScore ?? 0)
+
+  const cardStyle: React.CSSProperties = isLive ? {
+    background: "#13131e",
+    border: "1px solid rgba(0,212,255,0.2)",
+    borderLeftWidth: "3px",
+    borderLeftColor: "#00d4ff",
+    boxShadow: "0 0 0 1px rgba(0,212,255,0.1), 0 2px 20px rgba(0,212,255,0.06)",
+  } : {
+    background: "var(--surface)",
+    border: "1px solid #1e1e2e",
+  }
+
   return (
     <>
       {/* ── Compact row card ─────────────────────────────────────────────── */}
       <button className="w-full text-left group" onClick={() => setOpen(true)}>
         <div
-          className="mx-3 my-1 rounded-lg overflow-hidden transition-all duration-150 active:scale-[0.985]"
-          style={{
-            background: isLive
-              ? "linear-gradient(135deg,rgba(0,212,255,0.06) 0%,var(--surface) 60%)"
-              : "var(--surface)",
-            border: `1px solid ${isLive ? "rgba(0,212,255,0.2)" : "var(--border)"}`,
-          }}
+          className="mx-3 my-1 rounded-xl overflow-hidden transition-all duration-150 active:scale-[0.985]"
+          style={cardStyle}
         >
-          {/* Status bar */}
-          <div className="flex items-center justify-between px-4 pt-3 pb-1">
+          {/* ── Header: status badge + date/league pill ── */}
+          <div className="flex items-center justify-between px-4 pt-3 pb-2">
             {isLive ? (
-              <div className="flex items-center gap-1.5">
-                <span className="relative flex h-2 w-2">
+              <div
+                className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
+                style={{ background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.25)" }}
+              >
+                <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "var(--accent)" }} />
-                  <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "var(--accent)" }} />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ background: "var(--accent)" }} />
                 </span>
-                <span className="font-display text-[11px] font-700 uppercase tracking-widest" style={{ color: "var(--accent)" }}>LIVE</span>
+                <span className="font-medium text-[11px] uppercase tracking-widest" style={{ color: "var(--accent)" }}>LIVE</span>
               </div>
             ) : isFt ? (
-              <span className="font-display text-[11px] font-600 uppercase tracking-widest" style={{ color: "var(--status-final)" }}>FINAL</span>
+              <span
+                className="font-medium text-[11px] uppercase tracking-widest rounded-full px-2.5 py-1"
+                style={{ color: "var(--status-final)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              >FINAL</span>
             ) : (
-              <span className="font-display text-[11px] font-600 text-zinc-500 uppercase tracking-widest">{formatGameDate(game.kickoff)}</span>
+              <span className="font-medium text-[11px] text-zinc-500 uppercase tracking-widest">{formatGameDate(game.kickoff)}</span>
             )}
             <div className="flex items-center gap-2">
               {game.broadcast && (
-                <span className="text-[10px] font-semibold text-zinc-500 bg-white/5 px-1.5 py-0.5 rounded">{game.broadcast}</span>
+                <span className="text-[10px] text-zinc-600">{game.broadcast}</span>
               )}
-              <svg className="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="text-[10px] font-medium" style={{ color: "#9090b0" }}>{game.league.toUpperCase()}</span>
+              <svg className="w-3 h-3 text-zinc-700 group-hover:text-zinc-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
           </div>
 
-          {/* Main matchup row — AWAY on LEFT, HOME on RIGHT */}
-          <div className="flex items-center px-4 pb-3 gap-3">
-            {/* Left team = AWAY team */}
-            <div className="flex-1 flex items-center gap-2.5 min-w-0">
+          {/* ── Team rows ── */}
+          <div className="px-4 pb-3">
+
+            {/* Away team row */}
+            <div className="flex items-center gap-3 py-1">
               <button
-                className="relative flex-shrink-0 active:scale-95 transition-transform"
+                className="flex-shrink-0 active:scale-95 transition-transform"
                 onClick={e => { e.stopPropagation(); setTeamSheet(game.isHome ? { id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo } : { id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl }) }}
               >
                 <TeamLogo
-                  src={game.isHome ? game.opponent.logo : seattleLogoUrl}
-                  emoji={game.isHome ? "🏟️" : game.seattleTeam.emoji}
-                  abbr={game.isHome ? game.opponent.abbr : game.seattleTeam.abbr}
-                  size={38}
+                  src={gcAwayLogo} emoji={gcAwayEmoji} abbr={gcAwayAbbr} size={40}
+                  className={`rounded-lg transition-opacity${isFt && !gcAwayWon && gcHomeWon ? " opacity-60" : ""}`}
                 />
               </button>
-              <div className="min-w-0">
-                <div className={`font-display text-[16px] font-700 leading-tight truncate ${game.isHome ? (seattleWon ? "text-zinc-400" : "text-white") : (seattleLost ? "text-zinc-400" : "text-white")}`}>
-                  {game.isHome ? (game.opponent.shortName || game.opponent.name) : game.seattleTeam.shortName}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[12px]" style={{ color: "#9090b0" }}>{gcAwayAbbr}</span>
+                  {gcAwayRecord && <span className="text-[10px] text-zinc-700">{formatRecord(gcAwayRecord)}</span>}
                 </div>
-                {(game.isHome ? game.opponentRecord : game.seattleRecord) && (
-                  <div className="text-[11px] text-zinc-500 leading-none mt-0.5">
-                    {formatRecord(game.isHome ? game.opponentRecord : game.seattleRecord)}
-                  </div>
-                )}
+                <div
+                  className="font-display text-[16px] font-700 leading-tight truncate"
+                  style={{ color: isFt && !gcAwayWon && gcHomeWon ? "#5a5a7a" : "#f0f0f8" }}
+                >{gcAwayName}</div>
               </div>
-            </div>
-
-            {/* Score / VS center */}
-            <div className="flex flex-col items-center justify-center min-w-[72px] flex-shrink-0">
-              {hasScore ? (
-                <div className="font-display text-[22px] font-800 tabular-nums leading-none text-white">
-                  {game.isHome ? game.opponentScore : game.seattleScore}<span className="text-zinc-500 mx-1">-</span>{game.isHome ? game.seattleScore : game.opponentScore}
-                </div>
-              ) : (
-                <>
-                  <div className="font-display text-[13px] font-600 text-zinc-500 uppercase tracking-widest">vs</div>
-                  <div className="font-display text-[13px] font-700 text-white mt-0.5">{formatGameTime(game.kickoff)}</div>
-                </>
+              {hasScore && gcAwayScore !== undefined && (
+                <div
+                  className="font-display font-700 tabular-nums leading-none flex-shrink-0"
+                  style={{ fontSize: "40px", color: isFt && !gcAwayWon && gcHomeWon ? "#5a5a7a" : "#f0f0f8" }}
+                >{gcAwayScore}</div>
               )}
-              {isFt && seattleWon && <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider mt-1">W</span>}
-              {isFt && seattleLost && <span className="text-[9px] font-bold text-red-400 uppercase tracking-wider mt-1">L</span>}
             </div>
 
-            {/* Right team = HOME team */}
-            <div className="flex-1 flex items-center justify-end gap-2.5 min-w-0">
-              <div className="min-w-0 text-right">
-                <div className={`font-display text-[16px] font-700 leading-tight truncate ${game.isHome ? (seattleLost ? "text-zinc-400" : "text-white") : (seattleWon ? "text-zinc-400" : "text-white")}`}>
-                  {game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)}
-                </div>
-                {(game.isHome ? game.seattleRecord : game.opponentRecord) && (
-                  <div className="text-[11px] text-zinc-500 leading-none mt-0.5 text-right">
-                    {formatRecord(game.isHome ? game.seattleRecord : game.opponentRecord)}
-                  </div>
-                )}
+            {/* Upcoming only: time / vs separator */}
+            {isUp && (
+              <div className="flex items-center gap-2 py-1">
+                <div className="flex-1 h-px" style={{ background: "rgba(144,144,176,0.15)" }} />
+                <span className="text-[12px] font-medium" style={{ color: "#9090b0" }}>
+                  {formatGameTime(game.kickoff)} · {game.isHome ? "Home" : "Away"}
+                </span>
+                <div className="flex-1 h-px" style={{ background: "rgba(144,144,176,0.15)" }} />
               </div>
+            )}
+
+            {/* Home team row */}
+            <div className="flex items-center gap-3 py-1">
               <button
-                className="relative flex-shrink-0 active:scale-95 transition-transform"
+                className="flex-shrink-0 active:scale-95 transition-transform"
                 onClick={e => { e.stopPropagation(); setTeamSheet(game.isHome ? { id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl } : { id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo }) }}
               >
                 <TeamLogo
-                  src={game.isHome ? seattleLogoUrl : game.opponent.logo}
-                  emoji={game.isHome ? game.seattleTeam.emoji : "🏟️"}
-                  abbr={game.isHome ? game.seattleTeam.abbr : game.opponent.abbr}
-                  size={38}
+                  src={gcHomeLogo} emoji={gcHomeEmoji} abbr={gcHomeAbbr} size={40}
+                  className={`rounded-lg transition-opacity${isFt && !gcHomeWon && gcAwayWon ? " opacity-60" : ""}`}
                 />
               </button>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[12px]" style={{ color: "#9090b0" }}>{gcHomeAbbr}</span>
+                  {gcHomeRecord && <span className="text-[10px] text-zinc-700">{formatRecord(gcHomeRecord)}</span>}
+                </div>
+                <div
+                  className="font-display text-[16px] font-700 leading-tight truncate"
+                  style={{ color: isFt && !gcHomeWon && gcAwayWon ? "#5a5a7a" : "#f0f0f8" }}
+                >{gcHomeName}</div>
+              </div>
+              {hasScore && gcHomeScore !== undefined && (
+                <div
+                  className="font-display font-700 tabular-nums leading-none flex-shrink-0"
+                  style={{ fontSize: "40px", color: isFt && !gcHomeWon && gcAwayWon ? "#5a5a7a" : "#f0f0f8" }}
+                >{gcHomeScore}</div>
+              )}
             </div>
-          </div>
 
-          {/* Bottom accent bar */}
-          <div className="h-0.5 w-full" style={{ background: `linear-gradient(to right, ${seattleColor}88, ${seattleColor}22, transparent)` }} />
+            {/* Win/loss label + venue footer */}
+            {(isFt || isLive) && (
+              <div className="flex items-center gap-2 mt-1.5 pt-1.5" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                {isFt && seattleWon && <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">W</span>}
+                {isFt && seattleLost && <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider">L</span>}
+                {isLive && game.clock && <span className="text-[11px] font-medium" style={{ color: "var(--accent)" }}>{game.clock}</span>}
+                {game.venue?.city && <span className="text-[11px] text-zinc-600 ml-auto">{game.venue.city}</span>}
+              </div>
+            )}
+          </div>
         </div>
       </button>
 
