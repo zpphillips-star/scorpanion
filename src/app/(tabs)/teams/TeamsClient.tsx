@@ -174,16 +174,16 @@ export default function TeamsClient() {
         onClick={() => toggleTeam(team.id)}
         className="relative flex flex-col items-center gap-2 p-3 rounded-lg transition-all active:scale-95"
         style={{
-          background: selected ? `${team.primaryColor}22` : 'rgba(255,255,255,0.04)',
-          border: `2px solid ${selected ? team.primaryColor : 'rgba(255,255,255,0.08)'}`,
-          boxShadow: selected ? `0 0 14px ${team.primaryColor}44` : 'none',
+          background: selected ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.04)',
+          border: `2px solid ${selected ? '#00d4ff' : 'rgba(255,255,255,0.08)'}`,
+          boxShadow: selected ? '0 0 16px rgba(0,212,255,0.5)' : 'none',
         }}
       >
         <TeamLogo src={getTeamLogoUrl(team)} emoji={team.emoji} abbr={team.abbr} size={44} />
         {selected && (
           <div
             className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: team.primaryColor }}
+            style={{ backgroundColor: '#00d4ff' }}
           >
             <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -210,7 +210,7 @@ export default function TeamsClient() {
         className="relative flex flex-col items-center gap-1.5 p-2.5 rounded-lg transition-all active:scale-95 cursor-pointer select-none"
         style={{
           background: isFollowed
-            ? `${team.primaryColor}28`
+            ? 'rgba(0,212,255,0.15)'
             : isStateMatch
             ? 'rgba(251,191,36,0.07)'
             : isSeattle
@@ -218,7 +218,7 @@ export default function TeamsClient() {
             : 'rgba(255,255,255,0.03)',
           border: `2px solid ${
             isFollowed
-              ? team.primaryColor
+              ? '#00d4ff'
               : isStateMatch
               ? 'rgba(251,191,36,0.45)'
               : isSeattle
@@ -226,7 +226,7 @@ export default function TeamsClient() {
               : 'rgba(255,255,255,0.07)'
           }`,
           boxShadow: isFollowed
-            ? `0 0 16px ${team.primaryColor}55`
+            ? '0 0 18px rgba(0,212,255,0.5)'
             : isStateMatch
             ? '0 0 8px rgba(251,191,36,0.15)'
             : 'none',
@@ -236,7 +236,7 @@ export default function TeamsClient() {
         {isFollowed && (
           <div
             className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full flex items-center justify-center z-10"
-            style={{ backgroundColor: team.primaryColor }}
+            style={{ backgroundColor: '#00d4ff' }}
           >
             <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -326,16 +326,16 @@ export default function TeamsClient() {
                   className="relative flex flex-col items-center gap-1 p-2.5 rounded-lg transition-all active:scale-95 shrink-0"
                   style={{
                     width: 76,
-                    background: isFollowed ? `${team.primaryColor}28` : 'rgba(255,255,255,0.07)',
-                    border: `2px solid ${isFollowed ? team.primaryColor : 'rgba(0,212,255,0.22)'}`,
-                    boxShadow: isFollowed ? `0 0 14px ${team.primaryColor}55` : '0 0 6px rgba(0,212,255,0.06)',
+                    background: isFollowed ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.07)',
+                    border: `2px solid ${isFollowed ? '#00d4ff' : 'rgba(0,212,255,0.22)'}`,
+                    boxShadow: isFollowed ? '0 0 16px rgba(0,212,255,0.5)' : '0 0 6px rgba(0,212,255,0.06)',
                   }}
                 >
                   {/* Follow checkmark badge */}
                   {isFollowed && (
                     <div
                       className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full flex items-center justify-center z-10"
-                      style={{ backgroundColor: team.primaryColor }}
+                      style={{ backgroundColor: '#00d4ff' }}
                     >
                       <svg className="w-2 h-2" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={3}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -520,7 +520,7 @@ export default function TeamsClient() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className="px-5 py-2 rounded-full text-[13px] font-display font-700 uppercase tracking-wide transition-all whitespace-nowrap"
+                className="px-6 py-2.5 rounded-xl text-[14px] font-display font-700 uppercase tracking-wide transition-all whitespace-nowrap"
                 style={{
                   background: active ? 'var(--accent)' : 'var(--surface-2)',
                   color: active ? '#08080f' : '#9ca3af',
