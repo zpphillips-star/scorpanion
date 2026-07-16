@@ -45,13 +45,15 @@ export default function UpcomingScheduleSection({ game }: Props) {
   }, [seaId, oppId, league])
 
   if (loading) return (
-    <div className="px-4 py-5 border-t border-white/5">
-      <div className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-700 mb-3">Upcoming Schedule</div>
-      <div className="grid grid-cols-2 gap-4">
+    <div className="border-t border-zinc-800/60">
+      <div className="px-5 pt-6 pb-2">
+        <span className="font-display text-[10px] font-700 uppercase tracking-[0.16em] text-zinc-500">Upcoming Schedule</span>
+      </div>
+      <div className="grid grid-cols-2 divide-x divide-zinc-800/60">
         {[0, 1].map(i => (
-          <div key={i} className="space-y-2">
-            <div className="h-3 w-20 rounded bg-white/8 animate-pulse" />
-            {[0, 1, 2].map(j => <div key={j} className="h-8 rounded-md bg-white/5 animate-pulse" />)}
+          <div key={i} className="px-5 py-3 space-y-3">
+            <div className="h-2.5 w-20 rounded bg-white/8 animate-pulse" />
+            {[0, 1, 2].map(j => <div key={j} className="h-7 rounded bg-white/5 animate-pulse" />)}
           </div>
         ))}
       </div>
@@ -61,8 +63,21 @@ export default function UpcomingScheduleSection({ game }: Props) {
   if (seaGames.length === 0 && oppGames.length === 0) return null
 
   const seaLogoUrl = getTeamLogoUrl(game.seattleTeam)
-  const maxRows = Math.max(seaGames.length, oppGames.length)
   const color = game.seattleTeam.primaryColor
+
+  const GameRow = ({ g }: { g: UpcomingGame }) => (
+    <div className="flex items-center gap-3 py-3.5 border-b border-zinc-800/50 last:border-0">
+      <span className="font-display text-[12px] font-600 text-zinc-500 w-5 text-center flex-shrink-0">
+        {g.isHome ? "vs" : "@"}
+      </span>
+      {g.oppLogo
+        // eslint-disable-next-line @next/next/no-img-element
+        ? <img src={g.oppLogo} alt={g.opponent} width={20} height={20} className="object-contain flex-shrink-0" />
+        : <div className="w-5 h-5 flex-shrink-0" />}
+      <span className="font-display text-[14px] font-600 text-zinc-200 flex-1 truncate">{g.opponent}</span>
+      <span className="font-display text-[12px] text-zinc-500 flex-shrink-0">{fmtShortDate(g.date)}</span>
+    </div>
+  )
 
   return (
     <div className="mt-6 pb-6">
@@ -73,7 +88,8 @@ export default function UpcomingScheduleSection({ game }: Props) {
         <div className="flex-1 h-px bg-zinc-800" />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      {/* Two-column layout: Seattle | Opponent */}
+      <div className="grid grid-cols-2 divide-x divide-zinc-800/60">
         {/* Seattle column */}
         <div>
           <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-zinc-800">

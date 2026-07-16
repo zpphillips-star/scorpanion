@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Game } from "@/lib/types"
 import { getTeamLogoUrl } from "@/lib/teams"
 import TeamLogo from "./TeamLogo"
@@ -7,9 +7,8 @@ import BoxScore from "./BoxScore"
 import TeamDetailSheet from "./TeamDetailSheet"
 import UpcomingScheduleSection from "./UpcomingScheduleSection"
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
-}
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
 function formatRecord(r?: { wins: number; losses: number; ties?: number }): string {
   if (!r) return ""
   return r.ties ? `${r.wins}-${r.losses}-${r.ties}` : `${r.wins}-${r.losses}`
@@ -20,8 +19,7 @@ function getLiveDetail(game: Game): string {
   const clk = game.clock
   if (game.sport === "baseball" && p) {
     const half = p % 2 === 1 ? "Top" : "Bot"
-    const inn = Math.ceil(p / 2)
-    return `${half} ${inn}${clk ? " · " + clk : ""}`
+    return `${half} ${Math.ceil(p / 2)}${clk ? " · " + clk : ""}`
   }
   if (game.sport === "basketball" && p) return clk ? `Q${p}  ${clk}` : `Q${p}`
   if (game.sport === "hockey" && p) { const l = ["1st","2nd","3rd","OT"][p-1]||`P${p}`; return clk ? `${l}  ${clk}` : l }
@@ -30,17 +28,220 @@ function getLiveDetail(game: Game): string {
   return clk || "Live"
 }
 
+// ── Team detail shape (from /api/team-detail) ────────────────────────────────
+
+interface DivStandingRow {
+  abbr: string
+  logo: string
+  wins: number
+  losses: number
+  winPct: number
+  isThis: boolean
+}
+
+interface TeamDetail {
+  color: string
+  altColor: string
+  recentForm: { result: "W" | "L" | "T" }[]
+  divisionRank: number | null
+  divisionName: string
+  wins: number
+  losses: number
+  ties?: number
+  divisionStandings: DivStandingRow[]
+}
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+/** ALL-CAPS section label flanked by hairline dividers — WC style */
+function SectionHeader({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 mb-3">
+      <div className="flex-1 h-px bg-zinc-800" />
+      <span className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-500 flex-shrink-0">
+        {label}
+      </span>
+      <div className="flex-1 h-px bg-zinc-800" />
+    </div>
+  )
+}
+
+/** Form dots — up to 5, larger (11 px), green glow on wins, inset shadow on losses */
+function RecentFormDots({ form }: { form: { result: "W" | "L" | "T" }[] }) {
+  if (!form || form.length === 0) return null
+  const dots = form.slice(0, 5)
+  return (
+    <div className="flex items-center gap-1.5">
+      {dots.map((f, i) => (
+        <div
+          key={i}
+          className="rounded-full flex-shrink-0"
+          style={{
+            width: 11,
+            height: 11,
+            background: f.result === "W" ? "#34d399" : f.result === "L" ? "#f87171" : "#6b7280",
+            boxShadow:
+              f.result === "W"
+                ? "0 0 7px #34d399bb, inset 0 1px 1px rgba(255,255,255,0.25)"
+                : f.result === "L"
+                ? "inset 0 2px 4px rgba(0,0,0,0.55)"
+                : "none",
+          }}
+          title={f.result}
+        />
+      ))}
+    </div>
+  )
+}
+
+function TeamContextCard({
+  name, logo, emoji, abbr, color, record, detail, label,
+}: {
+  name: string; logo: string; emoji: string; abbr: string
+  color: string
+  record?: { wins: number; losses: number; ties?: number }
+  detail: TeamDetail | null
+  label: "Away" | "Home"
+}) {
+  const wins      = detail?.wins   ?? record?.wins
+  const losses    = detail?.losses ?? record?.losses
+  const ties      = record?.ties
+  const divRank   = detail?.divisionRank
+  const divName   = detail?.divisionName ?? ""
+  const form      = (detail?.recentForm ?? []).slice(0, 5)
+  const standings = detail?.divisionStandings ?? []
+
+  return (
+    <div className="space-y-4">
+
+      {/* Team header */}
+      <div className="flex items-center gap-2">
+        <TeamLogo src={logo} emoji={emoji} abbr={abbr} size={24} />
+        <div className="flex-1 min-w-0">
+          <div className="font-display text-[13px] font-700 text-white truncate">{name}</div>
+          <div className="font-display text-[10px] uppercase tracking-widest text-zinc-600">{label}</div>
+        </div>
+        {wins !== undefined && losses !== undefined && (
+          <div className="text-right">
+            <div className="font-display text-[22px] font-800 text-white tabular-nums leading-none">
+              {wins}–{losses}{ties !== undefined && ties > 0 ? `–${ties}` : ""}
+            </div>
+            {divRank !== null && divRank !== undefined && divName && (
+              <div className="font-display text-[10px] text-zinc-500 mt-0.5 text-right">#{divRank} {divName}</div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Last 5 Games form dots */}
+      {form.length > 0 && (
+        <div>
+          <div className="font-display text-[10px] font-700 uppercase tracking-wider text-zinc-600 mb-1.5">Last 5</div>
+          <RecentFormDots form={form} />
+        </div>
+      )}
+
+      {/* Conference / division standings */}
+      {standings.length > 0 && (
+        <div>
+          <div className="font-display text-[10px] font-700 uppercase tracking-wider text-zinc-600 mb-1.5">{divName || "Division"}</div>
+          <div>
+            {standings.map((row, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-2 py-1.5 border-b border-zinc-800/50 last:border-0"
+                style={{
+                  borderLeft: row.isThis ? `3px solid ${color}` : "3px solid transparent",
+                  paddingLeft: "6px",
+                }}
+              >
+                {row.logo ? (
+                  <img
+                    src={row.logo}
+                    alt={row.abbr}
+                    width={14}
+                    height={14}
+                    className="object-contain flex-shrink-0"
+                    style={{ opacity: row.isThis ? 1 : 0.55 }}
+                  />
+                ) : (
+                  <div className="w-3.5 h-3.5 rounded-full bg-white/10 flex-shrink-0" />
+                )}
+                <span className={`font-display text-[12px] flex-1 truncate ${row.isThis ? "font-700 text-white" : "text-zinc-500"}`}>
+                  {row.abbr}
+                </span>
+                <span className={`font-display text-[12px] tabular-nums ${row.isThis ? "font-700 text-white" : "text-zinc-500"}`}>
+                  {row.wins}–{row.losses}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
 export default function GameDetailSheet({ game, onClose }: { game: Game; onClose: () => void }) {
   const [teamSheet, setTeamSheet] = useState<{ id: string; name: string; logo: string } | null>(null)
-  const isLive = game.status === "live"
-  const isFt = game.status === "ft"
-  const hasScore = (isLive || isFt) && game.seattleScore !== undefined && game.opponentScore !== undefined
-  const seattleWon = hasScore && (game.seattleScore ?? 0) > (game.opponentScore ?? 0)
-  const seattleLost = hasScore && (game.seattleScore ?? 0) < (game.opponentScore ?? 0)
-  const color = game.seattleTeam.primaryColor
-  const canShowBoxScore = (isLive || isFt) && !!game.id && game.league !== "whl" && game.league !== "pwhl"
+  const [seaDetail, setSeaDetail] = useState<TeamDetail | null>(null)
+  const [oppDetail, setOppDetail] = useState<TeamDetail | null>(null)
+
+  const isLive     = game.status === "live"
+  const isFt       = game.status === "ft"
+  const isUpcoming = game.status === "upcoming"
+  // GUARD: only show scores for live/completed games with defined scores
+  const hasScore   = (isLive || isFt) && game.seattleScore !== undefined && game.opponentScore !== undefined
+  const seattleColor   = game.seattleTeam.primaryColor
   const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
-  const liveDetail = isLive ? getLiveDetail(game) : ""
+  const liveDetail     = isLive ? getLiveDetail(game) : ""
+  const canShowBoxScore = (isLive || isFt) && !!game.id && game.league !== "whl" && game.league !== "pwhl"
+
+  const league = game.league
+  const seaId  = game.seattleTeam.espnId
+  const oppId  = game.opponent.id
+
+  useEffect(() => {
+    if (!seaId || !oppId || league === "whl" || league === "pwhl") return
+    Promise.all([
+      fetch(`/api/team-detail?teamId=${encodeURIComponent(seaId)}&league=${encodeURIComponent(league)}`).then(r => r.ok ? r.json() : null),
+      fetch(`/api/team-detail?teamId=${encodeURIComponent(oppId)}&league=${encodeURIComponent(league)}`).then(r => r.ok ? r.json() : null),
+    ]).then(([sea, opp]) => {
+      if (sea) setSeaDetail(sea)
+      if (opp) setOppDetail(opp)
+    }).catch(() => {})
+  }, [seaId, oppId, league])
+
+  // Resolve away/home side (away = left, home = right)
+  const oppColor   = oppDetail?.color ?? "#374151"
+  const awayColor  = game.isHome ? oppColor      : seattleColor
+  const homeColor  = game.isHome ? seattleColor  : oppColor
+
+  const awayLogo   = game.isHome ? game.opponent.logo  : seattleLogoUrl
+  const awayEmoji  = game.isHome ? "🏟️"                : game.seattleTeam.emoji
+  const awayAbbr   = game.isHome ? game.opponent.abbr  : game.seattleTeam.abbr
+  const awayName   = game.isHome ? (game.opponent.shortName || game.opponent.name) : game.seattleTeam.shortName
+  const awayId     = game.isHome ? game.opponent.id    : game.seattleTeam.espnId
+  const awayRecord = game.isHome ? game.opponentRecord : game.seattleRecord
+  const awayDetail = game.isHome ? oppDetail           : seaDetail
+
+  const homeLogo   = game.isHome ? seattleLogoUrl      : game.opponent.logo
+  const homeEmoji  = game.isHome ? game.seattleTeam.emoji : "🏟️"
+  const homeAbbr   = game.isHome ? game.seattleTeam.abbr  : game.opponent.abbr
+  const homeName   = game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)
+  const homeId     = game.isHome ? game.seattleTeam.espnId    : game.opponent.id
+  const homeRecord = game.isHome ? game.seattleRecord   : game.opponentRecord
+  const homeDetail = game.isHome ? seaDetail             : oppDetail
+
+  const awayScore = game.isHome ? game.opponentScore : game.seattleScore
+  const homeScore = game.isHome ? game.seattleScore  : game.opponentScore
+  const awayWon   = hasScore && (awayScore ?? 0) > (homeScore ?? 0)
+  const homeWon   = hasScore && (homeScore ?? 0) > (awayScore ?? 0)
+
+  const seattleWon  = hasScore && (game.seattleScore ?? 0) > (game.opponentScore ?? 0)
+  const seattleLost = hasScore && (game.seattleScore ?? 0) < (game.opponentScore ?? 0)
 
   return (
     <>
@@ -101,6 +302,13 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                   <span className="text-[22px] font-bold text-zinc-500">vs</span>
                   <span className="text-[12px] text-zinc-500">{new Date(game.kickoff).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span>
                 </div>
+              ) : isFt ? (
+                <span className="font-display text-[13px] font-700 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-full uppercase tracking-wider">Final</span>
+              ) : (
+                <span className="font-display text-[13px] font-700 text-sky-400 bg-sky-500/10 border border-sky-500/20 px-4 py-2 rounded-full uppercase tracking-wider">Upcoming</span>
+              )}
+              {game.broadcast && (
+                <span className="font-display text-[13px] font-700 text-amber-400 bg-amber-500/10 border border-amber-500/20 px-4 py-2 rounded-full">{game.broadcast}</span>
               )}
             </div>
 

@@ -1,5 +1,41 @@
 @import "tailwindcss";
 
+/* ── Tailwind v4 theme extension (CSS-first config) ───────────────────────── */
+@theme {
+  /* Brand backgrounds */
+  --color-bg-base:     #0a0a0f;
+  --color-bg-surface:  #12121a;
+  --color-bg-elevated: #1c1c28;
+  --color-bg-subtle:   #242433;
+
+  /* Borders */
+  --color-border-subtle:  #1e1e2e;
+  --color-border-default: #2a2a3f;
+  --color-border-strong:  #3a3a55;
+
+  /* Accent */
+  --color-accent:       #00d4ff;
+  --color-accent-dim:   #00a8cc;
+  --color-accent-muted: #003d4d;
+
+  /* Text */
+  --color-text-primary:   #f0f0f8;
+  --color-text-secondary: #9090b0;
+  --color-text-tertiary:  #5a5a7a;
+
+  /* Status */
+  --color-status-win:       #22c55e;
+  --color-status-loss:      #ef4444;
+  --color-status-live:      #00d4ff;
+  --color-status-final:     #5a5a7a;
+  --color-status-upcoming:  #9090b0;
+  --color-status-postponed: #f59e0b;
+
+  /* Font families */
+  --font-family-display: var(--font-barlow), "Barlow Condensed", system-ui, sans-serif;
+  --font-family-body:    var(--font-inter), "Inter", system-ui, sans-serif;
+}
+
 /* ── Custom utilities ─────────────────────────────────────────────────────── */
 @utility scrollbar-hide {
   -ms-overflow-style: none;
@@ -7,18 +43,36 @@
   &::-webkit-scrollbar { display: none; }
 }
 
-/* ── Design tokens ────────────────────────────────────────────────────────── */
+/* ── Design tokens (CSS vars — primary runtime mechanism) ─────────────────── */
 :root {
-  --bg:           #08080f;
-  --surface:      #111118;
-  --surface-2:    #17171f;
-  --border:       rgba(255,255,255,0.07);
+  /* Backgrounds */
+  --bg:           #0a0a0f;
+  --surface:      #12121a;
+  --surface-2:    #1c1c28;
+  --surface-3:    #242433;
+
+  /* Borders */
+  --border:         #1e1e2e;
+  --border-default: #2a2a3f;
+  --border-strong:  #3a3a55;
+
+  /* Accent */
   --accent:       #00d4ff;
-  --accent-dim:   rgba(0,212,255,0.12);
-  --text:         #ffffff;
-  --text-muted:   #9ca3af;
-  --text-faint:   #4b5563;
-  --live:         #ef4444;
+  --accent-dim:   #00a8cc;
+  --accent-muted: #003d4d;
+
+  /* Text */
+  --text:         #f0f0f8;
+  --text-muted:   #9090b0;
+  --text-faint:   #5a5a7a;
+
+  /* Status */
+  --live:            #00d4ff;
+  --status-win:      #22c55e;
+  --status-loss:     #ef4444;
+  --status-final:    #5a5a7a;
+  --status-upcoming: #9090b0;
+  --status-ppd:      #f59e0b;
 }
 
 /* ── Base ─────────────────────────────────────────────────────────────────── */
@@ -31,10 +85,16 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-body { font-family: var(--font-geist-sans), system-ui, sans-serif; }
+body { font-family: var(--font-inter), "Inter", system-ui, sans-serif; }
 
 /* Display / sport headings use Barlow Condensed */
 .font-display { font-family: var(--font-barlow), "Barlow Condensed", system-ui, sans-serif; }
+
+/* Body text uses Inter */
+.font-body { font-family: var(--font-inter), "Inter", system-ui, sans-serif; }
+
+/* Hero score — popup/sheet hero (72px Barlow Condensed 800) */
+.type-hero { font-family: var(--font-barlow), "Barlow Condensed", system-ui, sans-serif; font-size: 72px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
 
 /* ── Scrollbar ────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 3px; height: 3px; }
@@ -69,8 +129,8 @@ body { font-family: var(--font-geist-sans), system-ui, sans-serif; }
 .animate-fade-in { animation: fade-in 0.2s ease both; }
 
 @keyframes pulse-live {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
-  50%       { box-shadow: 0 0 0 5px rgba(239,68,68,0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,255,0.5); }
+  50%       { box-shadow: 0 0 0 5px rgba(0,212,255,0); }
 }
 .animate-pulse-live { animation: pulse-live 1.4s ease infinite; }
 
@@ -86,17 +146,18 @@ body { font-family: var(--font-geist-sans), system-ui, sans-serif; }
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 12px;
+  padding: 12px 16px;
 }
 .card-raised {
   background: var(--surface-2);
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 14px;
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
 }
 
 /* ── Glass header ─────────────────────────────────────────────────────────── */
 .glass-header {
-  background: rgba(8,8,15,0.92);
+  background: rgba(10,10,15,0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);

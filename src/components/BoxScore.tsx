@@ -83,9 +83,9 @@ interface Props {
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
-const CELL  = "px-2 py-2.5 font-display tabular-nums text-center"
-const HDR   = "pb-2 px-2 font-display text-[12px] font-700 text-zinc-500 uppercase tracking-wider text-center"
-const TEAM_CELL = "pr-3 py-2.5 text-left"
+const CELL  = "px-2 py-4 font-display tabular-nums text-center"
+const HDR   = "pb-3 px-2 font-display text-[12px] font-700 text-zinc-500 uppercase tracking-wider text-center"
+const TEAM_CELL = "pr-3 py-4 text-left"
 
 /** Returns true when the column index corresponds to the live period */
 function isCurrentCol(periodIdx: number, currentPeriod: number | null, sportType: string): boolean {
@@ -114,9 +114,9 @@ function TeamCell({ team, isSea }: { team: LineTeam; isSea: boolean }) {
   )
 }
 
-// ─── Section header ───────────────────────────────────────────────────────────
+// ─── Section header — WC-style hairline-flanked centered label ───────────────
 
-function SectionHeader({ label }: { label: string }) {
+function SectionHeader({ label, first = false }: { label: string; first?: boolean }) {
   return (
     <div className="flex items-center gap-2 pt-6 pb-3 px-1">
       <div className="flex-1 h-px bg-zinc-800" />
@@ -142,7 +142,7 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
 
   return (
     <>
-      <SectionHeader label="Line Score" />
+      <SectionHeader label="Line Score" first />
       <div className="px-3 overflow-x-auto no-scrollbar">
         <table className="w-full min-w-max" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
           <thead>
@@ -235,7 +235,7 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
 
   return (
     <>
-      <SectionHeader label="Score by Quarter" />
+      <SectionHeader label="Score by Quarter" first />
       <div className="px-3 overflow-x-auto no-scrollbar">
         <table className="w-full min-w-max" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
           <thead>
@@ -321,6 +321,46 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
               )
             })}
           </div>
+          {linescores.map((team, teamIdx) => {
+            // Match scorers by teamId first, then fall back to abbr match
+            const teamScorers = scoresByTeam[team.teamId]
+              ?? Object.entries(scoresByTeam).find(([id]) => id === team.abbr)?.[1]
+              ?? []
+            if (teamScorers.length === 0) return null
+            return (
+              <div key={team.teamId} className={`relative overflow-hidden${teamIdx > 0 ? " mt-4 border-t-4 border-zinc-800" : ""}`}>
+                {/* Watermark logo — centered behind all player rows */}
+                {team.logo && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={team.logo}
+                    alt=""
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      width: 80,
+                      height: 80,
+                      objectFit: "contain",
+                      opacity: 0.09,
+                      pointerEvents: "none",
+                      userSelect: "none",
+                    }}
+                  />
+                )}
+                {teamScorers.map((s, idx) => (
+                  <div key={idx} className="relative grid grid-cols-[1fr_32px_32px_32px] gap-x-2 items-center px-5 py-5 border-b border-zinc-800/40 last:border-0">
+                    <span className="text-[14px] font-600 truncate text-zinc-200">{s.name}</span>
+                    <span className="font-display text-[14px] font-600 tabular-nums text-center text-zinc-200">{s.pts}</span>
+                    <span className="font-display text-[14px] font-600 tabular-nums text-center text-zinc-400">{s.reb}</span>
+                    <span className="font-display text-[14px] font-600 tabular-nums text-center text-zinc-400">{s.ast}</span>
+                  </div>
+                ))}
+              </div>
+            )
+          })}
         </>
       )}
     </>
@@ -342,7 +382,7 @@ function HockeyScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattle
 
   return (
     <>
-      <SectionHeader label="Score by Period" />
+      <SectionHeader label="Score by Period" first />
       <div className="px-3 overflow-x-auto no-scrollbar">
         <table className="w-full min-w-max" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
           <thead>
@@ -401,7 +441,7 @@ function FootballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
   const { linescores, periodLabels, currentPeriod } = data
   return (
     <>
-      <SectionHeader label="Score by Quarter" />
+      <SectionHeader label="Score by Quarter" first />
       <div className="px-3 overflow-x-auto no-scrollbar">
         <table className="w-full min-w-max" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
           <thead>
@@ -448,11 +488,10 @@ function FootballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
 
 // ─── Soccer ───────────────────────────────────────────────────────────────────
 
-function SoccerScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattleTeamId?: string }) {
+function SoccerScoreboard({ data }: { data: BoxScoreData; seattleTeamId?: string }) {
   const { linescores, goalScorers } = data
   if (linescores.length < 2) return null
 
-  // Away team is index 0 (homeAway="away"), home is index 1 (homeAway="home")
   const away = linescores.find(t => t.homeAway === "away") ?? linescores[0]
   const home = linescores.find(t => t.homeAway === "home") ?? linescores[1]
 
@@ -496,6 +535,17 @@ function SoccerScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattle
           </div>
         )}
       </div>
+
+      {/* Half-time breakdown — WC hairline style */}
+      {(away.linescores.length > 0 || home.linescores.length > 0) && (
+        <div className="mx-5 mt-1 mb-5 flex items-center gap-3 pt-3 border-t border-zinc-800">
+          <span className="text-[13px] tabular-nums font-600 text-zinc-300">{home.linescores[0] ?? 0} – {away.linescores[0] ?? 0}</span>
+          <div className="flex-1 h-px bg-zinc-800" />
+          <span className="text-[10px] uppercase tracking-widest text-zinc-600 flex-shrink-0">Half Time</span>
+          <div className="flex-1 h-px bg-zinc-800" />
+          <span className="text-[13px] tabular-nums font-600 text-zinc-300">{home.linescores[1] ?? 0} – {away.linescores[1] ?? 0}</span>
+        </div>
+      )}
     </>
   )
 }
@@ -506,7 +556,7 @@ function GenericScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattl
   const { linescores, periodLabels, currentPeriod, sportType } = data
   return (
     <>
-      <SectionHeader label="Score" />
+      <SectionHeader label="Score" first />
       <div className="px-3 overflow-x-auto no-scrollbar">
         <table className="w-full min-w-max" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
           <thead>
@@ -569,8 +619,7 @@ function TeamStatsSection({ data, color }: { data: BoxScoreData; color: string }
   return (
     <>
       <SectionHeader label="Team Stats" />
-      <div className="px-3 pb-3 space-y-2">
-        {sharedStats.map(key => {
+      {sharedStats.map(key => {
           const sa = teamA.statistics.find(s => s.name === key || s.label?.toLowerCase().includes(key.toLowerCase()))
           const sb = teamB.statistics.find(s => s.name === key || s.label?.toLowerCase().includes(key.toLowerCase()))
           if (!sa && !sb) return null
@@ -582,19 +631,18 @@ function TeamStatsSection({ data, color }: { data: BoxScoreData; color: string }
           const total = numA + numB || 1
           const pctA = numA / total
           return (
-            <div key={key} className="px-2 py-1.5">
-              <div className="flex justify-between mb-1.5">
-                <span className="font-display text-[14px] font-700 text-white tabular-nums">{vA}</span>
-                <span className="font-display text-[11px] text-zinc-500 uppercase tracking-wide">{label}</span>
-                <span className="font-display text-[14px] font-700 text-zinc-400 tabular-nums">{vB}</span>
+            <div key={key} className="px-5 py-5 border-b border-zinc-800/50 last:border-0">
+              <div className="flex justify-between items-baseline mb-3">
+                <span className="font-display text-[15px] font-700 text-white tabular-nums">{vA}</span>
+                <span className="font-display text-[10px] font-700 text-zinc-500 uppercase tracking-[0.12em]">{label}</span>
+                <span className="font-display text-[15px] font-700 text-zinc-400 tabular-nums">{vB}</span>
               </div>
-              <div className="h-1.5 rounded-full overflow-hidden flex" style={{ background: "rgba(255,255,255,0.08)" }}>
-                <div className="h-full rounded-l-full transition-all" style={{ width: `${pctA * 100}%`, background: color }} />
+              <div className="h-[3px] overflow-hidden flex" style={{ background: "rgba(255,255,255,0.07)" }}>
+                <div className="h-full transition-all" style={{ width: `${pctA * 100}%`, background: color }} />
               </div>
             </div>
           )
         })}
-      </div>
     </>
   )
 }
@@ -673,7 +721,7 @@ export default function BoxScore({ eventId, league, seattleTeamId, color = "#00d
   const showStats = sportType !== "soccer" // soccer stats shown elsewhere
 
   return (
-    <div className="mt-1 rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+    <div className="mt-1 border-t border-zinc-800/60">
       {/* Sport-specific scoreboard */}
       {sportType === "baseball"   && <BaseballScoreboard    data={data} seattleTeamId={seattleTeamId} />}
       {sportType === "basketball" && <BasketballScoreboard  data={data} seattleTeamId={seattleTeamId} color={color} />}

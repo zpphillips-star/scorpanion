@@ -32,12 +32,12 @@ export default function ForgotPasswordPage() {
 
   if (sent) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4">
-        <div className="w-full max-w-sm text-center">
-          <div className="text-4xl mb-4">✉️</div>
-          <h2 className="text-white font-bold text-xl mb-2">Email sent</h2>
-          <p className="text-gray-300 text-sm mb-6">Check your inbox for a password reset link.</p>
-          <Link href="/auth/login" className="text-xs text-gray-300 hover:text-white transition-colors">
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0a0f' }}>
+        <div className="w-full max-w-[400px] text-center">
+          <div className="text-5xl mb-4">✉️</div>
+          <h2 className="font-extrabold text-xl mb-2" style={{ color: '#f0f0f8' }}>Email sent</h2>
+          <p className="text-sm mb-6" style={{ color: '#9090b0' }}>Check your inbox for a password reset link.</p>
+          <Link href="/auth/login" className="transition-colors" style={{ color: '#9090b0', fontSize: '13px' }}>
             ← Back to sign in
           </Link>
         </div>
@@ -46,51 +46,85 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="text-4xl mb-2">🦂</div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">scorpanion</h1>
-          <p className="text-gray-400 text-sm mt-1">Reset your password</p>
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0a0f' }}>
+      <div className="w-full max-w-[400px]">
+
+        {/* ── Logo area ── */}
+        <div
+          className="text-center mb-8 pt-8 pb-2"
+          style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(0,212,255,0.08) 0%, transparent 100%)' }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/scorpion-logo.png" alt="Scorpanion" width={64} height={64} className="object-contain mx-auto mb-3" />
+          <div
+            className="font-display text-[32px] font-extrabold uppercase tracking-[0.08em] leading-none mb-2"
+            style={{ color: '#f0f0f8' }}
+          >
+            SCORPANION
+          </div>
+          <p style={{ color: '#9090b0', fontSize: '15px', fontWeight: 400 }}>Your teams. Every score.</p>
         </div>
 
-        {/* Card */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-          <form onSubmit={handleReset} className="space-y-4">
-            {error && (
-              <div className="p-3 bg-red-900/30 border border-red-500/30 rounded-md text-red-300 text-sm">
-                {error}
-              </div>
-            )}
-            <div>
-              <label className="block text-gray-300 text-xs font-medium mb-1.5">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500/50 transition-colors"
-                placeholder="you@example.com"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-3 text-sm transition-colors"
+        {/* ── Form ── */}
+        <form onSubmit={handleReset} className="space-y-4">
+          {error && (
+            <div
+              className="px-4 py-3 rounded-[10px] text-sm"
+              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}
             >
-              {loading ? 'Sending…' : 'Send reset link'}
-            </button>
-          </form>
-        </div>
+              {error}
+            </div>
+          )}
 
-        {/* Links */}
-        <div className="mt-4 text-center">
-          <Link href="/auth/login" className="text-xs text-gray-400 hover:text-gray-300 transition-colors">
+          <div>
+            <label className="block mb-1.5" style={{ color: '#9090b0', fontSize: '13px', fontWeight: 500 }}>
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              placeholder="you@example.com"
+              className="w-full px-4 text-white placeholder-[#5a5a7a] outline-none transition-all"
+              style={{
+                height: '52px',
+                background: '#12121a',
+                border: '1px solid #2a2a3f',
+                borderRadius: '10px',
+                fontSize: '15px',
+              }}
+              onFocus={e => { e.currentTarget.style.borderColor = '#00d4ff'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0,212,255,0.15)' }}
+              onBlur={e => { e.currentTarget.style.borderColor = '#2a2a3f'; e.currentTarget.style.boxShadow = 'none' }}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full font-semibold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              height: '48px',
+              background: '#00d4ff',
+              color: '#0a0a0f',
+              borderRadius: '10px',
+              fontSize: '15px',
+              fontWeight: 600,
+            }}
+          >
+            {loading ? 'Sending…' : 'Send reset link'}
+          </button>
+        </form>
+
+        {/* ── Footer links ── */}
+        <div className="mt-6 text-center">
+          <Link href="/auth/login" className="transition-colors" style={{ color: '#9090b0', fontSize: '13px' }}>
             ← Back to sign in
           </Link>
         </div>
+
       </div>
     </div>
   )
 }
+

@@ -55,7 +55,7 @@ export async function GET(req: Request) {
       const events: any[] = schedData.events ?? []
       const completed = events.filter((e: any) => e.competitions?.[0]?.status?.type?.completed)
       const upcoming = events.filter((e: any) => !e.competitions?.[0]?.status?.type?.completed && new Date(e.date) > new Date())
-      const last3 = completed.slice(-3)
+      const last3 = completed.slice(-5)
       const next3 = upcoming.slice(0, 3)
       recentForm = last3.map((e: any) => {
         const comp = e.competitions[0]

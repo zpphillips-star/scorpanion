@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest } from 'next/server'
 import { SEATTLE_TEAMS } from '@/lib/teams'
+import { ALL_PRO_TEAMS } from '@/lib/allProTeams'
 import { Game, SeattleTeam, TeamRecord } from '@/lib/types'
 
 export const runtime = 'edge'
@@ -103,7 +104,7 @@ function mlbLogoUrl(fileCode: string): string {
 async function fetchMLBSchedule(team: SeattleTeam): Promise<Game[]> {
   const year = new Date().getFullYear()
   const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&teamId=${MLB_MARINERS_TEAM_ID}&season=${year}&hydrate=linescore,team`
-  const res = await fetch(url, { next: { revalidate: 300 } })
+  const res = await fetch(url, { next: { revalidate: 60 } })
   if (!res.ok) return []
   const data = await res.json()
 
@@ -171,7 +172,7 @@ async function fetchMLBSchedule(team: SeattleTeam): Promise<Game[]> {
 async function fetchNHLSchedule(team: SeattleTeam): Promise<Game[]> {
   const seasonId = getNHLSeasonId()
   const url = `https://api-web.nhle.com/v1/club-schedule-season/${NHL_KRAKEN_ABBREV}/${seasonId}`
-  const res = await fetch(url, { next: { revalidate: 300 } })
+  const res = await fetch(url, { next: { revalidate: 60 } })
   if (!res.ok) return []
   const data = await res.json()
 
@@ -252,7 +253,7 @@ function parseRecord(comp: any): TeamRecord | undefined {
 
 async function fetchESPNSchedule(team: SeattleTeam): Promise<Game[]> {
   const url = `https://site.api.espn.com/apis/site/v2/sports/${team.sport}/${team.league}/teams/${team.espnId}/schedule`
-  const res = await fetch(url, { next: { revalidate: 300 } })
+  const res = await fetch(url, { next: { revalidate: 60 } })
   if (!res.ok) return []
   const data = await res.json()
 
@@ -277,6 +278,9 @@ async function fetchESPNSchedule(team: SeattleTeam): Promise<Game[]> {
     const opponentRecord = parseRecord(opponentComp)
 
     const parseScore = (val: any): number | undefined => {
+      if (val === undefined || val === null || val === '') return undefined
+      // ESPN returns score as object: { value: 78.0, displayValue: "78" }
+      if (typeof val === 'object') val = val.displayValue ?? val.value
       if (val === undefined || val === null || val === '') return undefined
       const n = Number(val)
       return isNaN(n) ? undefined : n
@@ -314,43 +318,107 @@ async function fetchESPNSchedule(team: SeattleTeam): Promise<Game[]> {
   return games
 }
 
+// ── Map ProTeam league key (uppercase) → ESPN URL slug ────────────────────────
+function proLeagueToEspnSlug(league: string): string {
+  const SLUG_MAP: Record<string, string> = {
+    MLS:  'usa.1',
+    NWSL: 'usa.nwsl',
+  }
+  return SLUG_MAP[league] ?? league.toLowerCase()
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const teamsParam = searchParams.get('teams')
 
   const teamIds = teamsParam ? teamsParam.split(',') : SEATTLE_TEAMS.map(t => t.id)
-  const teams = SEATTLE_TEAMS.filter(t => teamIds.includes(t.id))
+
+  // Split into known Seattle teams and non-Seattle pro teams
+  const seattleTeamSet = new Set(SEATTLE_TEAMS.map(t => t.id))
+  const proTeamMap = new Map(ALL_PRO_TEAMS.map(t => [t.id, t]))
+
+  const seattleTeams = SEATTLE_TEAMS.filter(t => teamIds.includes(t.id))
+  const otherProTeams = teamIds
+    .filter(id => !seattleTeamSet.has(id) && proTeamMap.has(id))
+    .map(id => {
+      const pt = proTeamMap.get(id)!
+      // Map ProTeam to a SeattleTeam-compatible shape for fetchESPNSchedule
+      const mapped: SeattleTeam = {
+        id: pt.id,
+        name: pt.name,
+        shortName: pt.shortName,
+        abbr: pt.abbr,
+        sport: pt.sport,
+        league: proLeagueToEspnSlug(pt.league),
+        espnId: pt.espnId,
+        primaryColor: pt.primaryColor,
+        secondaryColor: '#ffffff',
+        emoji: '',
+        logoUrl: pt.logo,
+      }
+      return mapped
+    })
 
   const allGames: Game[] = []
   const seenIds = new Set<string>()
+  // Deduplicate by underlying event ID AND by matchup key.
+  // The matchup key catches cross-system duplicates (e.g. Mariners via MLB Stats API
+  // + Giants via ESPN API return the same game with completely different numeric IDs).
+  const seenEventKeys = new Set<string>()
+  const seenMatchupKeys = new Set<string>()
 
-  await Promise.all(
-    teams.map(async (team) => {
+  function addGame(game: Game) {
+    if (seenIds.has(game.id)) return
+    // Key 1: raw event ID (strips team prefix) — catches same-system duplicates
+    const eventKey = game.id.includes('|') ? game.id.split('|').slice(1).join('|') : game.id
+    if (seenEventKeys.has(eventKey)) return
+    // Key 2: date + sport + sorted team abbrs — catches cross-system duplicates
+    // (e.g. MLB Stats API gamePk vs ESPN event ID for the same Mariners/Giants game)
+    const dateKey = game.kickoff.slice(0, 10) // YYYY-MM-DD
+    const abbrs = [game.seattleTeam.abbr, game.opponent.abbr].map(s => s.toUpperCase()).sort()
+    const matchupKey = `${dateKey}|${game.sport}|${abbrs.join('-')}`
+    if (seenMatchupKeys.has(matchupKey)) return
+    seenIds.add(game.id)
+    seenEventKeys.add(eventKey)
+    seenMatchupKeys.add(matchupKey)
+    allGames.push(game)
+  }
+
+  await Promise.all([
+    // ── Seattle teams (existing logic) ───────────────────────────────────────
+    ...seattleTeams.map(async (team) => {
       try {
         let games: Game[] = []
 
         if (team.league === 'mlb') {
-          // ── Official MLB API ──────────────────────────────────────────────
+          // ── Official MLB API ────────────────────────────────────────────────
           games = await fetchMLBSchedule(team)
         } else if (team.league === 'nhl') {
-          // ── Official NHL API ──────────────────────────────────────────────
+          // ── Official NHL API ────────────────────────────────────────────────
           games = await fetchNHLSchedule(team)
         } else {
-          // ── ESPN fallback for all other leagues ───────────────────────────
+          // ── ESPN fallback for all other leagues ─────────────────────────────
           if (!team.espnId) return
           games = await fetchESPNSchedule(team)
         }
 
-        for (const game of games) {
-          if (seenIds.has(game.id)) continue
-          seenIds.add(game.id)
-          allGames.push(game)
-        }
+        for (const game of games) addGame(game)
       } catch {
         // ignore errors for individual teams
       }
-    })
-  )
+    }),
+
+    // ── Non-Seattle pro teams (always via ESPN) ───────────────────────────────
+    ...otherProTeams.map(async (team) => {
+      try {
+        if (!team.espnId) return
+        const games = await fetchESPNSchedule(team)
+        for (const game of games) addGame(game)
+      } catch {
+        // ignore errors for individual teams
+      }
+    }),
+  ])
 
   allGames.sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime())
 

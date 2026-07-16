@@ -134,7 +134,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
       </div>
 
       {/* Real geographic US SVG map */}
-      <div style={{ width: '100%', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ width: '100%', position: 'relative', overflow: 'hidden', aspectRatio: '800/450', maxHeight: 210 }}>
         {/* Glow filter for selected state */}
         <svg width="0" height="0" style={{ position: 'absolute' }}>
           <defs>
@@ -165,7 +165,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
           projectionConfig={{ scale: 1000 }}
           /* viewBox crop drives the zoom — no projection change needed */
           viewBox={neZoom ? VIEWBOX_EAST : VIEWBOX_FULL}
-          style={{ width: '100%', height: 'auto', display: 'block', maxHeight: '44vw' }}
+          style={{ width: '100%', height: '100%', display: 'block' }}
         >
           <Geographies geography={US_GEO}>
             {({ geographies }: { geographies: GeoFeature[] }) =>

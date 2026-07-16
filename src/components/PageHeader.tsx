@@ -45,7 +45,7 @@ function AuthButton() {
       <svg className="w-3.5 h-3.5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
       </svg>
-      <span className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-wide">Sign in</span>
+      <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wide">Sign in</span>
     </Link>
   )
 }
@@ -63,7 +63,7 @@ export default function PageHeader({ title, children, titleAction }: PageHeaderP
       <div className="flex items-center px-4 py-3 gap-3">
         {/* Left: scorpion logo */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/scorpion-mono.png" alt="Scorpanion" width={26} height={26} className="object-contain flex-shrink-0" />
+        <img src="/scorpion-logo.png" alt="Scorpanion" width={26} height={26} className="object-contain flex-shrink-0" />
 
         {/* Center: page title */}
         <h1 className="flex-1 text-center font-display text-[22px] font-800 text-white leading-none tracking-tight uppercase">
