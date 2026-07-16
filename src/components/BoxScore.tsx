@@ -287,11 +287,13 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
             <span className="font-display text-[10px] font-700 text-zinc-600 uppercase tracking-wider text-center">AST</span>
           </div>
           {linescores.map((team, teamIdx) => {
-            const teamScorers = scoresByTeam[team.teamId] ?? []
-            const isSea = (seattleTeamId && team.teamId === seattleTeamId) || team.abbr === "SEA"
+            // Match scorers by teamId first, then fall back to abbr match
+            const teamScorers = scoresByTeam[team.teamId]
+              ?? Object.entries(scoresByTeam).find(([id]) => id === team.abbr)?.[1]
+              ?? []
             if (teamScorers.length === 0) return null
             return (
-              <div key={team.teamId} className={`relative overflow-hidden${teamIdx > 0 ? " border-t border-zinc-800/60" : ""}`}>
+              <div key={team.teamId} className={`relative overflow-hidden${teamIdx > 0 ? " mt-3 border-t-4 border-zinc-800" : ""}`}>
                 {/* Watermark logo — centered behind all player rows */}
                 {team.logo && (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -307,7 +309,7 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
                       width: 80,
                       height: 80,
                       objectFit: "contain",
-                      opacity: 0.055,
+                      opacity: 0.09,
                       pointerEvents: "none",
                       userSelect: "none",
                     }}
@@ -315,10 +317,10 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
                 )}
                 {teamScorers.map((s, idx) => (
                   <div key={idx} className="relative grid grid-cols-[1fr_32px_32px_32px] gap-x-2 items-center px-5 py-3.5 border-b border-zinc-800/40 last:border-0">
-                    <span className={`text-[14px] font-600 truncate ${isSea ? "text-zinc-200" : "text-zinc-400"}`}>{s.name}</span>
-                    <span className="font-display text-[14px] font-700 tabular-nums text-center" style={{ color: isSea ? color : "#a1a1aa" }}>{s.pts}</span>
-                    <span className="font-display text-[14px] font-600 tabular-nums text-center text-zinc-500">{s.reb}</span>
-                    <span className="font-display text-[14px] font-600 tabular-nums text-center text-zinc-500">{s.ast}</span>
+                    <span className="text-[14px] font-600 truncate text-zinc-200">{s.name}</span>
+                    <span className="font-display text-[14px] font-600 tabular-nums text-center text-zinc-200">{s.pts}</span>
+                    <span className="font-display text-[14px] font-600 tabular-nums text-center text-zinc-400">{s.reb}</span>
+                    <span className="font-display text-[14px] font-600 tabular-nums text-center text-zinc-400">{s.ast}</span>
                   </div>
                 ))}
               </div>
