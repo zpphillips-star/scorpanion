@@ -361,17 +361,26 @@ export async function GET(request: NextRequest) {
 
   const allGames: Game[] = []
   const seenIds = new Set<string>()
-  // Deduplicate by underlying event ID (strips team prefix) so that the same
-  // game doesn't appear twice when the user follows two teams that play each other.
+  // Deduplicate by underlying event ID AND by matchup key.
+  // The matchup key catches cross-system duplicates (e.g. Mariners via MLB Stats API
+  // + Giants via ESPN API return the same game with completely different numeric IDs).
   const seenEventKeys = new Set<string>()
+  const seenMatchupKeys = new Set<string>()
 
   function addGame(game: Game) {
     if (seenIds.has(game.id)) return
-    // Extract the raw event/game key (everything after the first "|")
+    // Key 1: raw event ID (strips team prefix) — catches same-system duplicates
     const eventKey = game.id.includes('|') ? game.id.split('|').slice(1).join('|') : game.id
     if (seenEventKeys.has(eventKey)) return
+    // Key 2: date + sport + sorted team abbrs — catches cross-system duplicates
+    // (e.g. MLB Stats API gamePk vs ESPN event ID for the same Mariners/Giants game)
+    const dateKey = game.kickoff.slice(0, 10) // YYYY-MM-DD
+    const abbrs = [game.seattleTeam.abbr, game.opponent.abbr].map(s => s.toUpperCase()).sort()
+    const matchupKey = `${dateKey}|${game.sport}|${abbrs.join('-')}`
+    if (seenMatchupKeys.has(matchupKey)) return
     seenIds.add(game.id)
     seenEventKeys.add(eventKey)
+    seenMatchupKeys.add(matchupKey)
     allGames.push(game)
   }
 
