@@ -133,8 +133,8 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
         {/* Seattle team */}
         <div className="flex flex-col items-center flex-1">
           <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={28} />
-          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0.5">{game.seattleTeam.abbr}</span>
-          <span className={`font-display text-[18px] font-800 tabular-nums leading-none mt-2 ${seattleLost ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0">{game.seattleTeam.abbr}</span>
+          <span className={`font-display text-[18px] font-800 tabular-nums leading-none mt-3 ${seattleLost ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
             {hasScore ? game.seattleScore : "–"}
           </span>
         </div>
@@ -142,8 +142,8 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
         {/* Opponent */}
         <div className="flex flex-col items-center flex-1">
           <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={28} />
-          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0.5">{game.opponent.abbr}</span>
-          <span className={`font-display text-[18px] font-800 tabular-nums leading-none mt-2 ${seattleWon ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0">{game.opponent.abbr}</span>
+          <span className={`font-display text-[18px] font-800 tabular-nums leading-none mt-3 ${seattleWon ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
             {hasScore ? game.opponentScore : "–"}
           </span>
         </div>
@@ -434,10 +434,10 @@ export default function HomeClient() {
       {/* ── Recent results (horizontal scroll, tappable) ─────────────────── */}
       {recent.length > 0 && (
         <div className="mt-5">
-          <div className="flex items-center gap-3 px-4 mb-3">
-            <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Recent</span>
+          <div className="flex items-center gap-3 px-4 mb-5">
+            <span className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest">Recent</span>
             <div className="flex-1 h-px bg-zinc-800" />
-            <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">Last 7 days</span>
+            <span className="font-display text-[10px] text-zinc-600 uppercase tracking-wider">Last 7 days</span>
           </div>
           <div className="overflow-x-auto no-scrollbar px-4">
           <div className="flex min-w-max pb-1">
