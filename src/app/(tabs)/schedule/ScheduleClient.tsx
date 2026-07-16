@@ -9,6 +9,7 @@ import TeamFilterBar, { getCollegeGroupKey } from '@/components/TeamFilterBar'
 import PageHeader from '@/components/PageHeader'
 import GameDetailSheet from '@/components/GameDetailSheet'
 import { SEASON_START_MONTH, LEAGUE_DISPLAY } from '@/lib/seasonStatus'
+import { getActivePlayoffInfo, formatPlayoffDate, PlayoffDateInfo } from '@/lib/playoffDates'
 
 // Map league ID to canonical standings-API key (for leagues that have standings)
 const STANDINGS_LEAGUE_KEY: Record<string, string> = {
@@ -164,6 +165,72 @@ function DateStrip({
             </button>
           )
         })}
+      </div>
+    </div>
+  )
+}
+
+// ─── Playoff Milestone Card ──────────────────────────────────────────────────
+// Rendered after the last regular-season game date for leagues that have
+// upcoming playoffs.  Shows bracket-lock date (if it differs) + playoff start.
+
+function PlayoffMilestoneCard({ league, info }: { league: string; info: PlayoffDateInfo }) {
+  const display = LEAGUE_DISPLAY[league]
+  const leagueName = display?.name ?? league.toUpperCase()
+
+  // Show bracket-lock row only when it's a distinct date from regularSeasonEnd
+  const showBracketLock =
+    !!info.bracketLockDate &&
+    info.bracketLockDate !== info.regularSeasonEnd &&
+    info.bracketLockDate !== info.playoffStart
+
+  return (
+    <div className="mx-3 my-4">
+      {/* Divider with trophy icon */}
+      <div className="flex items-center gap-3 mb-3">
+        <div
+          className="flex-1 h-px"
+          style={{ background: 'linear-gradient(to right, transparent, rgba(251,191,36,0.45))' }}
+        />
+        <span className="text-base select-none">🏆</span>
+        <span
+          className="font-display text-[11px] font-800 uppercase tracking-widest"
+          style={{ color: '#fbbf24' }}
+        >
+          {leagueName} Playoffs
+        </span>
+        <div
+          className="flex-1 h-px"
+          style={{ background: 'linear-gradient(to left, transparent, rgba(251,191,36,0.45))' }}
+        />
+      </div>
+
+      {/* Info card */}
+      <div
+        className="rounded-xl px-4 py-3 space-y-2.5"
+        style={{
+          background: 'rgba(251,191,36,0.05)',
+          border: '1px solid rgba(251,191,36,0.2)',
+        }}
+      >
+        {showBracketLock && (
+          <div className="flex items-center gap-3">
+            <span className="text-sm w-5 text-center select-none flex-shrink-0">🔒</span>
+            <span className="font-display text-[12px] text-zinc-400 flex-1">Bracket locks</span>
+            <span className="font-display text-[13px] font-700 text-zinc-200">
+              {formatPlayoffDate(info.bracketLockDate!)}
+            </span>
+          </div>
+        )}
+        <div className="flex items-center gap-3">
+          <span className="text-sm w-5 text-center select-none flex-shrink-0">📅</span>
+          <span className="font-display text-[12px] text-zinc-400 flex-1">
+            {info.playoffLabel} begins
+          </span>
+          <span className="font-display text-[13px] font-700 text-white">
+            {formatPlayoffDate(info.playoffStart)}
+          </span>
+        </div>
       </div>
     </div>
   )
@@ -454,6 +521,32 @@ export default function ScheduleClient() {
   const hasLiveGames = filteredGames.some(g => g.status === 'live')
   const hasUpcomingInFilter = filteredGames.some(g => g.status !== 'ft')
 
+  // ── Playoff milestone injection ───────────────────────────────────────────
+  // For each league present in the filtered games, compute which date should
+  // get a playoff milestone card rendered below it.  The card appears after the
+  // last date that is on or before the regular-season end date.
+  const playoffMilestonesByDate = useMemo(() => {
+    const byDate = new Map<string, { league: string; info: PlayoffDateInfo }[]>()
+    const leagues = [...new Set(filteredGames.map(g => g.league))]
+    for (const league of leagues) {
+      const info = getActivePlayoffInfo(league, todayStr)
+      if (!info) continue
+
+      // Find the last game-date that falls inside the regular season
+      let insertAfterDate: string | null = null
+      for (const d of sortedDates) {
+        if (d <= info.regularSeasonEnd) insertAfterDate = d
+      }
+      // No regular-season games in view — skip
+      if (!insertAfterDate) continue
+
+      const existing = byDate.get(insertAfterDate) ?? []
+      byDate.set(insertAfterDate, [...existing, { league, info }])
+    }
+    return byDate
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredGames, sortedDates, todayStr])
+
   // Always include today in the rendered date list when there are any games at all,
   // so the auto-scroll and "Today" button always land on an anchor — even on rest days.
   const datesWithToday = useMemo(() => {
@@ -608,6 +701,11 @@ export default function ScheduleClient() {
                     </div>
                   </div>
                 ) : null}
+
+                {/* ── Playoff milestone cards ────────────────────────────────── */}
+                {(playoffMilestonesByDate.get(dateStr) ?? []).map(({ league, info }) => (
+                  <PlayoffMilestoneCard key={`playoff-${league}`} league={league} info={info} />
+                ))}
               </div>
             )
           })
