@@ -60,10 +60,10 @@ export default function PageHeader({ title, children, titleAction }: PageHeaderP
   return (
     <div className="sticky top-0 z-30 glass-header">
       {/* Centered logo row with auth floated right */}
-      <div className="relative flex items-center justify-center px-4 py-3">
+      <div className="relative flex items-center justify-center px-4 py-5">
         {/* Center: big logo */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/scorpanion-full.png" alt="Scorpanion" className="object-contain max-h-[56px] w-auto"
+        <img src="/scorpanion-full.png" alt="Scorpanion" className="object-contain max-h-[88px] w-auto max-w-[280px]"
           onError={(e) => { (e.target as HTMLImageElement).src = "/scorpion-logo.png" }} />
 
         {/* Optional action slot — floated left */}
