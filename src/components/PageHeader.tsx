@@ -81,8 +81,13 @@ export default function PageHeader({ title, children, titleAction }: PageHeaderP
         </div>
       </div>
 
-      {/* Slot for filter bars etc. — line is border-bottom of logo row, space is gap here */}
-      {children && <div className="pt-5">{children}</div>}
+      {/* Slot for filter bars etc. — pt-5 above icons, h-5 buffer below (inside sticky header) */}
+      {children && (
+        <>
+          <div className="pt-5">{children}</div>
+          <div className="h-5" />
+        </>
+      )}
     </div>
   )
 }

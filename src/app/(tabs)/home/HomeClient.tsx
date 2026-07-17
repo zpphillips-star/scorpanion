@@ -435,8 +435,6 @@ export default function HomeClient() {
         </div>
       </PageHeader>
 
-      {/* ── Explicit spacer below filter icons — reliable cross-browser ──── */}
-      <div className="h-8" />
       {recent.length > 0 && (
         <div className="mt-6">
           <div className="flex items-center gap-3 px-4 mb-6">
