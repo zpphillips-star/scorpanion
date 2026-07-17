@@ -39,27 +39,25 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
   const awayWon = isFt && hasScore && (awayScore ?? 0) > (homeScore ?? 0)
   const homeWon = isFt && hasScore && (homeScore ?? 0) > (awayScore ?? 0)
   const logoSize = featured ? 60 : 48
-  const cardBg = isFt ? "#0a1628" : isLive ? "#0f1e35" : "#0c1b31"
 
   return (
     <>
       <button
-        className="w-full text-left active:scale-[0.98] transition-transform"
+        className="w-full text-left active:opacity-70 transition-opacity"
         onClick={() => setShowDetail(true)}
       >
         <div
-          className="rounded-2xl overflow-hidden"
           style={{
-            background: cardBg,
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderLeft: isLive ? "3px solid #ef4444" : "1px solid rgba(255,255,255,0.08)",
-            opacity: isFt ? 0.85 : 1,
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+            borderLeft: isLive ? "3px solid #ef4444" : "none",
+            paddingLeft: isLive ? "13px" : "16px",
+            opacity: isFt ? 0.82 : 1,
           }}
         >
           {/* Header row */}
-          <div className="flex items-center justify-between px-4 pt-3 pb-1">
+          <div className="flex items-center justify-between pr-4 pt-4 pb-1">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#3a5070" }}>
+              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
                 {game.league}
               </span>
               {game.broadcast && (
@@ -68,24 +66,26 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
             </div>
             {isLive ? (
               <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#ef4444]"
-                      style={{ animation: "liveDotPulse 1.8s ease-in-out infinite" }} />
-                <span className="text-[11px] font-black text-red-400 uppercase tracking-wider">Live</span>
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
+                </span>
+                <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider">Live</span>
                 {(game.clock || game.period) && (
-                  <span className="text-[11px] font-bold tabular-nums" style={{ color: "#6b7280" }}>
+                  <span className="text-[11px] font-semibold tabular-nums" style={{ color: "var(--text-faint)" }}>
                     {game.period ? `${game.period}${game.clock ? ` · ${game.clock}` : ""}` : game.clock}
                   </span>
                 )}
               </div>
             ) : isFt ? (
-              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#3a5070" }}>Final</span>
+              <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>Final</span>
             ) : (
-              <span className="text-[12px] font-semibold" style={{ color: "#D65820" }}>{formatTime(game.kickoff)}</span>
+              <span className="text-[12px] font-semibold" style={{ color: "#f0f0f8" }}>{formatTime(game.kickoff)}</span>
             )}
           </div>
 
           {/* Main: away | score | home */}
-          <div className="flex items-center px-4 py-5 gap-2">
+          <div className="flex items-center pr-4 py-5 gap-2">
             {/* Away team */}
             <div className="flex-1 flex flex-col items-center gap-2">
               <button className="active:scale-90 transition-transform"
@@ -146,7 +146,7 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
 
           {/* Inline MLB line score */}
           {(isLive || isFt) && game.sport === "baseball" && game.id && (
-            <div className="px-4 pb-3 -mt-1">
+            <div className="pr-4 pb-3 -mt-1">
               <CompactBaseballLineScore gameId={game.id} league={game.league}
                 seattleTeamId={game.seattleTeam.espnId} isLive={isLive} />
             </div>
@@ -154,8 +154,8 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
 
           {/* Venue footer */}
           {game.venue?.name && (
-            <div className="px-4 pb-3 pt-2 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-              <span className="text-[10px]" style={{ color: "#3a5070" }}>
+            <div className="pr-4 pb-3 text-center">
+              <span className="text-[10px]" style={{ color: "var(--text-faint)" }}>
                 {game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}
               </span>
             </div>

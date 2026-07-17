@@ -463,24 +463,24 @@ export default function HomeClient() {
 
         return (
           <div className="mt-10">
-            {/* Section header — Scorpanion branded */}
-            <div className="flex items-center gap-2.5 px-4 mb-4">
-              <span className={`w-2.5 h-2.5 rounded-sm flex-shrink-0 ${hasLive ? "bg-red-500 animate-pulse" : ""}`}
-                    style={hasLive ? {} : { background: "#D65820" }} />
-              <span className="text-[13px] font-black uppercase tracking-widest text-white">
-                {hasLive ? "Live Now" : "Today"}
-              </span>
-              {todayGames.length > 0 && (
-                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${hasLive ? "bg-red-500/15 text-red-400" : "bg-white/5 text-zinc-400"}`}>
-                  {todayGames.length}
+            {/* Section header — same style as Recent / Upcoming */}
+            <div className="flex items-center gap-3 px-4 mb-6">
+              {hasLive && (
+                <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
                 </span>
               )}
-              <div className="flex-1 h-px" style={{ background: hasLive ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.05)" }} />
+              <span className="text-[10px] tracking-[0.12em] font-semibold uppercase"
+                    style={{ color: hasLive ? "#f87171" : "var(--text-faint)" }}>
+                {hasLive ? "Live Now" : "Today"}
+              </span>
+              <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
               <span className="text-[10px] tracking-[0.1em] uppercase font-medium" style={{ color: "var(--text-faint)" }}>{dateLabel}</span>
             </div>
 
             {hasGames ? (
-              <div className={`px-4 space-y-4 ${hasLive ? "-mx-1" : ""}`}>
+              <div>
                 {todayGames.map(g => (
                   <TodayGameCard key={g.id} game={g} featured={g.status === "live"} />
                 ))}
