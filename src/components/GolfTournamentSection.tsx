@@ -54,11 +54,9 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label }: G
 
   return (
     <div className="px-4 pb-2">
-      {/* Section header */}
+      {/* Section header — matches Today/Recent/Upcoming style */}
       <div className="flex items-center gap-3 mb-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logoUrl} alt={label} width={22} height={22} className="object-contain flex-shrink-0 opacity-90" />
-        <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">{label}</span>
+        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{label}</span>
         <div className="flex-1 h-px bg-zinc-800" />
         {tournament && (
           <span className="text-[10px] text-zinc-600 uppercase tracking-wider">
