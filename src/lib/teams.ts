@@ -97,12 +97,12 @@ export const SEATTLE_TEAMS: SeattleTeam[] = [
   { id: 'pga', name: 'PGA Tour', shortName: 'PGA Tour', abbr: 'PGA',
     sport: 'golf', league: 'pga', espnId: '',
     primaryColor: '#003087', secondaryColor: '#CBA135', emoji: '⛳',
-    logoUrl: 'https://a.espncdn.com/i/teamlogos/golf/500/pga.png' },
+    logoUrl: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/pgatour.png' },
   // LPGA Tour
   { id: 'lpga', name: 'LPGA Tour', shortName: 'LPGA Tour', abbr: 'LPGA',
     sport: 'golf', league: 'lpga', espnId: '',
     primaryColor: '#6B21A8', secondaryColor: '#F9A8D4', emoji: '⛳',
-    logoUrl: 'https://a.espncdn.com/i/teamlogos/golf/500/lpga.png' },
+    logoUrl: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/lpga.png' },
 ]
 
 export const SPORT_COLORS: Record<string, string> = {
