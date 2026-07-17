@@ -131,12 +131,13 @@ export default function BottomNav() {
               <div
                 className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center transition-all active:scale-95"
                 style={{
+                  background: "#D95C17",
                   border: homeActive
-                    ? "2px solid #D95C17"
-                    : "2px solid rgba(242,230,207,0.12)",
+                    ? "2px solid #ff7a30"
+                    : "2px solid #D95C17",
                   boxShadow: homeActive
-                    ? "0 0 20px rgba(217,92,23,0.5), 0 4px 16px rgba(0,0,0,0.5)"
-                    : "0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(242,230,207,0.08)",
+                    ? "0 0 24px rgba(217,92,23,0.7), 0 4px 16px rgba(0,0,0,0.5)"
+                    : "0 0 14px rgba(217,92,23,0.4), 0 4px 16px rgba(0,0,0,0.4)",
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -171,8 +172,9 @@ export default function BottomNav() {
           <div
             className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center transition-all"
             style={{
-              boxShadow: homeActive ? "0 0 14px rgba(217,92,23,0.5)" : "none",
-              border: homeActive ? "2px solid #D95C17" : "2px solid var(--border)",
+              background: "#D95C17",
+              boxShadow: homeActive ? "0 0 14px rgba(217,92,23,0.6)" : "0 0 8px rgba(217,92,23,0.3)",
+              border: homeActive ? "2px solid #ff7a30" : "2px solid #D95C17",
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
