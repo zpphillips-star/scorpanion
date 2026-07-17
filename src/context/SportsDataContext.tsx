@@ -64,6 +64,9 @@ const defaultCtx: SportsDataContextValue = {
 
 const SportsDataContext = createContext<SportsDataContextValue>(defaultCtx)
 
+// ── Tours that require explicit opt-in (never auto-seeded) ───────────────────
+const OPT_IN_ONLY = new Set(['pga', 'lpga'])
+
 // ── Provider ─────────────────────────────────────────────────────────────────
 
 export function SportsDataProvider({ children }: { children: ReactNode }) {
@@ -82,16 +85,23 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
         const allValidIds = SEATTLE_TEAMS.map(t => t.id)
         const validIdSet = new Set(allValidIds)
         const filtered = (parsed as string[]).filter(id => validIdSet.has(id))
-        // Auto-seed any NEW teams added to SEATTLE_TEAMS that aren't in storage yet
+        // Auto-seed NEW teams — but NEVER auto-seed opt-in-only tours
         const storedSet = new Set(filtered)
-        const newTeams = allValidIds.filter(id => !storedSet.has(id))
+        const newTeams = allValidIds.filter(id => !storedSet.has(id) && !OPT_IN_ONLY.has(id))
         seattleIds = [...filtered, ...newTeams]
+        // One-time migration: remove any opt-in-only tours that were accidentally auto-seeded
+        const beforeClean = seattleIds.length
+        seattleIds = seattleIds.filter(id => {
+          if (!OPT_IN_ONLY.has(id)) return true          // not a tour — always keep
+          return storedSet.has(id) && !newTeams.includes(id) // tour — only keep if was already stored (explicit)
+        })
         // Persist updated list if anything changed
         if (seattleIds.length !== (parsed as string[]).length) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(seattleIds))
         }
       } else {
-        seattleIds = SEATTLE_TEAMS.map(t => t.id)
+        // Fresh install — seed all non-opt-in-only teams
+        seattleIds = SEATTLE_TEAMS.map(t => t.id).filter(id => !OPT_IN_ONLY.has(id))
       }
 
       const otherStored = localStorage.getItem(OTHER_STORAGE_KEY)
