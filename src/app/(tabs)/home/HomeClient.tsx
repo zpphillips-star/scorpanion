@@ -122,27 +122,27 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex-shrink-0 flex flex-col items-center active:opacity-60 transition-opacity px-5 py-4"
+      className="flex-shrink-0 flex flex-col items-center active:opacity-60 transition-opacity px-7 py-5"
     >
       {/* League label */}
-      <span className="text-[8px] tracking-[0.18em] uppercase font-semibold mb-3" style={{ color: "var(--text-faint)" }}>
+      <span className="text-[8px] tracking-[0.18em] uppercase font-semibold mb-4" style={{ color: "var(--text-faint)" }}>
         {game.league}
       </span>
       {/* Two team columns */}
-      <div className="flex items-end gap-5">
+      <div className="flex items-end gap-6">
         {/* Seattle */}
-        <div className="flex flex-col items-center gap-1.5">
-          <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={30} />
+        <div className="flex flex-col items-center gap-2">
+          <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={36} />
           <span className="text-[9px] font-semibold tracking-wide uppercase" style={{ color: "var(--text-faint)" }}>{game.seattleTeam.abbr}</span>
-          <span className={`font-display text-[26px] font-800 tabular-nums leading-none ${seattleLost ? "opacity-30" : ""}`} style={{ color: "#f0f0f8" }}>
+          <span className={`font-display text-[30px] font-800 tabular-nums leading-none ${seattleLost ? "opacity-30" : ""}`} style={{ color: "#f0f0f8" }}>
             {hasScore ? game.seattleScore : "—"}
           </span>
         </div>
         {/* Opponent */}
-        <div className="flex flex-col items-center gap-1.5">
-          <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={30} />
+        <div className="flex flex-col items-center gap-2">
+          <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={36} />
           <span className="text-[9px] font-semibold tracking-wide uppercase" style={{ color: "var(--text-faint)" }}>{game.opponent.abbr}</span>
-          <span className={`font-display text-[26px] font-800 tabular-nums leading-none ${seattleWon ? "opacity-30" : ""}`} style={{ color: "#f0f0f8" }}>
+          <span className={`font-display text-[30px] font-800 tabular-nums leading-none ${seattleWon ? "opacity-30" : ""}`} style={{ color: "#f0f0f8" }}>
             {hasScore ? game.opponentScore : "—"}
           </span>
         </div>
@@ -152,7 +152,8 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
 }
 
 function RecentSeparator() {
-  return <div className="self-stretch w-px my-3 flex-shrink-0" style={{ background: "#1e3050" }} />
+  // buffer | line | buffer — mx-4 gives 16px on each side of the 1px line
+  return <div className="self-stretch w-px mx-4 my-4 flex-shrink-0" style={{ background: "#1e3050" }} />
 }
 
 // ── College sport picker dropdown ─────────────────────────────────────────
