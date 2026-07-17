@@ -135,12 +135,12 @@ export default function TeamFilterBar({
           <div
             className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
             style={{
-              background: activeFilter === "all" ? "var(--accent)" : "var(--surface-2)",
-              border: `2px solid ${activeFilter === "all" ? "var(--accent)" : "rgba(255,255,255,0.1)"}`,
-              boxShadow: activeFilter === "all" ? "0 0 14px rgba(0,212,255,0.4)" : "none",
+              background: "#0c1b31",
+              border: `2px solid ${activeFilter === "all" ? "#D95C17" : "rgba(217,92,23,0.45)"}`,
+              boxShadow: activeFilter === "all" ? "0 0 10px rgba(217,92,23,0.35)" : "none",
             }}
           >
-            <span className="font-display text-[11px] font-800 uppercase" style={{ color: activeFilter === "all" ? "#08080f" : "#6b7280" }}>All</span>
+            <span className="font-display text-[11px] font-800 uppercase" style={{ color: "#ffffff" }}>All</span>
           </div>
         </button>
 
@@ -176,9 +176,9 @@ export default function TeamFilterBar({
                 <div
                   className="w-12 h-12 rounded-full flex items-center justify-center transition-all overflow-hidden p-1 relative"
                   style={{
-                    background: isActive ? `${team.primaryColor}30` : "var(--surface-2)",
-                    border: `2px solid ${isActive ? team.primaryColor : pickerOpen ? "var(--accent)" : "rgba(255,255,255,0.1)"}`,
-                    boxShadow: isActive ? `0 0 14px ${team.primaryColor}55` : pickerOpen ? "0 0 10px rgba(0,212,255,0.3)" : "none",
+                    background: isActive ? `${team.primaryColor}25` : "var(--surface-2)",
+                    border: `2px solid ${isActive ? "#D95C17" : pickerOpen ? "rgba(217,92,23,0.5)" : "rgba(255,255,255,0.1)"}`,
+                    boxShadow: isActive ? "0 0 10px rgba(217,92,23,0.4)" : "none",
                     opacity: !isActive && !pickerOpen && activeFilter !== "all" ? 0.4 : 1,
                   }}
                 >

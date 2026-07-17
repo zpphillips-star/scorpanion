@@ -123,7 +123,8 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex-shrink-0 w-[148px] text-left active:opacity-70 transition-opacity border-r border-zinc-800 last:border-r-0 pr-8 mr-8 last:pr-0 last:mr-0"
+      className="flex-shrink-0 w-[148px] text-left active:opacity-70 transition-opacity last:border-r-0 pr-7 mr-7 last:pr-0 last:mr-0"
+      style={{ borderRight: "1px solid rgba(255,255,255,0.07)" }}
     >
       {/* Date + league — inset so it doesn't crowd the edges */}
       <div className="flex items-center justify-between mb-4 px-1">
@@ -131,21 +132,21 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
         <span className="text-[10px] text-zinc-700 uppercase tracking-wide">{game.league.toUpperCase()}</span>
       </div>
       {/* Logo · Score · Logo */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-1">
         {/* Seattle team */}
         <div className="flex flex-col items-center flex-1">
-          <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={28} />
+          <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={26} />
           <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0.5">{game.seattleTeam.abbr}</span>
-          <span className={`font-display text-[18px] font-800 tabular-nums leading-none mt-2 ${seattleLost ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+          <span className={`font-display text-[17px] font-800 tabular-nums leading-none mt-1.5 ${seattleLost ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
             {hasScore ? game.seattleScore : "–"}
           </span>
         </div>
-        <span className="text-[11px] text-zinc-700 self-center">–</span>
+        <span className="text-[11px] text-zinc-700 self-center pb-2">–</span>
         {/* Opponent */}
         <div className="flex flex-col items-center flex-1">
-          <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={28} />
+          <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={26} />
           <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0.5">{game.opponent.abbr}</span>
-          <span className={`font-display text-[18px] font-800 tabular-nums leading-none mt-2 ${seattleWon ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+          <span className={`font-display text-[17px] font-800 tabular-nums leading-none mt-1.5 ${seattleWon ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
             {hasScore ? game.opponentScore : "–"}
           </span>
         </div>
@@ -384,12 +385,12 @@ export default function HomeClient() {
               <div
                 className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
                 style={{
-                  background: activeFilter === "all" ? "var(--accent)" : "var(--surface-2)",
-                  border: `2px solid ${activeFilter === "all" ? "var(--accent)" : "rgba(255,255,255,0.1)"}`,
-                  boxShadow: activeFilter === "all" ? "0 0 14px rgba(0,212,255,0.4)" : "none",
+                  background: "#0c1b31",
+                  border: `2.5px solid ${activeFilter === "all" ? "#D65820" : "rgba(214,88,32,0.45)"}`,
+                  boxShadow: activeFilter === "all" ? "0 0 10px rgba(214,88,32,0.5)" : "none",
                 }}
               >
-                <span className="font-display text-[11px] font-800 uppercase" style={{ color: activeFilter === "all" ? "#08080f" : "#6b7280" }}>All</span>
+                <span className="font-display text-[11px] font-800 uppercase" style={{ color: "#ffffff" }}>All</span>
               </div>
             </button>
 
@@ -419,9 +420,9 @@ export default function HomeClient() {
                     <div
                       className="w-12 h-12 rounded-full flex items-center justify-center transition-all overflow-hidden p-1 relative"
                       style={{
-                        background: isActive ? `${team.primaryColor}30` : "var(--surface-2)",
-                        border: `2px solid ${isActive ? team.primaryColor : pickerOpen ? "var(--accent)" : "rgba(255,255,255,0.1)"}`,
-                        boxShadow: isActive ? `0 0 14px ${team.primaryColor}55` : pickerOpen ? "0 0 10px rgba(0,212,255,0.3)" : "none",
+                        background: isActive ? "rgba(12,27,49,0.9)" : "var(--surface-2)",
+                        border: `2.5px solid ${isActive ? "#D65820" : pickerOpen ? "rgba(214,88,32,0.6)" : "rgba(255,255,255,0.1)"}`,
+                        boxShadow: isActive ? "0 0 10px rgba(214,88,32,0.55)" : pickerOpen ? "0 0 8px rgba(214,88,32,0.25)" : "none",
                         opacity: !isActive && !pickerOpen && activeFilter !== "all" ? 0.4 : 1,
                       }}
                     >
