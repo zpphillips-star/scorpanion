@@ -60,10 +60,10 @@ export default function PageHeader({ title, children, titleAction }: PageHeaderP
   return (
     <div className="sticky top-0 z-30 glass-header">
       {/* Centered logo row with auth floated right */}
-      <div className="relative flex items-center justify-center px-4 pt-4 pb-2">
-        {/* Center: logo — exact file, no modifications, with breathing room */}
+      <div className="relative flex items-center justify-center px-4 pt-2 pb-1">
+        {/* Center: logo — exact file, no modifications */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <div className="px-2 py-0.5">
+        <div className="px-1">
           <img src="/scorpanion-logo-new.png" alt="Scorpanion" className="object-contain h-[128px] w-auto"
             onError={(e) => { (e.target as HTMLImageElement).src = "/scorpanion-full.png" }} />
         </div>
@@ -78,7 +78,7 @@ export default function PageHeader({ title, children, titleAction }: PageHeaderP
       </div>
 
       {/* Divider between logo and filter bar */}
-      <div className="mx-4 mb-3" style={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
+      <div className="mx-4 mb-3" style={{ height: "1px", background: "rgba(255,255,255,0.12)" }} />
 
       {/* Slot for filter bars etc. */}
       {children}
