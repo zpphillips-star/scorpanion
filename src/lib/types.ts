@@ -10,6 +10,8 @@ export interface SeattleTeam {
   secondaryColor: string
   emoji: string
   logoUrl?: string
+  /** If true, never auto-seeded into the default selection — user must explicitly follow */
+  optInOnly?: boolean
 }
 
 export interface TeamRecord {

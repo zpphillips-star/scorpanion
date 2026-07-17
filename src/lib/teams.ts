@@ -93,16 +93,17 @@ export const SEATTLE_TEAMS: SeattleTeam[] = [
   { id: 'seattleu', name: 'Seattle University Redhawks', shortName: 'Redhawks', abbr: 'SU',
     sport: 'basketball', league: 'mens-college-basketball', espnId: '2547',
     primaryColor: '#AA0000', secondaryColor: '#FFFFFF', emoji: '🏀' },
-  // PGA Tour — not a team, a tour to follow (golf leaderboard/tournament card)
+  // ── Tours & Leagues (opt-in only — never auto-seeded) ─────────────────────
   { id: 'pga', name: 'PGA Tour', shortName: 'PGA Tour', abbr: 'PGA',
     sport: 'golf', league: 'pga', espnId: '',
-    primaryColor: '#003087', secondaryColor: '#CBA135', emoji: '⛳',
-    logoUrl: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/pgatour.png' },
-  // LPGA Tour
-  { id: 'lpga', name: 'LPGA Tour', shortName: 'LPGA Tour', abbr: 'LPGA',
+    primaryColor: '#003087', secondaryColor: '#FFFFFF', emoji: '⛳',
+    logoUrl: 'https://a.espncdn.com/i/teamlogos/leagues/500-dark/pga.png',
+    optInOnly: true },
+  { id: 'lpga', name: 'LPGA Tour', shortName: 'LPGA', abbr: 'LPGA',
     sport: 'golf', league: 'lpga', espnId: '',
-    primaryColor: '#6B21A8', secondaryColor: '#F9A8D4', emoji: '⛳',
-    logoUrl: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/lpga.png' },
+    primaryColor: '#b5006e', secondaryColor: '#FFFFFF', emoji: '⛳',
+    logoUrl: 'https://a.espncdn.com/i/teamlogos/leagues/500-dark/lpga.png',
+    optInOnly: true },
 ]
 
 export const SPORT_COLORS: Record<string, string> = {
@@ -141,6 +142,8 @@ export function getTeamLogoUrl(team: SeattleTeam): string {
     case 'wsu-baseball':
     case 'wsu-volleyball': return 'https://a.espncdn.com/i/teamlogos/ncaa/500-dark/265.png'
     case 'seattleu':    return 'https://a.espncdn.com/i/teamlogos/ncaa/500/2547.png'
+    case 'pga':         return 'https://a.espncdn.com/i/teamlogos/leagues/500-dark/pga.png'
+    case 'lpga':        return 'https://a.espncdn.com/i/teamlogos/leagues/500-dark/lpga.png'
     default:            return ''
   }
 }

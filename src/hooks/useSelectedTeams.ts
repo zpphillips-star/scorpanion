@@ -22,10 +22,11 @@ export function useSelectedTeams() {
         }
         setSelectedTeamIds(filtered)
       } else {
-        setSelectedTeamIds(SEATTLE_TEAMS.map(t => t.id))
+        // No stored selection — start empty, user picks their teams
+        setSelectedTeamIds([])
       }
     } catch {
-      setSelectedTeamIds(SEATTLE_TEAMS.map(t => t.id))
+      setSelectedTeamIds([])
     }
     setLoaded(true)
   }, [])

@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { Game } from "@/lib/types"
 import { SEATTLE_TEAMS, getTeamLogoUrl } from "@/lib/teams"
+import { ALL_PRO_TEAMS } from "@/lib/allProTeams"
 import { useTeamClickCounts } from "@/hooks/useTeamClickCounts"
 import { useSportsData } from "@/context/SportsDataContext"
 import TeamLogo from "@/components/TeamLogo"
@@ -9,7 +10,7 @@ import PageHeader from "@/components/PageHeader"
 import { TodayGameCard } from "@/components/TodayGameCard"
 import GameDetailSheet from "@/components/GameDetailSheet"
 import { OFFSEASON_DISPLAY } from "@/lib/seasonDates"
-import PGASection from "@/components/PGATournamentCard"
+import { GolfTournamentSection } from "@/components/GolfTournamentSection"
 
 // Use explicit timezone for all date comparisons (matches phone's local time)
 function getTimezone(): string {
@@ -122,38 +123,35 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex-shrink-0 flex flex-col items-center active:opacity-60 transition-opacity px-7 py-5"
+      className="flex-shrink-0 w-[148px] text-left active:opacity-70 transition-opacity border-r border-zinc-800 last:border-r-0 pr-8 mr-8 last:pr-0 last:mr-0"
     >
-      {/* League label */}
-      <span className="text-[8px] tracking-[0.18em] uppercase font-semibold mb-4" style={{ color: "var(--text-faint)" }}>
-        {game.league}
-      </span>
-      {/* Two team columns */}
-      <div className="flex items-end gap-6">
-        {/* Seattle */}
-        <div className="flex flex-col items-center gap-2">
-          <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={36} />
-          <span className="text-[9px] font-semibold tracking-wide uppercase" style={{ color: "var(--text-faint)" }}>{game.seattleTeam.abbr}</span>
-          <span className={`font-display text-[30px] font-800 tabular-nums leading-none ${seattleLost ? "opacity-30" : ""}`} style={{ color: "#f0f0f8" }}>
-            {hasScore ? game.seattleScore : "—"}
+      {/* Date + league — inset so it doesn't crowd the edges */}
+      <div className="flex items-center justify-between mb-4 px-1">
+        <span className="text-[10px] text-zinc-600">{fmtDate(game.kickoff).replace(/,.*/, "")}</span>
+        <span className="text-[10px] text-zinc-700 uppercase tracking-wide">{game.league.toUpperCase()}</span>
+      </div>
+      {/* Logo · Score · Logo */}
+      <div className="flex items-center justify-between gap-2">
+        {/* Seattle team */}
+        <div className="flex flex-col items-center flex-1">
+          <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={28} />
+          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0.5">{game.seattleTeam.abbr}</span>
+          <span className={`font-display text-[18px] font-800 tabular-nums leading-none mt-2 ${seattleLost ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+            {hasScore ? game.seattleScore : "–"}
           </span>
         </div>
+        <span className="text-[11px] text-zinc-700 self-center">–</span>
         {/* Opponent */}
-        <div className="flex flex-col items-center gap-2">
-          <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={36} />
-          <span className="text-[9px] font-semibold tracking-wide uppercase" style={{ color: "var(--text-faint)" }}>{game.opponent.abbr}</span>
-          <span className={`font-display text-[30px] font-800 tabular-nums leading-none ${seattleWon ? "opacity-30" : ""}`} style={{ color: "#f0f0f8" }}>
-            {hasScore ? game.opponentScore : "—"}
+        <div className="flex flex-col items-center flex-1">
+          <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={28} />
+          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0.5">{game.opponent.abbr}</span>
+          <span className={`font-display text-[18px] font-800 tabular-nums leading-none mt-2 ${seattleWon ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+            {hasScore ? game.opponentScore : "–"}
           </span>
         </div>
       </div>
     </button>
   )
-}
-
-function RecentSeparator() {
-  // buffer | line | buffer — mx-4 gives 16px on each side of the 1px line
-  return <div className="self-stretch w-px mx-4 my-4 flex-shrink-0" style={{ background: "#1e3050" }} />
 }
 
 // ── College sport picker dropdown ─────────────────────────────────────────
@@ -238,9 +236,27 @@ export default function HomeClient() {
       .reduce((sum, t) => sum + (teamClickCounts[t.id] || 0), 0)
   }
 
-  const followedTeamsSorted = SEATTLE_TEAMS
+  // Include followed pro teams from ALL_PRO_TEAMS (mapped to SeattleTeam shape for uniform rendering)
+  const proTeamsMapped = ALL_PRO_TEAMS
     .filter(t => selectedTeamIds.includes(t.id))
-    .sort((a, b) => (getAggregatedClicks(b) - getAggregatedClicks(a)) || a.shortName.localeCompare(b.shortName))
+    .map(t => ({
+      id: t.id,
+      name: t.name,
+      shortName: t.shortName,
+      abbr: t.abbr,
+      sport: t.sport,
+      league: t.league,
+      espnId: t.espnId,
+      primaryColor: t.primaryColor,
+      secondaryColor: '#ffffff',
+      emoji: '',
+      logoUrl: t.logo,
+    } as typeof SEATTLE_TEAMS[0]))
+
+  const followedTeamsSorted = [
+    ...SEATTLE_TEAMS.filter(t => selectedTeamIds.includes(t.id)),
+    ...proTeamsMapped,
+  ].sort((a, b) => (getAggregatedClicks(b) - getAggregatedClicks(a)) || a.shortName.localeCompare(b.shortName))
 
   // Deduplicate: one entry per unique logo (college schools collapse into one icon)
   const filterItems = (() => {
@@ -361,19 +377,19 @@ export default function HomeClient() {
       {/* ── Sticky header ───────────────────────────────────────────────── */}
       <PageHeader title="Home">
         {/* ── Team logo filter bar ─────────────────────────────────── */}
-        <div className="relative overflow-x-auto no-scrollbar px-4 pb-6">
+        <div className="relative overflow-x-auto no-scrollbar px-4 pb-3">
           <div className="flex gap-3 min-w-max">
             {/* ALL */}
             <button onClick={() => { setActiveFilter("all"); setCollegePicker(null) }} className="flex-shrink-0">
               <div
                 className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
                 style={{
-                  background: "#0c1b31",
-                  border: `2px solid ${activeFilter === "all" ? "#D65820" : "rgba(255,255,255,0.15)"}`,
-                  boxShadow: activeFilter === "all" ? "0 0 10px rgba(214,88,32,0.35)" : "none",
+                  background: activeFilter === "all" ? "var(--accent)" : "var(--surface-2)",
+                  border: `2px solid ${activeFilter === "all" ? "var(--accent)" : "rgba(255,255,255,0.1)"}`,
+                  boxShadow: activeFilter === "all" ? "0 0 14px rgba(0,212,255,0.4)" : "none",
                 }}
               >
-                <span className="font-display text-[11px] font-800 uppercase" style={{ color: activeFilter === "all" ? "#f0f0f8" : "#6b7280" }}>All</span>
+                <span className="font-display text-[11px] font-800 uppercase" style={{ color: activeFilter === "all" ? "#08080f" : "#6b7280" }}>All</span>
               </div>
             </button>
 
@@ -435,115 +451,113 @@ export default function HomeClient() {
         </div>
       </PageHeader>
 
+      {/* ── Recent results (horizontal scroll, tappable) ─────────────────── */}
       {recent.length > 0 && (
-        <div className="mt-6">
-          <div className="flex items-center gap-3 px-4 mb-6">
-            <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>Recent</span>
-            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+        <div className="mt-5">
+          <div className="flex items-center gap-3 px-4 mb-3">
+            <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Recent</span>
+            <div className="flex-1 h-px bg-zinc-800" />
+            <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">Last 7 days</span>
           </div>
           <div className="overflow-x-auto no-scrollbar px-4">
-            <div className="flex items-stretch min-w-max">
-              {recent.map((g, i) => (
-                <>
-                  {i > 0 && <RecentSeparator key={`sep-${g.id}`} />}
-                  <RecentCard key={g.id} game={g} onClick={() => setSelectedRecentGame(g)} />
-                </>
+          <div className="flex min-w-max pb-1">
+              {recent.map(g => (
+                <RecentCard key={g.id} game={g} onClick={() => setSelectedRecentGame(g)} />
               ))}
             </div>
           </div>
         </div>
       )}
 
-      {/* ── FEATURED: Always-on Today section ────────────────────────────── */}
+      {/* ── FEATURED: Always-on Today section ───────────────────────────── */}
       {(() => {
         const hasLive = liveGames.length > 0
         const hasGames = liveGames.length > 0 || todayGames.length > 0
-        const dateLabel = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
+        const todayDate = new Date()
+        const dateLabel = todayDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
 
         return (
-          <div className="mt-10">
-            {/* Section header — same style as Recent / Upcoming */}
-            <div className="flex items-center gap-3 px-4 mb-6">
+          <div className="mt-8">
+            {/* Section header */}
+            <div className="flex items-center gap-3 px-4 mb-3">
               {hasLive && (
                 <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
                 </span>
               )}
-              <span className="text-[10px] tracking-[0.12em] font-semibold uppercase"
-                    style={{ color: hasLive ? "#f87171" : "var(--text-faint)" }}>
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${hasLive ? "text-red-400" : "text-zinc-500"}`}>
                 {hasLive ? "Live Now" : "Today"}
               </span>
-              <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-              <span className="text-[10px] tracking-[0.1em] uppercase font-medium" style={{ color: "var(--text-faint)" }}>{dateLabel}</span>
+              <div className="flex-1 h-px bg-zinc-800" />
+              <span className="text-[10px] text-zinc-600 uppercase tracking-wider">{dateLabel}</span>
             </div>
 
             {hasGames ? (
-              <div>
-                {todayGames.map(g => (
-                  <TodayGameCard key={g.id} game={g} featured={g.status === "live"} />
-                ))}
-              </div>
+              todayGames.map(g => <TodayGameCard key={g.id} game={g} />)
             ) : (
-              <div className="px-4 py-6 flex items-center justify-center">
-                <span className="text-[13px] font-medium tracking-wide" style={{ color: "var(--text-faint)" }}>No games today</span>
+              <div className="px-4 py-8 flex items-center justify-center">
+                <span className="text-[15px] text-zinc-600 font-medium">No games today</span>
               </div>
             )}
           </div>
         )
       })()}
 
-      {/* ── PGA Tour section (when followed) ─────────────────────────────── */}
-      {selectedTeamIds.includes("pga") && (activeFilter === "all" || activeFilter === "pga") && (
-        <div className="mt-10">
-          <div className="flex items-center gap-3 px-4 mb-4">
-            <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>⛳ PGA Tour</span>
-            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-          </div>
-          <PGASection tourId="pga" />
-        </div>
-      )}
-
-      {/* ── LPGA Tour section (when followed) ────────────────────────────── */}
-      {selectedTeamIds.includes("lpga") && (activeFilter === "all" || activeFilter === "lpga") && (
-        <div className="mt-10">
-          <div className="flex items-center gap-3 px-4 mb-4">
-            <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>⛳ LPGA Tour</span>
-            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-          </div>
-          <PGASection tourId="lpga" />
-        </div>
-      )}
-
       {/* ── Off-season (no games anywhere) ──────────────────────────────── */}
       {todayGames.length === 0 && !hasAnyLive && recent.length === 0 && allUpcoming.length === 0 && (
         <>
-          <div className="mt-10 px-4 mb-4 flex items-center gap-3">
-            <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>Off Season</span>
-            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+          <div className="mt-5 px-4 mb-2 flex items-center gap-3">
+            <span className="font-display text-[13px] font-800 text-zinc-400 uppercase tracking-widest">Off Season</span>
+            <div className="flex-1 h-px bg-zinc-800" />
           </div>
           <OffSeasonCards teams={teamsWithNoGames.length > 0 ? teamsWithNoGames : followedTeams} nextGames={nextGameByTeam} />
         </>
       )}
 
-      {/* ── Upcoming ─────────────────────────────────────────────────────── */}
+      {/* ── Golf: PGA / LPGA ─────────────────────────────────────────────── */}
+      {selectedTeamIds.includes('pga') && (
+        <div className="mt-8">
+          <GolfTournamentSection
+            tourId="pga"
+            accentColor="#003087"
+            logoUrl="https://a.espncdn.com/i/teamlogos/leagues/500-dark/pga.png"
+            label="PGA Tour"
+          />
+        </div>
+      )}
+      {selectedTeamIds.includes('lpga') && (
+        <div className="mt-8">
+          <GolfTournamentSection
+            tourId="lpga"
+            accentColor="#b5006e"
+            logoUrl="https://a.espncdn.com/i/teamlogos/leagues/500-dark/lpga.png"
+            label="LPGA"
+          />
+        </div>
+      )}
+
+      {/* ── Upcoming — WC compact rows ───────────────────────────────────── */}
       {upcomingDates.length > 0 && (
-        <div className="mt-12">
-          <div className="px-4 mb-5 flex items-center gap-3">
-            <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>Upcoming</span>
-            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-            <span className="text-[10px] tracking-[0.1em] uppercase font-medium" style={{ color: "var(--text-faint)" }}>
+        <div className="mt-8">
+          <div className="px-4 mb-1 flex items-center gap-3">
+            <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Upcoming</span>
+            <div className="flex-1 h-px bg-zinc-800" />
+            <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">
               {upcomingFallback.length > 0 ? "Next scheduled" : "Next 14 days"}
             </span>
           </div>
 
           {upcomingDates.map((ds, idx) => (
             <div key={ds}>
-              {idx > 0 && <div className="h-4" />}
-              {/* Date header — whisper, no heavy backdrop */}
-              <div className="px-4 py-2 flex items-center gap-3">
-                <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>{fmtDayHeader(ds)}</span>
-                <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+              {idx > 0 && <div className="h-3" />}
+              {/* Date header */}
+              <div
+                className="px-4 py-2 flex items-center gap-3"
+                style={{ background: "rgba(8,8,15,0.95)", backdropFilter: "blur(8px)" }}
+              >
+                <span className="text-[12px] uppercase tracking-widest font-bold text-white">{fmtDayHeader(ds)}</span>
+                <div className="flex-1 h-px bg-zinc-800" />
               </div>
               {/* Compact rows */}
               {upcomingByDate[ds].map(g => {
@@ -551,26 +565,29 @@ export default function HomeClient() {
                 return (
                   <div
                     key={g.id}
-                    className="grid border-b hover:bg-white/[0.02] active:bg-white/[0.03] transition-colors cursor-pointer px-4 py-4"
-                    style={{ gridTemplateColumns: "80px 1fr auto 1fr", borderColor: "var(--border)" }}
+                    className="flex items-center px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer"
                     onClick={() => setSelectedRecentGame(g)}
                   >
                     {/* Time */}
-                    <span className="text-[13px] font-semibold self-center whitespace-nowrap" style={{ color: "#f0f0f8" }}>{fmtTime(g.kickoff)}</span>
+                    <div className="w-[72px] flex-shrink-0">
+                      <span className="text-[12px] font-medium text-zinc-300 whitespace-nowrap">{fmtTime(g.kickoff)}</span>
+                    </div>
                     {/* Seattle (right-aligned) */}
-                    <div className="flex items-center justify-end gap-2.5 overflow-hidden">
-                      <span className="text-[14px] font-semibold truncate" style={{ color: "#f0f0f8" }}>{g.seattleTeam.shortName}</span>
-                      <TeamLogo src={seattleLogoUrl} emoji={g.seattleTeam.emoji} abbr={g.seattleTeam.abbr} size={26} />
+                    <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
+                      <span className="text-[13px] font-semibold text-white truncate text-right">{g.seattleTeam.shortName}</span>
+                      <TeamLogo src={seattleLogoUrl} emoji={g.seattleTeam.emoji} abbr={g.seattleTeam.abbr} size={24} />
                     </div>
                     {/* vs */}
-                    <span className="text-[11px] self-center px-3 font-medium" style={{ color: "#3a5070" }}>vs</span>
+                    <div className="w-10 flex-shrink-0 text-center">
+                      <span className="text-[12px] font-medium text-zinc-500">vs</span>
+                    </div>
                     {/* Opponent (left-aligned) */}
-                    <div className="flex items-center gap-2.5 overflow-hidden">
+                    <div className="flex-1 flex items-center gap-2 min-w-0">
                       {g.opponent.logo
-                        ? <img src={g.opponent.logo} alt={g.opponent.abbr} width={26} height={26} className="object-contain flex-shrink-0" />
+                        ? <img src={g.opponent.logo} alt={g.opponent.abbr} width={28} height={28} className="object-contain flex-shrink-0" />
                         : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />
                       }
-                      <span className="text-[14px] font-semibold truncate" style={{ color: "#f0f0f8" }}>{g.opponent.shortName || g.opponent.name}</span>
+                      <span className="text-[13px] font-semibold text-white truncate">{g.opponent.shortName || g.opponent.name}</span>
                     </div>
                   </div>
                 )

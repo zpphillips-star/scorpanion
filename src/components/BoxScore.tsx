@@ -678,7 +678,7 @@ export default function BoxScore({ eventId, league, seattleTeamId, color = "#00d
   if (error || !data || data.linescores.length === 0) return null
 
   const { sportType } = data
-  const showStats = sportType !== "soccer" // soccer stats shown elsewhere
+  const showStats = true // show team stats for all sports
 
   return (
     <div className="mt-1">

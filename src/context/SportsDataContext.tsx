@@ -24,7 +24,6 @@ import { SEATTLE_TEAMS } from '@/lib/teams'
 
 const STORAGE_KEY       = 'seattle-sports-teams'
 const OTHER_STORAGE_KEY = 'followed_other_teams'
-const MIGRATION_KEY     = 'scorpanion:migrated-v4-empty-default'
 
 const WHL_IDS  = ['thunderbirds', 'silvertips'] as const
 const NCAA_IDS = ['uw-softball', 'uw-soccer']   as const
@@ -65,9 +64,6 @@ const defaultCtx: SportsDataContextValue = {
 
 const SportsDataContext = createContext<SportsDataContextValue>(defaultCtx)
 
-// ── Tours that require explicit opt-in (never auto-seeded) ───────────────────
-const OPT_IN_ONLY = new Set(['pga', 'lpga'])
-
 // ── Provider ─────────────────────────────────────────────────────────────────
 
 export function SportsDataProvider({ children }: { children: ReactNode }) {
@@ -76,26 +72,22 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([])
   const [loaded, setLoaded] = useState(false)
 
-  // Read from localStorage on mount — pure opt-in, no auto-seeding ever
+  // Read from localStorage on mount — merges both Seattle and "other" followed teams
   useEffect(() => {
     try {
-      // ── One-time migration: clear all auto-seeded selections → empty start ──
-      const migrated = localStorage.getItem(MIGRATION_KEY)
-      if (!migrated) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify([]))
-        localStorage.removeItem(OTHER_STORAGE_KEY)
-        localStorage.setItem(MIGRATION_KEY, '1')
-      }
-
       const seattleStored = localStorage.getItem(STORAGE_KEY)
       let seattleIds: string[]
-
       if (seattleStored) {
-        // Keep only IDs that still exist in SEATTLE_TEAMS — no auto-adding new ones
-        const validIdSet = new Set(SEATTLE_TEAMS.map(t => t.id))
-        seattleIds = (JSON.parse(seattleStored) as string[]).filter(id => validIdSet.has(id))
+        const parsed: unknown[] = JSON.parse(seattleStored)
+        const validIds = new Set(SEATTLE_TEAMS.map(t => t.id))
+        const filtered = (parsed as string[]).filter(id => validIds.has(id))
+        // Prune stale IDs in storage
+        if (filtered.length !== parsed.length) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered))
+        }
+        seattleIds = filtered
       } else {
-        // Fresh install — start empty, user picks their own teams
+        // No stored selection — start empty
         seattleIds = []
       }
 
@@ -139,10 +131,10 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
     try {
       const espnIds = selectedTeamIds.filter(
         id => id !== 'torrent'
-          && id !== 'pga'
-          && id !== 'lpga'
           && !(WHL_IDS  as readonly string[]).includes(id)
           && !(NCAA_IDS as readonly string[]).includes(id)
+          && id !== 'pga'
+          && id !== 'lpga'
       )
       const fetches: Promise<Game[]>[] = []
 

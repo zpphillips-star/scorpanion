@@ -341,8 +341,8 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
             />
           )}
 
-          {/* Season Records — flat, no card boxes */}
-          {(game.seattleRecord || game.opponentRecord) && (
+          {/* Season Records — always show for finished/live games */}
+          {(isLive || isFt) && (
             <div className="mt-6">
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex-1 h-px bg-zinc-800" />
