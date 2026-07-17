@@ -24,6 +24,7 @@ import { SEATTLE_TEAMS } from '@/lib/teams'
 
 const STORAGE_KEY       = 'seattle-sports-teams'
 const OTHER_STORAGE_KEY = 'followed_other_teams'
+const MIGRATION_KEY     = 'scorpanion:migrated-v4-empty-default'
 
 const WHL_IDS  = ['thunderbirds', 'silvertips'] as const
 const NCAA_IDS = ['uw-softball', 'uw-soccer']   as const
@@ -75,33 +76,27 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([])
   const [loaded, setLoaded] = useState(false)
 
-  // Read from localStorage on mount — merges both Seattle and "other" followed teams
+  // Read from localStorage on mount — pure opt-in, no auto-seeding ever
   useEffect(() => {
     try {
+      // ── One-time migration: clear all auto-seeded selections → empty start ──
+      const migrated = localStorage.getItem(MIGRATION_KEY)
+      if (!migrated) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify([]))
+        localStorage.removeItem(OTHER_STORAGE_KEY)
+        localStorage.setItem(MIGRATION_KEY, '1')
+      }
+
       const seattleStored = localStorage.getItem(STORAGE_KEY)
       let seattleIds: string[]
+
       if (seattleStored) {
-        const parsed: unknown[] = JSON.parse(seattleStored)
-        const allValidIds = SEATTLE_TEAMS.map(t => t.id)
-        const validIdSet = new Set(allValidIds)
-        const filtered = (parsed as string[]).filter(id => validIdSet.has(id))
-        // Auto-seed NEW teams — but NEVER auto-seed opt-in-only tours
-        const storedSet = new Set(filtered)
-        const newTeams = allValidIds.filter(id => !storedSet.has(id) && !OPT_IN_ONLY.has(id))
-        seattleIds = [...filtered, ...newTeams]
-        // One-time migration: remove any opt-in-only tours that were accidentally auto-seeded
-        const beforeClean = seattleIds.length
-        seattleIds = seattleIds.filter(id => {
-          if (!OPT_IN_ONLY.has(id)) return true          // not a tour — always keep
-          return storedSet.has(id) && !newTeams.includes(id) // tour — only keep if was already stored (explicit)
-        })
-        // Persist updated list if anything changed
-        if (seattleIds.length !== (parsed as string[]).length) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(seattleIds))
-        }
+        // Keep only IDs that still exist in SEATTLE_TEAMS — no auto-adding new ones
+        const validIdSet = new Set(SEATTLE_TEAMS.map(t => t.id))
+        seattleIds = (JSON.parse(seattleStored) as string[]).filter(id => validIdSet.has(id))
       } else {
-        // Fresh install — seed all non-opt-in-only teams
-        seattleIds = SEATTLE_TEAMS.map(t => t.id).filter(id => !OPT_IN_ONLY.has(id))
+        // Fresh install — start empty, user picks their own teams
+        seattleIds = []
       }
 
       const otherStored = localStorage.getItem(OTHER_STORAGE_KEY)
@@ -109,7 +104,7 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
 
       setSelectedTeamIds([...new Set([...seattleIds, ...otherIds])])
     } catch {
-      setSelectedTeamIds(SEATTLE_TEAMS.map(t => t.id))
+      setSelectedTeamIds([])
     }
     setLoaded(true)
   }, [])
@@ -122,7 +117,7 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
         const seattleStored = localStorage.getItem(STORAGE_KEY)
         const seattleIds: string[] = seattleStored
           ? (JSON.parse(seattleStored) as string[])
-          : SEATTLE_TEAMS.map(t => t.id)
+          : []
         const otherStored = localStorage.getItem(OTHER_STORAGE_KEY)
         const otherIds: string[] = otherStored ? (JSON.parse(otherStored) as string[]) : []
         setSelectedTeamIds([...new Set([...seattleIds, ...otherIds])])
