@@ -79,13 +79,17 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
       let seattleIds: string[]
       if (seattleStored) {
         const parsed: unknown[] = JSON.parse(seattleStored)
-        const validIds = new Set(SEATTLE_TEAMS.map(t => t.id))
-        const filtered = (parsed as string[]).filter(id => validIds.has(id))
-        // Prune stale IDs in storage
-        if (filtered.length !== parsed.length) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered))
+        const allValidIds = SEATTLE_TEAMS.map(t => t.id)
+        const validIdSet = new Set(allValidIds)
+        const filtered = (parsed as string[]).filter(id => validIdSet.has(id))
+        // Auto-seed any NEW teams added to SEATTLE_TEAMS that aren't in storage yet
+        const storedSet = new Set(filtered)
+        const newTeams = allValidIds.filter(id => !storedSet.has(id))
+        seattleIds = [...filtered, ...newTeams]
+        // Persist updated list if anything changed
+        if (seattleIds.length !== (parsed as string[]).length) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(seattleIds))
         }
-        seattleIds = filtered
       } else {
         seattleIds = SEATTLE_TEAMS.map(t => t.id)
       }
