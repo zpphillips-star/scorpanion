@@ -463,9 +463,10 @@ export default function HomeClient() {
 
         return (
           <div className="mt-10">
-            {/* Section header — WC-style with colored square */}
+            {/* Section header — Scorpanion branded */}
             <div className="flex items-center gap-2.5 px-4 mb-4">
-              <span className={`w-2.5 h-2.5 rounded-sm flex-shrink-0 ${hasLive ? "bg-red-500 animate-pulse" : "bg-[#00d4ff]"}`} />
+              <span className={`w-2.5 h-2.5 rounded-sm flex-shrink-0 ${hasLive ? "bg-red-500 animate-pulse" : ""}`}
+                    style={hasLive ? {} : { background: "#D65820" }} />
               <span className="text-[13px] font-black uppercase tracking-widest text-white">
                 {hasLive ? "Live Now" : "Today"}
               </span>
