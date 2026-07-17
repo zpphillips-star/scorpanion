@@ -4,7 +4,7 @@
 @theme {
   /* Brand backgrounds — Scorpanion Navy */
   --color-bg-base:     #0F1B2D;
-  --color-bg-surface:  #132035;
+  --color-bg-surface:  #0f0f0f;
   --color-bg-elevated: #1A2A45;
   --color-bg-subtle:   #1F3254;
 
@@ -45,16 +45,16 @@
 
 /* ── Design tokens (CSS vars — primary runtime mechanism) ─────────────────── */
 :root {
-  /* Backgrounds — Scorpanion Navy */
-  --bg:           #0F1B2D;
-  --surface:      #132035;
-  --surface-2:    #1A2A45;
-  --surface-3:    #1F3254;
+  /* Backgrounds — pure black */
+  --bg:           #000000;
+  --surface:      #0f0f0f;
+  --surface-2:    #1a1a1a;
+  --surface-3:    #222222;
 
   /* Borders */
-  --border:         #1E2E45;
-  --border-default: #25405C;
-  --border-strong:  #30506E;
+  --border:         #1f1f1f;
+  --border-default: #2a2a2a;
+  --border-strong:  #363636;
 
   /* Accent — Burnt Orange */
   --accent:       #D95C17;
@@ -79,7 +79,7 @@
 * { box-sizing: border-box; padding: 0; margin: 0; }
 
 html, body {
-  background: #0F1B2D;
+  background: #000000;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
