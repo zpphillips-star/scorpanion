@@ -59,24 +59,18 @@ interface PageHeaderProps {
 export default function PageHeader({ title, children, titleAction }: PageHeaderProps) {
   return (
     <div className="sticky top-0 z-30 glass-header">
-      {/* Logo | Title | Action | Auth */}
-      <div className="flex items-center px-4 py-3 gap-3">
-        {/* Left: scorpion logo */}
+      {/* Centered logo row with auth floated right */}
+      <div className="relative flex items-center justify-center px-4 py-3">
+        {/* Center: big logo */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/scorpanion-full.png" alt="Scorpanion" height={32} className="object-contain flex-shrink-0 max-h-[32px]"
+        <img src="/scorpanion-full.png" alt="Scorpanion" className="object-contain max-h-[56px] w-auto"
           onError={(e) => { (e.target as HTMLImageElement).src = "/scorpion-logo.png" }} />
 
-        {/* Center: page title */}
-        <h1 className="flex-1 text-center font-display text-[22px] font-800 leading-none tracking-tight uppercase"
-            style={{ color: "#F2E6CF" }}>
-          {title}
-        </h1>
+        {/* Optional action slot — floated left */}
+        {titleAction && <div className="absolute left-4 flex-shrink-0">{titleAction}</div>}
 
-        {/* Optional action slot */}
-        {titleAction && <div className="flex-shrink-0">{titleAction}</div>}
-
-        {/* Right: auth */}
-        <div className="flex-shrink-0">
+        {/* Right: auth — absolute so it doesn't shift the logo */}
+        <div className="absolute right-4 flex-shrink-0">
           <AuthButton />
         </div>
       </div>
