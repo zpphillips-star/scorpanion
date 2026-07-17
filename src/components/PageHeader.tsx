@@ -60,10 +60,10 @@ export default function PageHeader({ title, children, titleAction }: PageHeaderP
   return (
     <div className="sticky top-0 z-30 glass-header">
       {/* Centered logo row with auth floated right */}
-      <div className="relative flex items-center justify-center px-4 py-5">
+      <div className="relative flex items-center justify-center px-4 pt-5 pb-3">
         {/* Center: big logo */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/scorpanion-logo-new.png" alt="Scorpanion" className="object-contain max-h-[80px] w-auto max-w-[260px]"
+        <img src="/scorpanion-logo-new.png" alt="Scorpanion" className="object-contain max-h-[72px] w-auto max-w-[240px]"
           onError={(e) => { (e.target as HTMLImageElement).src = "/scorpanion-full.png" }} />
 
         {/* Optional action slot — floated left */}
@@ -74,6 +74,9 @@ export default function PageHeader({ title, children, titleAction }: PageHeaderP
           <AuthButton />
         </div>
       </div>
+
+      {/* Divider between logo and filter bar */}
+      <div className="mx-4 mb-3" style={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
 
       {/* Slot for filter bars etc. */}
       {children}

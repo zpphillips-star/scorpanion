@@ -121,12 +121,7 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex-shrink-0 flex flex-col items-center active:opacity-60 transition-opacity rounded-xl px-5 py-4"
-      style={{
-        background: "#1a2d4a",
-        border: "1px solid rgba(255,255,255,0.07)",
-        minWidth: "100px",
-      }}
+      className="flex-shrink-0 flex flex-col items-center active:opacity-60 transition-opacity px-5 py-4"
     >
       {/* League label */}
       <span className="text-[8px] tracking-[0.18em] uppercase font-semibold mb-3" style={{ color: "var(--text-faint)" }}>
@@ -138,7 +133,7 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
         <div className="flex flex-col items-center gap-1.5">
           <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={30} />
           <span className="text-[9px] font-semibold tracking-wide uppercase" style={{ color: "var(--text-faint)" }}>{game.seattleTeam.abbr}</span>
-          <span className={`font-display text-[26px] font-800 tabular-nums leading-none ${seattleLost ? "opacity-30" : ""}`} style={{ color: "var(--text)" }}>
+          <span className={`font-display text-[26px] font-800 tabular-nums leading-none ${seattleLost ? "opacity-30" : ""}`} style={{ color: "#f0f0f8" }}>
             {hasScore ? game.seattleScore : "—"}
           </span>
         </div>
@@ -146,13 +141,17 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
         <div className="flex flex-col items-center gap-1.5">
           <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={30} />
           <span className="text-[9px] font-semibold tracking-wide uppercase" style={{ color: "var(--text-faint)" }}>{game.opponent.abbr}</span>
-          <span className={`font-display text-[26px] font-800 tabular-nums leading-none ${seattleWon ? "opacity-30" : ""}`} style={{ color: "var(--text)" }}>
+          <span className={`font-display text-[26px] font-800 tabular-nums leading-none ${seattleWon ? "opacity-30" : ""}`} style={{ color: "#f0f0f8" }}>
             {hasScore ? game.opponentScore : "—"}
           </span>
         </div>
       </div>
     </button>
   )
+}
+
+function RecentSeparator() {
+  return <div className="self-stretch w-px my-3 flex-shrink-0" style={{ background: "#1e3050" }} />
 }
 
 // ── College sport picker dropdown ─────────────────────────────────────────
@@ -367,12 +366,12 @@ export default function HomeClient() {
               <div
                 className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
                 style={{
-                  background: activeFilter === "all" ? "var(--accent)" : "var(--surface-2)",
-                  border: `2px solid ${activeFilter === "all" ? "var(--accent)" : "rgba(255,255,255,0.1)"}`,
-                  boxShadow: activeFilter === "all" ? "0 0 14px rgba(0,212,255,0.4)" : "none",
+                  background: "#0c1b31",
+                  border: `2px solid ${activeFilter === "all" ? "#D65820" : "rgba(255,255,255,0.15)"}`,
+                  boxShadow: activeFilter === "all" ? "0 0 10px rgba(214,88,32,0.35)" : "none",
                 }}
               >
-                <span className="font-display text-[11px] font-800 uppercase" style={{ color: activeFilter === "all" ? "#08080f" : "#6b7280" }}>All</span>
+                <span className="font-display text-[11px] font-800 uppercase" style={{ color: activeFilter === "all" ? "#f0f0f8" : "#6b7280" }}>All</span>
               </div>
             </button>
 
@@ -442,9 +441,12 @@ export default function HomeClient() {
             <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
           </div>
           <div className="overflow-x-auto no-scrollbar px-4">
-            <div className="flex gap-3 min-w-max pb-1">
-              {recent.map(g => (
-                <RecentCard key={g.id} game={g} onClick={() => setSelectedRecentGame(g)} />
+            <div className="flex items-stretch min-w-max">
+              {recent.map((g, i) => (
+                <>
+                  {i > 0 && <RecentSeparator key={`sep-${g.id}`} />}
+                  <RecentCard key={g.id} game={g} onClick={() => setSelectedRecentGame(g)} />
+                </>
               ))}
             </div>
           </div>
@@ -524,26 +526,26 @@ export default function HomeClient() {
                 return (
                   <div
                     key={g.id}
-                    className="grid border-b hover:bg-white/[0.02] active:bg-white/[0.03] transition-colors cursor-pointer px-4 py-3"
-                    style={{ gridTemplateColumns: "72px 1fr auto 1fr", borderColor: "var(--border)" }}
+                    className="grid border-b hover:bg-white/[0.02] active:bg-white/[0.03] transition-colors cursor-pointer px-4 py-4"
+                    style={{ gridTemplateColumns: "80px 1fr auto 1fr", borderColor: "var(--border)" }}
                     onClick={() => setSelectedRecentGame(g)}
                   >
                     {/* Time */}
-                    <span className="text-[12px] font-medium self-center whitespace-nowrap" style={{ color: "var(--text-muted)" }}>{fmtTime(g.kickoff)}</span>
+                    <span className="text-[13px] font-semibold self-center whitespace-nowrap" style={{ color: "#f0f0f8" }}>{fmtTime(g.kickoff)}</span>
                     {/* Seattle (right-aligned) */}
-                    <div className="flex items-center justify-end gap-2 overflow-hidden">
-                      <span className="text-[13px] font-semibold truncate" style={{ color: "var(--text)" }}>{g.seattleTeam.shortName}</span>
-                      <TeamLogo src={seattleLogoUrl} emoji={g.seattleTeam.emoji} abbr={g.seattleTeam.abbr} size={22} />
+                    <div className="flex items-center justify-end gap-2.5 overflow-hidden">
+                      <span className="text-[14px] font-semibold truncate" style={{ color: "#f0f0f8" }}>{g.seattleTeam.shortName}</span>
+                      <TeamLogo src={seattleLogoUrl} emoji={g.seattleTeam.emoji} abbr={g.seattleTeam.abbr} size={26} />
                     </div>
                     {/* vs */}
-                    <span className="text-[11px] self-center px-3" style={{ color: "var(--text-faint)" }}>vs</span>
+                    <span className="text-[11px] self-center px-3 font-medium" style={{ color: "#3a5070" }}>vs</span>
                     {/* Opponent (left-aligned) */}
-                    <div className="flex items-center gap-2 overflow-hidden">
+                    <div className="flex items-center gap-2.5 overflow-hidden">
                       {g.opponent.logo
-                        ? <img src={g.opponent.logo} alt={g.opponent.abbr} width={22} height={22} className="object-contain flex-shrink-0" />
-                        : <div className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />
+                        ? <img src={g.opponent.logo} alt={g.opponent.abbr} width={26} height={26} className="object-contain flex-shrink-0" />
+                        : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />
                       }
-                      <span className="text-[13px] font-semibold truncate" style={{ color: "var(--text)" }}>{g.opponent.shortName || g.opponent.name}</span>
+                      <span className="text-[14px] font-semibold truncate" style={{ color: "#f0f0f8" }}>{g.opponent.shortName || g.opponent.name}</span>
                     </div>
                   </div>
                 )
