@@ -121,30 +121,29 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex-shrink-0 w-[148px] text-left active:opacity-70 transition-opacity border-r border-zinc-800 last:border-r-0 pr-8 mr-8 last:pr-0 last:mr-0 pt-2"
+      className="flex-shrink-0 flex flex-col items-center active:opacity-60 transition-opacity border-r last:border-r-0 px-5 py-3 first:pl-0 last:pr-0"
+      style={{ borderColor: "var(--border)" }}
     >
-      {/* Date + league — inset so it doesn't crowd the edges */}
-      <div className="flex items-center justify-between mb-4 px-1">
-        <span className="text-[10px] text-zinc-600">{fmtDate(game.kickoff).replace(/,.*/, "")}</span>
-        <span className="text-[10px] text-zinc-700 uppercase tracking-wide">{game.league.toUpperCase()}</span>
-      </div>
-      {/* Logo · Score · Logo */}
-      <div className="flex items-center justify-between gap-2">
-        {/* Seattle team */}
-        <div className="flex flex-col items-center flex-1">
-          <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={28} />
-          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0">{game.seattleTeam.abbr}</span>
-          <span className={`font-display text-[18px] font-800 tabular-nums leading-none mt-3 ${seattleLost ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
-            {hasScore ? game.seattleScore : "–"}
+      {/* League label — whisper */}
+      <span className="text-[8px] tracking-[0.15em] uppercase font-medium mb-3" style={{ color: "var(--text-faint)" }}>
+        {game.league}
+      </span>
+      {/* Two team columns */}
+      <div className="flex items-end gap-5">
+        {/* Seattle */}
+        <div className="flex flex-col items-center gap-1">
+          <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={26} />
+          <span className="text-[9px] font-semibold tracking-wide uppercase" style={{ color: "var(--text-faint)" }}>{game.seattleTeam.abbr}</span>
+          <span className={`font-display text-[22px] font-800 tabular-nums leading-none ${seattleLost ? "opacity-30" : ""}`} style={{ color: "var(--text)" }}>
+            {hasScore ? game.seattleScore : "—"}
           </span>
         </div>
-        <span className="text-[11px] text-zinc-700 self-center">–</span>
         {/* Opponent */}
-        <div className="flex flex-col items-center flex-1">
-          <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={28} />
-          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0">{game.opponent.abbr}</span>
-          <span className={`font-display text-[18px] font-800 tabular-nums leading-none mt-3 ${seattleWon ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
-            {hasScore ? game.opponentScore : "–"}
+        <div className="flex flex-col items-center gap-1">
+          <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={26} />
+          <span className="text-[9px] font-semibold tracking-wide uppercase" style={{ color: "var(--text-faint)" }}>{game.opponent.abbr}</span>
+          <span className={`font-display text-[22px] font-800 tabular-nums leading-none ${seattleWon ? "opacity-30" : ""}`} style={{ color: "var(--text)" }}>
+            {hasScore ? game.opponentScore : "—"}
           </span>
         </div>
       </div>
@@ -431,16 +430,52 @@ export default function HomeClient() {
         </div>
       </PageHeader>
 
-      {/* ── Recent results (horizontal scroll, tappable) ─────────────────── */}
+      {/* ── FEATURED: Always-on Today section — always first ─────────────── */}
+      {(() => {
+        const hasLive = liveGames.length > 0
+        const hasGames = liveGames.length > 0 || todayGames.length > 0
+        const dateLabel = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
+
+        return (
+          <div className="mt-8">
+            {/* Section header */}
+            <div className="flex items-center gap-3 px-4 mb-4">
+              {hasLive && (
+                <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
+                </span>
+              )}
+              <span
+                className="text-[10px] tracking-[0.12em] font-semibold uppercase"
+                style={{ color: hasLive ? "#f87171" : "var(--text-faint)" }}
+              >
+                {hasLive ? "Live Now" : "Today"}
+              </span>
+              <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+              <span className="text-[10px] tracking-[0.1em] uppercase font-medium" style={{ color: "var(--text-faint)" }}>{dateLabel}</span>
+            </div>
+
+            {hasGames ? (
+              todayGames.map(g => <TodayGameCard key={g.id} game={g} />)
+            ) : (
+              <div className="px-4 py-6 flex items-center justify-center">
+                <span className="text-[13px] font-medium tracking-wide" style={{ color: "var(--text-faint)" }}>No games today</span>
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
+      {/* ── Recent results (horizontal scroll) ───────────────────────────── */}
       {recent.length > 0 && (
-        <div className="mt-12 pt-2">
-          <div className="flex items-center gap-3 px-4 mb-6">
-            <span className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest">Recent</span>
-            <div className="flex-1 h-px bg-zinc-800" />
-            <span className="font-display text-[10px] text-zinc-600 uppercase tracking-wider">Last 7 days</span>
+        <div className="mt-10">
+          <div className="flex items-center gap-3 px-4 mb-5">
+            <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>Recent</span>
+            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
           </div>
           <div className="overflow-x-auto no-scrollbar px-4">
-          <div className="flex min-w-max pb-1">
+            <div className="flex min-w-max">
               {recent.map(g => (
                 <RecentCard key={g.id} game={g} onClick={() => setSelectedRecentGame(g)} />
               ))}
@@ -449,82 +484,35 @@ export default function HomeClient() {
         </div>
       )}
 
-      {/* ── FEATURED: Always-on Today section ───────────────────────────── */}
-      {(() => {
-        const hasLive = liveGames.length > 0
-        const hasGames = liveGames.length > 0 || todayGames.length > 0
-        const todayDate = new Date()
-        const dateLabel = todayDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
-
-        return (
-          <div className="mt-8">
-            {/* Section header */}
-            <div className="flex items-center gap-3 px-4 mb-3">
-              {hasLive && (
-                <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
-                </span>
-              )}
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${hasLive ? "text-red-400" : "text-zinc-500"}`}>
-                {hasLive ? "Live Now" : "Today"}
-              </span>
-              <div className="flex-1 h-px bg-zinc-800" />
-              <span className="text-[10px] text-zinc-600 uppercase tracking-wider">{dateLabel}</span>
-            </div>
-
-            {hasGames ? (
-              todayGames.map(g => <TodayGameCard key={g.id} game={g} />)
-            ) : (
-              <div
-                className="mx-3 my-1.5 overflow-hidden"
-                style={{ background: "#18181f", border: "1px solid rgba(255,255,255,0.07)" }}
-              >
-                <div className="flex items-center justify-between px-4 pt-3 pb-2">
-                  <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-widest">Today</span>
-                  <span className="text-[10px] font-medium" style={{ color: "#9090b0" }}>{new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}</span>
-                </div>
-                <div className="px-4 pt-4 pb-8 flex items-center justify-center">
-                  <span className="font-display text-[16px] font-700 uppercase tracking-wide text-zinc-600">No games today</span>
-                </div>
-              </div>
-            )}
-          </div>
-        )
-      })()}
-
       {/* ── Off-season (no games anywhere) ──────────────────────────────── */}
       {todayGames.length === 0 && !hasAnyLive && recent.length === 0 && allUpcoming.length === 0 && (
         <>
-          <div className="mt-5 px-4 mb-2 flex items-center gap-3">
-            <span className="font-display text-[13px] font-800 text-zinc-400 uppercase tracking-widest">Off Season</span>
-            <div className="flex-1 h-px bg-zinc-800" />
+          <div className="mt-10 px-4 mb-4 flex items-center gap-3">
+            <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>Off Season</span>
+            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
           </div>
           <OffSeasonCards teams={teamsWithNoGames.length > 0 ? teamsWithNoGames : followedTeams} nextGames={nextGameByTeam} />
         </>
       )}
 
-      {/* ── Upcoming — WC compact rows ───────────────────────────────────── */}
+      {/* ── Upcoming ─────────────────────────────────────────────────────── */}
       {upcomingDates.length > 0 && (
-        <div className="mt-8">
-          <div className="px-4 mb-1 flex items-center gap-3">
-            <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Upcoming</span>
-            <div className="flex-1 h-px bg-zinc-800" />
-            <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">
+        <div className="mt-10">
+          <div className="px-4 mb-4 flex items-center gap-3">
+            <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>Upcoming</span>
+            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+            <span className="text-[10px] tracking-[0.1em] uppercase font-medium" style={{ color: "var(--text-faint)" }}>
               {upcomingFallback.length > 0 ? "Next scheduled" : "Next 14 days"}
             </span>
           </div>
 
           {upcomingDates.map((ds, idx) => (
             <div key={ds}>
-              {idx > 0 && <div className="h-3" />}
-              {/* Date header */}
-              <div
-                className="px-4 py-2 flex items-center gap-3"
-                style={{ background: "rgba(8,8,15,0.95)", backdropFilter: "blur(8px)" }}
-              >
-                <span className="text-[12px] uppercase tracking-widest font-bold text-white">{fmtDayHeader(ds)}</span>
-                <div className="flex-1 h-px bg-zinc-800" />
+              {idx > 0 && <div className="h-4" />}
+              {/* Date header — whisper, no heavy backdrop */}
+              <div className="px-4 py-2 flex items-center gap-3">
+                <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>{fmtDayHeader(ds)}</span>
+                <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
               </div>
               {/* Compact rows */}
               {upcomingByDate[ds].map(g => {
@@ -532,26 +520,26 @@ export default function HomeClient() {
                 return (
                   <div
                     key={g.id}
-                    className="grid border-b border-zinc-800/50 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer px-4 py-3"
-                    style={{ gridTemplateColumns: "72px 1fr auto 1fr" }}
+                    className="grid border-b hover:bg-white/[0.02] active:bg-white/[0.03] transition-colors cursor-pointer px-4 py-3"
+                    style={{ gridTemplateColumns: "72px 1fr auto 1fr", borderColor: "var(--border)" }}
                     onClick={() => setSelectedRecentGame(g)}
                   >
                     {/* Time */}
-                    <span className="text-[12px] font-medium text-zinc-400 self-center whitespace-nowrap">{fmtTime(g.kickoff)}</span>
+                    <span className="text-[12px] font-medium self-center whitespace-nowrap" style={{ color: "var(--text-muted)" }}>{fmtTime(g.kickoff)}</span>
                     {/* Seattle (right-aligned) */}
                     <div className="flex items-center justify-end gap-2 overflow-hidden">
-                      <span className="text-[13px] font-semibold text-white truncate">{g.seattleTeam.shortName}</span>
+                      <span className="text-[13px] font-semibold truncate" style={{ color: "var(--text)" }}>{g.seattleTeam.shortName}</span>
                       <TeamLogo src={seattleLogoUrl} emoji={g.seattleTeam.emoji} abbr={g.seattleTeam.abbr} size={22} />
                     </div>
                     {/* vs */}
-                    <span className="text-[11px] text-zinc-600 self-center px-3">vs</span>
+                    <span className="text-[11px] self-center px-3" style={{ color: "var(--text-faint)" }}>vs</span>
                     {/* Opponent (left-aligned) */}
                     <div className="flex items-center gap-2 overflow-hidden">
                       {g.opponent.logo
                         ? <img src={g.opponent.logo} alt={g.opponent.abbr} width={22} height={22} className="object-contain flex-shrink-0" />
                         : <div className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />
                       }
-                      <span className="text-[13px] font-semibold text-white truncate">{g.opponent.shortName || g.opponent.name}</span>
+                      <span className="text-[13px] font-semibold truncate" style={{ color: "var(--text)" }}>{g.opponent.shortName || g.opponent.name}</span>
                     </div>
                   </div>
                 )

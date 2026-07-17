@@ -10,10 +10,6 @@ import GameDetailSheet from "@/components/GameDetailSheet"
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZoneName: "short" })
 }
-function formatRecord(r?: { wins: number; losses: number; ties?: number }): string {
-  if (!r) return ""
-  return r.ties ? `${r.wins}-${r.losses}-${r.ties}` : `${r.wins}-${r.losses}`
-}
 
 /** Full-width featured card for today's games */
 export function TodayGameCard({ game }: { game: Game }) {
@@ -33,7 +29,6 @@ export function TodayGameCard({ game }: { game: Game }) {
   const awayAbbr   = game.isHome ? game.opponent.abbr  : game.seattleTeam.abbr
   const awayName   = game.isHome ? (game.opponent.shortName || game.opponent.name) : game.seattleTeam.shortName
   const awayScore  = game.isHome ? game.opponentScore  : game.seattleScore
-  const awayRecord = game.isHome ? game.opponentRecord : game.seattleRecord
   const awayId     = game.isHome ? game.opponent.id    : game.seattleTeam.espnId
 
   const homeLogo   = game.isHome ? seattleLogoUrl      : game.opponent.logo
@@ -41,27 +36,24 @@ export function TodayGameCard({ game }: { game: Game }) {
   const homeAbbr   = game.isHome ? game.seattleTeam.abbr  : game.opponent.abbr
   const homeName   = game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)
   const homeScore  = game.isHome ? game.seattleScore   : game.opponentScore
-  const homeRecord = game.isHome ? game.seattleRecord  : game.opponentRecord
   const homeId     = game.isHome ? game.seattleTeam.espnId : game.opponent.id
 
   const awayWon = isFt && hasScores && (awayScore ?? 0) > (homeScore ?? 0)
   const homeWon = isFt && hasScores && (homeScore ?? 0) > (awayScore ?? 0)
-  const seattleWon  = isFt && hasScores && game.seattleScore! > game.opponentScore!
-  const seattleLost = isFt && hasScores && game.seattleScore! < game.opponentScore!
 
-  // Card container style — subtle, clean. Live gets a red left accent (no glow).
+  // Card container style — navy-aligned. Live gets a red left accent.
   const cardStyle: React.CSSProperties = isLive ? {
-    background: "#18181f",
-    border: "1px solid rgba(255,255,255,0.07)",
-    borderLeftWidth: "2px",
+    background: "var(--surface-2)",
+    border: "1px solid var(--border)",
+    borderLeftWidth: "3px",
     borderLeftColor: "#ef4444",
   } : isFt ? {
-    background: "#141419",
-    border: "1px solid rgba(255,255,255,0.06)",
-    opacity: 0.88,
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
+    opacity: 0.85,
   } : {
-    background: "#18181f",
-    border: "1px solid rgba(255,255,255,0.07)",
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
   }
 
   return (
@@ -109,7 +101,6 @@ export function TodayGameCard({ game }: { game: Game }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="text-[12px]" style={{ color: "#9090b0" }}>{awayAbbr}</span>
-                {awayRecord && <span className="text-[10px] text-zinc-700">{formatRecord(awayRecord)}</span>}
               </div>
               <div
                 className="font-display text-[16px] font-700 leading-tight truncate"
@@ -149,7 +140,6 @@ export function TodayGameCard({ game }: { game: Game }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="text-[12px]" style={{ color: "#9090b0" }}>{homeAbbr}</span>
-                {homeRecord && <span className="text-[10px] text-zinc-700">{formatRecord(homeRecord)}</span>}
               </div>
               <div
                 className="font-display text-[16px] font-700 leading-tight truncate"
@@ -164,23 +154,10 @@ export function TodayGameCard({ game }: { game: Game }) {
             )}
           </div>
 
-          {/* Win / loss label + venue footer */}
-          {(isFt || isLive) && (
+          {/* Clock for live games only — no triangle, no venue */}
+          {isLive && game.clock && (
             <div className="flex items-center gap-2 mt-1.5 pt-1.5" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-              {isFt && (() => {
-                  const triangle = awayWon ? "▲" : homeWon ? "▼" : "—"
-                  return (
-                    <span className="font-display text-[16px] leading-none" style={{ color: (awayWon || homeWon) ? "#00d4ff" : "#52525b" }}>
-                      {triangle}
-                    </span>
-                  )
-                })()}
-              {isLive && game.clock && (
-                <span className="text-[11px] font-medium text-red-400">{game.clock}</span>
-              )}
-              {game.venue?.city && (
-                <span className="text-[11px] text-zinc-600 ml-auto">{game.venue.city}{game.venue.state ? `, ${game.venue.state}` : ""}</span>
-              )}
+              <span className="text-[11px] font-medium text-red-400">{game.clock}</span>
             </div>
           )}
         </div>
