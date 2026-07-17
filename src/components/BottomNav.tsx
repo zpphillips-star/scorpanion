@@ -129,11 +129,8 @@ export default function BottomNav() {
               className="relative -top-4 flex flex-col items-center"
             >
               <div
-                className="w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-95"
+                className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center transition-all active:scale-95"
                 style={{
-                  background: homeActive
-                    ? "#D95C17"
-                    : "linear-gradient(145deg, #1A2A45, #0F1B2D)",
                   border: homeActive
                     ? "2px solid #D95C17"
                     : "2px solid rgba(242,230,207,0.12)",
@@ -144,12 +141,10 @@ export default function BottomNav() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/scorpanion-app-logo.png"
+                  src="/sp-home-btn.png"
                   alt="Home"
-                  width={homeActive ? 30 : 26}
-                  height={homeActive ? 30 : 26}
-                  className="object-contain transition-all"
-                  style={{ opacity: homeActive ? 1 : 0.75 }}
+                  className="w-full h-full object-cover transition-all rounded-full"
+                  style={{ opacity: homeActive ? 1 : 0.85 }}
                 />
               </div>
               <span
@@ -174,21 +169,18 @@ export default function BottomNav() {
         {/* Home FAB — top of sidebar */}
         <Link href="/home" className="mb-3 relative group">
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+            className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center transition-all"
             style={{
-              background: homeActive ? "#D95C17" : "var(--surface-2)",
               boxShadow: homeActive ? "0 0 14px rgba(217,92,23,0.5)" : "none",
               border: homeActive ? "2px solid #D95C17" : "2px solid var(--border)",
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/scorpanion-app-logo.png"
+              src="/sp-home-btn.png"
               alt="Home"
-              width={homeActive ? 24 : 20}
-              height={homeActive ? 24 : 20}
-              className="object-contain transition-all"
-              style={{ opacity: homeActive ? 1 : 0.75 }}
+              className="w-full h-full object-cover transition-all rounded-full"
+              style={{ opacity: homeActive ? 1 : 0.85 }}
             />
           </div>
         </Link>

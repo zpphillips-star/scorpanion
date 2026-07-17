@@ -63,7 +63,7 @@ export default function PageHeader({ title, children, titleAction }: PageHeaderP
       <div className="flex items-center px-4 py-3 gap-3">
         {/* Left: scorpion logo */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/scorpanion-big.png" alt="Scorpanion" height={28} className="object-contain flex-shrink-0 max-h-[28px]"
+        <img src="/scorpanion-full.png" alt="Scorpanion" height={32} className="object-contain flex-shrink-0 max-h-[32px]"
           onError={(e) => { (e.target as HTMLImageElement).src = "/scorpion-logo.png" }} />
 
         {/* Center: page title */}
