@@ -41,30 +41,31 @@ export function TodayGameCard({ game }: { game: Game }) {
   const awayWon = isFt && hasScores && (awayScore ?? 0) > (homeScore ?? 0)
   const homeWon = isFt && hasScores && (homeScore ?? 0) > (awayScore ?? 0)
 
-  // Card container style — navy-aligned. Live gets a red left accent.
+  // Card container style — solid dark surface so it pops against black bg.
+  // Live gets a red left accent.
   const cardStyle: React.CSSProperties = isLive ? {
-    background: "var(--surface-2)",
-    border: "1px solid var(--border)",
+    background: "#18181f",
+    border: "1px solid rgba(255,255,255,0.08)",
     borderLeftWidth: "3px",
     borderLeftColor: "#ef4444",
   } : isFt ? {
-    background: "var(--surface)",
-    border: "1px solid var(--border)",
-    opacity: 0.85,
+    background: "#141419",
+    border: "1px solid rgba(255,255,255,0.06)",
+    opacity: 0.88,
   } : {
-    background: "var(--surface)",
-    border: "1px solid var(--border)",
+    background: "#18181f",
+    border: "1px solid rgba(255,255,255,0.08)",
   }
 
   return (
     <>
       <div
-        className="mx-3 my-3 overflow-hidden cursor-pointer active:scale-[0.985] transition-transform"
+        className="mx-3 my-3 overflow-hidden cursor-pointer active:scale-[0.985] transition-transform rounded-sm"
         style={cardStyle}
         onClick={() => setShowDetail(true)}
       >
         {/* ── Header: status badge + league pill ── */}
-        <div className="flex items-center justify-between px-4 pt-3 pb-2">
+        <div className="flex items-center justify-between px-5 pt-4 pb-2">
           {isLive ? (
             <div className="flex items-center gap-1.5">
               <span className="relative flex h-1.5 w-1.5">
@@ -85,10 +86,10 @@ export function TodayGameCard({ game }: { game: Game }) {
         </div>
 
         {/* ── Team rows ── */}
-        <div className="px-4 pb-3">
+        <div className="px-5 pb-4">
 
           {/* Away team row */}
-          <div className="flex items-center gap-3 py-1">
+          <div className="flex items-center gap-3 py-2">
             <button
               className="flex-shrink-0 active:scale-90 transition-transform"
               onClick={e => { e.stopPropagation(); setTeamSheet({ id: awayId, name: awayName, logo: awayLogo }) }}
@@ -103,14 +104,14 @@ export function TodayGameCard({ game }: { game: Game }) {
                 <span className="text-[12px]" style={{ color: "#9090b0" }}>{awayAbbr}</span>
               </div>
               <div
-                className="font-display text-[16px] font-700 leading-tight truncate"
+                className="font-display text-[17px] font-700 leading-tight truncate"
                 style={{ color: isFt && !awayWon && homeWon ? "#5a5a7a" : "#f0f0f8" }}
               >{awayName}</div>
             </div>
             {hasScore && awayScore !== undefined && (
               <div
                 className="font-display font-700 tabular-nums leading-none flex-shrink-0"
-                style={{ fontSize: "40px", color: isFt && !awayWon && homeWon ? "#5a5a7a" : "#f0f0f8" }}
+                style={{ fontSize: "44px", color: isFt && !awayWon && homeWon ? "#5a5a7a" : "#f0f0f8" }}
               >{awayScore}</div>
             )}
           </div>
@@ -127,7 +128,7 @@ export function TodayGameCard({ game }: { game: Game }) {
           )}
 
           {/* Home team row */}
-          <div className="flex items-center gap-3 py-1">
+          <div className="flex items-center gap-3 py-2">
             <button
               className="flex-shrink-0 active:scale-90 transition-transform"
               onClick={e => { e.stopPropagation(); setTeamSheet({ id: homeId, name: homeName, logo: homeLogo }) }}
@@ -142,14 +143,14 @@ export function TodayGameCard({ game }: { game: Game }) {
                 <span className="text-[12px]" style={{ color: "#9090b0" }}>{homeAbbr}</span>
               </div>
               <div
-                className="font-display text-[16px] font-700 leading-tight truncate"
+                className="font-display text-[17px] font-700 leading-tight truncate"
                 style={{ color: isFt && !homeWon && awayWon ? "#5a5a7a" : "#f0f0f8" }}
               >{homeName}</div>
             </div>
             {hasScore && homeScore !== undefined && (
               <div
                 className="font-display font-700 tabular-nums leading-none flex-shrink-0"
-                style={{ fontSize: "40px", color: isFt && !homeWon && awayWon ? "#5a5a7a" : "#f0f0f8" }}
+                style={{ fontSize: "44px", color: isFt && !homeWon && awayWon ? "#5a5a7a" : "#f0f0f8" }}
               >{homeScore}</div>
             )}
           </div>
