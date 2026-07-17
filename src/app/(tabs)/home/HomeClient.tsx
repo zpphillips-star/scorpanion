@@ -516,8 +516,8 @@ export default function HomeClient() {
         </>
       )}
 
-      {/* ── Golf: PGA / LPGA ─────────────────────────────────────────────── */}
-      {selectedTeamIds.includes('pga') && (
+      {/* ── Golf: PGA / LPGA — only show when filter is "all" or that specific tour ── */}
+      {selectedTeamIds.includes('pga') && (activeFilter === 'all' || activeFilter === 'pga') && (
         <div className="mt-8">
           <GolfTournamentSection
             tourId="pga"
@@ -527,7 +527,7 @@ export default function HomeClient() {
           />
         </div>
       )}
-      {selectedTeamIds.includes('lpga') && (
+      {selectedTeamIds.includes('lpga') && (activeFilter === 'all' || activeFilter === 'lpga') && (
         <div className="mt-8">
           <GolfTournamentSection
             tourId="lpga"
