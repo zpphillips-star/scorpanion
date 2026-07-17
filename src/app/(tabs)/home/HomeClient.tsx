@@ -430,16 +430,33 @@ export default function HomeClient() {
         </div>
       </PageHeader>
 
-      {/* ── FEATURED: Always-on Today section — always first ─────────────── */}
+      {/* ── Recent results (horizontal scroll) ───────────────────────────── */}
+      {recent.length > 0 && (
+        <div className="mt-10">
+          <div className="flex items-center gap-3 px-4 mb-6">
+            <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>Recent</span>
+            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+          </div>
+          <div className="overflow-x-auto no-scrollbar px-4">
+            <div className="flex min-w-max">
+              {recent.map(g => (
+                <RecentCard key={g.id} game={g} onClick={() => setSelectedRecentGame(g)} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── FEATURED: Always-on Today section ────────────────────────────── */}
       {(() => {
         const hasLive = liveGames.length > 0
         const hasGames = liveGames.length > 0 || todayGames.length > 0
         const dateLabel = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
 
         return (
-          <div className="mt-8">
+          <div className="mt-10">
             {/* Section header */}
-            <div className="flex items-center gap-3 px-4 mb-4">
+            <div className="flex items-center gap-3 px-4 mb-6">
               {hasLive && (
                 <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
@@ -467,23 +484,6 @@ export default function HomeClient() {
         )
       })()}
 
-      {/* ── Recent results (horizontal scroll) ───────────────────────────── */}
-      {recent.length > 0 && (
-        <div className="mt-10">
-          <div className="flex items-center gap-3 px-4 mb-5">
-            <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>Recent</span>
-            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-          </div>
-          <div className="overflow-x-auto no-scrollbar px-4">
-            <div className="flex min-w-max">
-              {recent.map(g => (
-                <RecentCard key={g.id} game={g} onClick={() => setSelectedRecentGame(g)} />
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ── Off-season (no games anywhere) ──────────────────────────────── */}
       {todayGames.length === 0 && !hasAnyLive && recent.length === 0 && allUpcoming.length === 0 && (
         <>
@@ -497,8 +497,8 @@ export default function HomeClient() {
 
       {/* ── Upcoming ─────────────────────────────────────────────────────── */}
       {upcomingDates.length > 0 && (
-        <div className="mt-10">
-          <div className="px-4 mb-4 flex items-center gap-3">
+        <div className="mt-12">
+          <div className="px-4 mb-5 flex items-center gap-3">
             <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>Upcoming</span>
             <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
             <span className="text-[10px] tracking-[0.1em] uppercase font-medium" style={{ color: "var(--text-faint)" }}>

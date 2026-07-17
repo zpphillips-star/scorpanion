@@ -59,7 +59,7 @@ export function TodayGameCard({ game }: { game: Game }) {
   return (
     <>
       <div
-        className="mx-3 my-1.5 overflow-hidden cursor-pointer active:scale-[0.985] transition-transform"
+        className="mx-3 my-3 overflow-hidden cursor-pointer active:scale-[0.985] transition-transform"
         style={cardStyle}
         onClick={() => setShowDetail(true)}
       >
@@ -76,7 +76,7 @@ export function TodayGameCard({ game }: { game: Game }) {
           ) : isFt ? (
             <span className="text-[11px] text-zinc-500 uppercase tracking-wide">Final</span>
           ) : (
-            <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-widest">Today</span>
+            <span className="text-[11px] font-medium text-zinc-500">{formatTime(game.kickoff)}</span>
           )}
           <div className="flex items-center gap-2">
             {game.broadcast && <span className="text-[10px] text-zinc-600">{game.broadcast}</span>}
