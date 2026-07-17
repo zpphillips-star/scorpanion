@@ -59,9 +59,8 @@ interface PageHeaderProps {
 export default function PageHeader({ title, children, titleAction }: PageHeaderProps) {
   return (
     <div className="sticky top-0 z-30 glass-header">
-      {/* Centered logo row with auth floated right — border-bottom IS the divider line */}
-      <div className="relative flex items-center justify-center px-4 pt-2 pb-3"
-           style={{ borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
+      {/* Centered logo row with auth floated right — no divider line here */}
+      <div className="relative flex items-center justify-center px-4 pt-2 pb-3">
         {/* Clip the PNG's internal whitespace — overflow:hidden crops ~50% of built-in padding */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <div style={{ overflow: "hidden", height: "90px", display: "flex", alignItems: "center" }}>

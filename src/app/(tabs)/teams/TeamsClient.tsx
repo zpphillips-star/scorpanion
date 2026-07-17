@@ -598,7 +598,7 @@ export default function TeamsClient() {
             <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-1">Tours & Leagues</h2>
             <p className="text-[10px] text-zinc-600 mb-3">Follow a tour for leaderboard cards on your home screen</p>
             <div className="grid grid-cols-4 lg:grid-cols-6 gap-3">
-              {byIds(['pga']).map(team => <SeattleTeamCard key={team.id} team={team} />)}
+              {byIds(['pga', 'lpga']).map(team => <SeattleTeamCard key={team.id} team={team} />)}
             </div>
           </div>
         </>

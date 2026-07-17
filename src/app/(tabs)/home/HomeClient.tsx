@@ -436,9 +436,10 @@ export default function HomeClient() {
 
       {/* ── Recent results (horizontal scroll) ───────────────────────────── */}
       {recent.length > 0 && (
-        <div className="mt-10">
+        <div className="mt-16">
           <div className="flex items-center gap-3 px-4 mb-6">
             <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>Recent</span>
+            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
           </div>
           <div className="overflow-x-auto no-scrollbar px-4">
             <div className="flex items-stretch min-w-max">
@@ -494,11 +495,22 @@ export default function HomeClient() {
       {/* ── PGA Tour section (when followed) ─────────────────────────────── */}
       {selectedTeamIds.includes("pga") && (activeFilter === "all" || activeFilter === "pga") && (
         <div className="mt-10">
-          <div className="flex items-center gap-3 px-4 mb-6">
+          <div className="flex items-center gap-3 px-4 mb-4">
             <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>⛳ PGA Tour</span>
             <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
           </div>
-          <PGASection />
+          <PGASection tourId="pga" />
+        </div>
+      )}
+
+      {/* ── LPGA Tour section (when followed) ────────────────────────────── */}
+      {selectedTeamIds.includes("lpga") && (activeFilter === "all" || activeFilter === "lpga") && (
+        <div className="mt-10">
+          <div className="flex items-center gap-3 px-4 mb-4">
+            <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>⛳ LPGA Tour</span>
+            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+          </div>
+          <PGASection tourId="lpga" />
         </div>
       )}
 

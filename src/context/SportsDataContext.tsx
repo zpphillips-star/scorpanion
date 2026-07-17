@@ -135,6 +135,7 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
       const espnIds = selectedTeamIds.filter(
         id => id !== 'torrent'
           && id !== 'pga'
+          && id !== 'lpga'
           && !(WHL_IDS  as readonly string[]).includes(id)
           && !(NCAA_IDS as readonly string[]).includes(id)
       )
