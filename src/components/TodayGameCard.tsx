@@ -44,16 +44,16 @@ export function TodayGameCard({ game }: { game: Game }) {
   // Card container style — solid dark surface so it pops against black bg.
   // Live gets a red left accent.
   const cardStyle: React.CSSProperties = isLive ? {
-    background: "#18181f",
+    background: "#1a2d4a",
     border: "1px solid rgba(255,255,255,0.08)",
     borderLeftWidth: "3px",
     borderLeftColor: "#ef4444",
   } : isFt ? {
-    background: "#141419",
+    background: "#112033",
     border: "1px solid rgba(255,255,255,0.06)",
     opacity: 0.88,
   } : {
-    background: "#18181f",
+    background: "#1a2d4a",
     border: "1px solid rgba(255,255,255,0.08)",
   }
 

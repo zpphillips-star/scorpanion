@@ -4,8 +4,8 @@
   "description": "Track every Seattle sports team — schedules, scores, standings",
   "start_url": "/home",
   "display": "standalone",
-  "background_color": "#08080f",
-  "theme_color": "#08080f",
+  "background_color": "#0c1b31",
+  "theme_color": "#0c1b31",
   "orientation": "portrait",
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
@@ -13,3 +13,4 @@
     { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
   ]
 }
+

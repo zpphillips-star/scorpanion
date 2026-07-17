@@ -121,28 +121,32 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex-shrink-0 flex flex-col items-center active:opacity-60 transition-opacity border-r last:border-r-0 px-5 py-3 first:pl-0 last:pr-0"
-      style={{ borderColor: "var(--border)" }}
+      className="flex-shrink-0 flex flex-col items-center active:opacity-60 transition-opacity rounded-xl px-5 py-4"
+      style={{
+        background: "#1a2d4a",
+        border: "1px solid rgba(255,255,255,0.07)",
+        minWidth: "100px",
+      }}
     >
-      {/* League label — whisper */}
-      <span className="text-[8px] tracking-[0.15em] uppercase font-medium mb-3" style={{ color: "var(--text-faint)" }}>
+      {/* League label */}
+      <span className="text-[8px] tracking-[0.18em] uppercase font-semibold mb-3" style={{ color: "var(--text-faint)" }}>
         {game.league}
       </span>
       {/* Two team columns */}
       <div className="flex items-end gap-5">
         {/* Seattle */}
-        <div className="flex flex-col items-center gap-1">
-          <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={26} />
+        <div className="flex flex-col items-center gap-1.5">
+          <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={30} />
           <span className="text-[9px] font-semibold tracking-wide uppercase" style={{ color: "var(--text-faint)" }}>{game.seattleTeam.abbr}</span>
-          <span className={`font-display text-[22px] font-800 tabular-nums leading-none ${seattleLost ? "opacity-30" : ""}`} style={{ color: "var(--text)" }}>
+          <span className={`font-display text-[26px] font-800 tabular-nums leading-none ${seattleLost ? "opacity-30" : ""}`} style={{ color: "var(--text)" }}>
             {hasScore ? game.seattleScore : "—"}
           </span>
         </div>
         {/* Opponent */}
-        <div className="flex flex-col items-center gap-1">
-          <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={26} />
+        <div className="flex flex-col items-center gap-1.5">
+          <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={30} />
           <span className="text-[9px] font-semibold tracking-wide uppercase" style={{ color: "var(--text-faint)" }}>{game.opponent.abbr}</span>
-          <span className={`font-display text-[22px] font-800 tabular-nums leading-none ${seattleWon ? "opacity-30" : ""}`} style={{ color: "var(--text)" }}>
+          <span className={`font-display text-[26px] font-800 tabular-nums leading-none ${seattleWon ? "opacity-30" : ""}`} style={{ color: "var(--text)" }}>
             {hasScore ? game.opponentScore : "—"}
           </span>
         </div>
@@ -438,7 +442,7 @@ export default function HomeClient() {
             <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
           </div>
           <div className="overflow-x-auto no-scrollbar px-4">
-            <div className="flex min-w-max">
+            <div className="flex gap-3 min-w-max pb-1">
               {recent.map(g => (
                 <RecentCard key={g.id} game={g} onClick={() => setSelectedRecentGame(g)} />
               ))}

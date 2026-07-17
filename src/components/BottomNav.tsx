@@ -112,8 +112,8 @@ export default function BottomNav() {
       <nav
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40"
         style={{
-          background: "#0A1522",
-          borderTop: "1px solid #1E2E45",
+          background: "#0c1b31",
+          borderTop: "1px solid #1e3050",
           paddingBottom: "env(safe-area-inset-bottom)",
           minHeight: "60px",
         }}
@@ -131,18 +131,18 @@ export default function BottomNav() {
               <div
                 className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center transition-all active:scale-95"
                 style={{
-                  background: "#D95C17",
+                  background: "#0c1b31",
                   border: homeActive
-                    ? "2px solid #ff7a30"
-                    : "2px solid #D95C17",
+                    ? "2.5px solid #D65820"
+                    : "2.5px solid #D65820",
                   boxShadow: homeActive
-                    ? "0 0 24px rgba(217,92,23,0.7), 0 4px 16px rgba(0,0,0,0.5)"
-                    : "0 0 14px rgba(217,92,23,0.4), 0 4px 16px rgba(0,0,0,0.4)",
+                    ? "0 0 24px rgba(214,88,32,0.7), 0 4px 16px rgba(0,0,0,0.5)"
+                    : "0 0 14px rgba(214,88,32,0.4), 0 4px 16px rgba(0,0,0,0.4)",
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/sp-home-btn.png"
+                  src="/sp-new-btn.png"
                   alt="Home"
                   className="w-full h-full object-cover transition-all rounded-full"
                   style={{ opacity: homeActive ? 1 : 0.85 }}
@@ -150,7 +150,7 @@ export default function BottomNav() {
               </div>
               <span
                 className="text-[10px] font-semibold mt-1 transition-colors"
-                style={{ color: homeActive ? "#D95C17" : "#5F6773" }}
+                style={{ color: homeActive ? "#D65820" : "#5F6773" }}
               >
                 Home
               </span>
@@ -172,14 +172,14 @@ export default function BottomNav() {
           <div
             className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center transition-all"
             style={{
-              background: "#D95C17",
-              boxShadow: homeActive ? "0 0 14px rgba(217,92,23,0.6)" : "0 0 8px rgba(217,92,23,0.3)",
-              border: homeActive ? "2px solid #ff7a30" : "2px solid #D95C17",
+              background: "#0c1b31",
+              boxShadow: homeActive ? "0 0 14px rgba(214,88,32,0.6)" : "0 0 8px rgba(214,88,32,0.3)",
+              border: homeActive ? "2.5px solid #D65820" : "2.5px solid #D65820",
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/sp-home-btn.png"
+              src="/sp-new-btn.png"
               alt="Home"
               className="w-full h-full object-cover transition-all rounded-full"
               style={{ opacity: homeActive ? 1 : 0.85 }}
