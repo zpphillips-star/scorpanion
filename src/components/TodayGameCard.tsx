@@ -8,171 +8,165 @@ import TeamDetailSheet from "./TeamDetailSheet"
 import GameDetailSheet from "@/components/GameDetailSheet"
 
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZoneName: "short" })
+  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
 }
 
-/** Full-width featured card for today's games */
-export function TodayGameCard({ game }: { game: Game }) {
+/** Full-width WC-style featured card for today games */
+export function TodayGameCard({ game, featured = false }: { game: Game; featured?: boolean }) {
   const [showDetail, setShowDetail] = useState(false)
   const [teamSheet, setTeamSheet] = useState<{ id: string; name: string; logo: string } | null>(null)
 
   const isLive = game.status === "live"
   const isFt   = game.status === "ft"
   const isUp   = game.status === "upcoming"
-  const hasScore = isLive || isFt
+  const hasScore = (isLive || isFt) && game.seattleScore !== undefined && game.opponentScore !== undefined
   const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
-  const hasScores = game.seattleScore !== undefined && game.opponentScore !== undefined
 
-  // Resolve away / home sides
-  const awayLogo   = game.isHome ? game.opponent.logo  : seattleLogoUrl
-  const awayEmoji  = game.isHome ? "🏟️"               : game.seattleTeam.emoji
-  const awayAbbr   = game.isHome ? game.opponent.abbr  : game.seattleTeam.abbr
-  const awayName   = game.isHome ? (game.opponent.shortName || game.opponent.name) : game.seattleTeam.shortName
-  const awayScore  = game.isHome ? game.opponentScore  : game.seattleScore
-  const awayId     = game.isHome ? game.opponent.id    : game.seattleTeam.espnId
+  const awayLogo  = game.isHome ? game.opponent.logo  : seattleLogoUrl
+  const awayEmoji = game.isHome ? "🏟️"               : game.seattleTeam.emoji
+  const awayAbbr  = game.isHome ? game.opponent.abbr  : game.seattleTeam.abbr
+  const awayName  = game.isHome ? (game.opponent.shortName || game.opponent.name) : game.seattleTeam.shortName
+  const awayScore = game.isHome ? game.opponentScore  : game.seattleScore
+  const awayId    = game.isHome ? game.opponent.id    : game.seattleTeam.espnId
 
-  const homeLogo   = game.isHome ? seattleLogoUrl      : game.opponent.logo
-  const homeEmoji  = game.isHome ? game.seattleTeam.emoji : "🏟️"
-  const homeAbbr   = game.isHome ? game.seattleTeam.abbr  : game.opponent.abbr
-  const homeName   = game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)
-  const homeScore  = game.isHome ? game.seattleScore   : game.opponentScore
-  const homeId     = game.isHome ? game.seattleTeam.espnId : game.opponent.id
+  const homeLogo  = game.isHome ? seattleLogoUrl      : game.opponent.logo
+  const homeEmoji = game.isHome ? game.seattleTeam.emoji : "🏟️"
+  const homeAbbr  = game.isHome ? game.seattleTeam.abbr  : game.opponent.abbr
+  const homeName  = game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)
+  const homeScore = game.isHome ? game.seattleScore   : game.opponentScore
+  const homeId    = game.isHome ? game.seattleTeam.espnId : game.opponent.id
 
-  const awayWon = isFt && hasScores && (awayScore ?? 0) > (homeScore ?? 0)
-  const homeWon = isFt && hasScores && (homeScore ?? 0) > (awayScore ?? 0)
-
-  // Card container — no box background, content lives directly on the navy bg.
-  // Live games get a red left accent stripe. FT games are dimmed slightly.
-  const cardStyle: React.CSSProperties = isLive ? {
-    borderLeft: "3px solid #ef4444",
-    paddingLeft: "2px",
-    opacity: 1,
-  } : isFt ? {
-    opacity: 0.72,
-  } : {}
+  const awayWon = isFt && hasScore && (awayScore ?? 0) > (homeScore ?? 0)
+  const homeWon = isFt && hasScore && (homeScore ?? 0) > (awayScore ?? 0)
+  const logoSize = featured ? 60 : 48
+  const cardBg = isFt ? "#141418" : isLive ? "#1a1a24" : "#141820"
 
   return (
     <>
-      <div
-        className="mx-4 cursor-pointer active:opacity-80 transition-opacity"
-        style={{ ...cardStyle, borderBottom: "1px solid rgba(255,255,255,0.06)", paddingTop: "16px", paddingBottom: "16px" }}
+      <button
+        className="w-full text-left active:scale-[0.98] transition-transform"
         onClick={() => setShowDetail(true)}
       >
-        {/* ── Header: status badge + league pill ── */}
-        <div className="flex items-center justify-between mb-3">
-          {isLive ? (
-            <div className="flex items-center gap-1.5">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{
+            background: cardBg,
+            border: "1px solid rgba(255,255,255,0.07)",
+            borderLeft: isLive ? "3px solid #e8003d" : "1px solid rgba(255,255,255,0.07)",
+            opacity: isFt ? 0.82 : 1,
+          }}
+        >
+          {/* Header row */}
+          <div className="flex items-center justify-between px-4 pt-3 pb-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#4b5563" }}>
+                {game.league}
               </span>
-              <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider">Live</span>
+              {game.broadcast && (
+                <span className="text-[10px]" style={{ color: "#374151" }}>· {game.broadcast}</span>
+              )}
             </div>
-          ) : isFt ? (
-            <span className="text-[11px] uppercase tracking-wide font-semibold" style={{ color: "#5f6773" }}>Final</span>
-          ) : (
-            <span className="text-[13px] font-semibold" style={{ color: "#f0f0f8" }}>{formatTime(game.kickoff)}</span>
-          )}
-          <div className="flex items-center gap-2">
-            {game.broadcast && <span className="text-[10px]" style={{ color: "#3a5070" }}>{game.broadcast}</span>}
-            <span className="text-[10px] font-semibold tracking-widest uppercase" style={{ color: "#3a5070" }}>{game.league}</span>
-          </div>
-        </div>
-
-        {/* ── Team rows ── */}
-        <div>
-          {/* Away team row */}
-          <div className="flex items-center gap-4 py-1.5">
-            <button
-              className="flex-shrink-0 active:scale-90 transition-transform"
-              onClick={e => { e.stopPropagation(); setTeamSheet({ id: awayId, name: awayName, logo: awayLogo }) }}
-            >
-              <TeamLogo
-                src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={44}
-                className={`rounded-xl transition-opacity${isFt && !awayWon && homeWon ? " opacity-40" : ""}`}
-              />
-            </button>
-            <div className="flex-1 min-w-0">
-              <div className="font-display text-[20px] font-700 leading-tight truncate"
-                style={{ color: isFt && !awayWon && homeWon ? "#3a5070" : "#f0f0f8" }}
-              >{awayName}</div>
-              <div className="text-[11px] uppercase tracking-wide" style={{ color: "#3a5070" }}>{awayAbbr}</div>
-            </div>
-            {hasScore && awayScore !== undefined && (
-              <div
-                className="font-display font-700 tabular-nums leading-none flex-shrink-0"
-                style={{ fontSize: "48px", color: isFt && !awayWon && homeWon ? "#3a5070" : "#f0f0f8" }}
-              >{awayScore}</div>
+            {isLive ? (
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#e8003d]"
+                      style={{ animation: "liveDotPulse 1.8s ease-in-out infinite" }} />
+                <span className="text-[11px] font-black text-[#e8003d] uppercase tracking-wider">Live</span>
+                {(game.clock || game.period) && (
+                  <span className="text-[11px] font-bold tabular-nums" style={{ color: "#6b7280" }}>
+                    {game.period ? `${game.period}${game.clock ? ` · ${game.clock}` : ""}` : game.clock}
+                  </span>
+                )}
+              </div>
+            ) : isFt ? (
+              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#4b5563" }}>Final</span>
+            ) : (
+              <span className="text-[12px] font-semibold" style={{ color: "#00d4ff" }}>{formatTime(game.kickoff)}</span>
             )}
           </div>
 
-          {/* Upcoming only: vs separator */}
-          {isUp && (
-            <div className="flex items-center gap-3 py-2">
-              <div className="flex-1 h-px" style={{ background: "#1e3050" }} />
-              <span className="text-[12px] font-semibold" style={{ color: "#f0f0f8" }}>
-                {formatTime(game.kickoff)}
-              </span>
-              <span className="text-[10px]" style={{ color: "#3a5070" }}>·</span>
-              <span className="text-[11px]" style={{ color: "#5f6773" }}>{game.isHome ? "Home" : "Away"}</span>
-              <div className="flex-1 h-px" style={{ background: "#1e3050" }} />
+          {/* Main: away | score | home */}
+          <div className="flex items-center px-4 py-5 gap-2">
+            {/* Away team */}
+            <div className="flex-1 flex flex-col items-center gap-2">
+              <button className="active:scale-90 transition-transform"
+                      onClick={e => { e.stopPropagation(); setTeamSheet({ id: awayId, name: awayName, logo: awayLogo }) }}>
+                <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={logoSize}
+                  className={`rounded-xl${isFt && !awayWon && homeWon ? " opacity-30" : ""}`} />
+              </button>
+              <div className="text-center">
+                <div className="text-[13px] font-bold leading-tight"
+                     style={{ color: isFt && !awayWon && homeWon ? "#374151" : "#f0f0f8" }}>
+                  {awayName}
+                </div>
+                <div className="text-[9px] uppercase tracking-widest mt-0.5" style={{ color: "#374151" }}>{awayAbbr}</div>
+              </div>
+            </div>
+
+            {/* Score center */}
+            <div className="flex flex-col items-center justify-center min-w-[80px] gap-1">
+              {hasScore ? (
+                <>
+                  <div className="flex items-baseline gap-1 tabular-nums leading-none">
+                    <span className="font-display font-800"
+                          style={{ fontSize: featured ? "44px" : "36px", color: isFt && awayWon === false && homeWon ? "#374151" : "#f0f0f8" }}>
+                      {awayScore}
+                    </span>
+                    <span className="font-display font-800" style={{ fontSize: featured ? "24px" : "20px", color: "#2d3748" }}>–</span>
+                    <span className="font-display font-800"
+                          style={{ fontSize: featured ? "44px" : "36px", color: isFt && homeWon === false && awayWon ? "#374151" : "#f0f0f8" }}>
+                      {homeScore}
+                    </span>
+                  </div>
+                  {isFt && <span className="text-[9px] uppercase tracking-widest" style={{ color: "#374151" }}>Full Time</span>}
+                </>
+              ) : (
+                <div className="flex flex-col items-center gap-0.5">
+                  <span className="text-[20px] font-black" style={{ color: "#2d3748" }}>vs</span>
+                  <span className="text-[10px]" style={{ color: "#374151" }}>{game.isHome ? "Home" : "Away"}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Home team */}
+            <div className="flex-1 flex flex-col items-center gap-2">
+              <button className="active:scale-90 transition-transform"
+                      onClick={e => { e.stopPropagation(); setTeamSheet({ id: homeId, name: homeName, logo: homeLogo }) }}>
+                <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={logoSize}
+                  className={`rounded-xl${isFt && !homeWon && awayWon ? " opacity-30" : ""}`} />
+              </button>
+              <div className="text-center">
+                <div className="text-[13px] font-bold leading-tight"
+                     style={{ color: isFt && !homeWon && awayWon ? "#374151" : "#f0f0f8" }}>
+                  {homeName}
+                </div>
+                <div className="text-[9px] uppercase tracking-widest mt-0.5" style={{ color: "#374151" }}>{homeAbbr}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Inline MLB line score */}
+          {(isLive || isFt) && game.sport === "baseball" && game.id && (
+            <div className="px-4 pb-3 -mt-1">
+              <CompactBaseballLineScore gameId={game.id} league={game.league}
+                seattleTeamId={game.seattleTeam.espnId} isLive={isLive} />
             </div>
           )}
 
-          {/* Home team row */}
-          <div className="flex items-center gap-4 py-1.5">
-            <button
-              className="flex-shrink-0 active:scale-90 transition-transform"
-              onClick={e => { e.stopPropagation(); setTeamSheet({ id: homeId, name: homeName, logo: homeLogo }) }}
-            >
-              <TeamLogo
-                src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={44}
-                className={`rounded-xl transition-opacity${isFt && !homeWon && awayWon ? " opacity-40" : ""}`}
-              />
-            </button>
-            <div className="flex-1 min-w-0">
-              <div className="font-display text-[20px] font-700 leading-tight truncate"
-                style={{ color: isFt && !homeWon && awayWon ? "#3a5070" : "#f0f0f8" }}
-              >{homeName}</div>
-              <div className="text-[11px] uppercase tracking-wide" style={{ color: "#3a5070" }}>{homeAbbr}</div>
-            </div>
-            {hasScore && homeScore !== undefined && (
-              <div
-                className="font-display font-700 tabular-nums leading-none flex-shrink-0"
-                style={{ fontSize: "48px", color: isFt && !homeWon && awayWon ? "#3a5070" : "#f0f0f8" }}
-              >{homeScore}</div>
-            )}
-          </div>
-
-          {/* Clock for live games */}
-          {isLive && game.clock && (
-            <div className="flex items-center gap-2 mt-2 pt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-              <span className="text-[11px] font-medium text-red-400">{game.clock}</span>
+          {/* Venue footer */}
+          {game.venue?.name && (
+            <div className="px-4 pb-3 pt-2 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+              <span className="text-[10px]" style={{ color: "#374151" }}>
+                {game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}
+              </span>
             </div>
           )}
         </div>
+      </button>
 
-        {/* ── Inline MLB line score ── */}
-        {(isLive || isFt) && game.sport === "baseball" && game.id && (
-          <div className="mt-3">
-            <CompactBaseballLineScore
-              gameId={game.id}
-              league={game.league}
-              seattleTeamId={game.seattleTeam.espnId}
-              isLive={isLive}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Detail sheet */}
-      {showDetail && (
-        <GameDetailSheet game={game} onClose={() => setShowDetail(false)} />
-      )}
-
-      {/* Team detail sheet */}
+      {showDetail && <GameDetailSheet game={game} onClose={() => setShowDetail(false)} />}
       {teamSheet && (
-        <TeamDetailSheet teamId={teamSheet.id} teamName={teamSheet.name} teamLogo={teamSheet.logo} league={game.league} onClose={() => setTeamSheet(null)} />
+        <TeamDetailSheet teamId={teamSheet.id} teamName={teamSheet.name} teamLogo={teamSheet.logo}
+          league={game.league} onClose={() => setTeamSheet(null)} />
       )}
     </>
   )
@@ -182,7 +176,6 @@ export function TodayGameCard({ game }: { game: Game }) {
 export function TodayBanner({ gameCount, hasLive }: { gameCount: number; hasLive: boolean }) {
   const today = new Date()
   const dateLabel = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
-
   return (
     <div className="flex items-center gap-3 px-4 mt-6 mb-2">
       {hasLive && (
