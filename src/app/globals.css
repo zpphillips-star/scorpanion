@@ -160,7 +160,6 @@ body { font-family: var(--font-inter), "Inter", system-ui, sans-serif; }
   background: rgba(12,27,49,0.96);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border);
 }
 
 /* ── Score font ───────────────────────────────────────────────────────────── */

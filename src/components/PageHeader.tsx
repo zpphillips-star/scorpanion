@@ -77,8 +77,8 @@ export default function PageHeader({ title, children, titleAction }: PageHeaderP
         </div>
       </div>
 
-      {/* Divider between logo and filter bar */}
-      <div className="mx-4 mb-3" style={{ height: "1px", background: "rgba(255,255,255,0.12)" }} />
+      {/* Divider between logo and filter bar — with breathing room before logos */}
+      <div className="mx-4 mt-1 mb-5" style={{ height: "1px", background: "rgba(255,255,255,0.12)" }} />
 
       {/* Slot for filter bars etc. */}
       {children}

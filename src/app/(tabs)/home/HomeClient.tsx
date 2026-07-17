@@ -359,7 +359,7 @@ export default function HomeClient() {
       {/* ── Sticky header ───────────────────────────────────────────────── */}
       <PageHeader title="Home">
         {/* ── Team logo filter bar ─────────────────────────────────── */}
-        <div className="relative overflow-x-auto no-scrollbar px-4 pb-3">
+        <div className="relative overflow-x-auto no-scrollbar px-4 pb-6">
           <div className="flex gap-3 min-w-max">
             {/* ALL */}
             <button onClick={() => { setActiveFilter("all"); setCollegePicker(null) }} className="flex-shrink-0">
