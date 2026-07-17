@@ -361,7 +361,7 @@ export default function HomeClient() {
       {/* ── Sticky header ───────────────────────────────────────────────── */}
       <PageHeader title="Home">
         {/* ── Team logo filter bar ─────────────────────────────────── */}
-        <div className="relative overflow-x-auto no-scrollbar px-4 pb-10">
+        <div className="relative overflow-x-auto no-scrollbar px-4 pb-6">
           <div className="flex gap-3 min-w-max">
             {/* ALL */}
             <button onClick={() => { setActiveFilter("all"); setCollegePicker(null) }} className="flex-shrink-0">
@@ -435,9 +435,10 @@ export default function HomeClient() {
         </div>
       </PageHeader>
 
-      {/* ── Recent results (horizontal scroll) ───────────────────────────── */}
+      {/* ── Explicit spacer below filter icons — reliable cross-browser ──── */}
+      <div className="h-8" />
       {recent.length > 0 && (
-        <div className="mt-16">
+        <div className="mt-6">
           <div className="flex items-center gap-3 px-4 mb-6">
             <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>Recent</span>
             <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
