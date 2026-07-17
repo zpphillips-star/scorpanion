@@ -93,6 +93,11 @@ export const SEATTLE_TEAMS: SeattleTeam[] = [
   { id: 'seattleu', name: 'Seattle University Redhawks', shortName: 'Redhawks', abbr: 'SU',
     sport: 'basketball', league: 'mens-college-basketball', espnId: '2547',
     primaryColor: '#AA0000', secondaryColor: '#FFFFFF', emoji: '🏀' },
+  // PGA Tour — not a team, a tour to follow (golf leaderboard/tournament card)
+  { id: 'pga', name: 'PGA Tour', shortName: 'PGA Tour', abbr: 'PGA',
+    sport: 'golf', league: 'pga', espnId: '',
+    primaryColor: '#003087', secondaryColor: '#CBA135', emoji: '⛳',
+    logoUrl: 'https://a.espncdn.com/i/teamlogos/golf/500/pga.png' },
 ]
 
 export const SPORT_COLORS: Record<string, string> = {

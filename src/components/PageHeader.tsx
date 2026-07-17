@@ -59,29 +59,31 @@ interface PageHeaderProps {
 export default function PageHeader({ title, children, titleAction }: PageHeaderProps) {
   return (
     <div className="sticky top-0 z-30 glass-header">
-      {/* Centered logo row with auth floated right */}
-      <div className="relative flex items-center justify-center px-4 pt-2 pb-1">
-        {/* Center: logo — exact file, no modifications */}
+      {/* Centered logo row with auth floated right — border-bottom IS the divider line */}
+      <div className="relative flex items-center justify-center px-4 pt-2 pb-3"
+           style={{ borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
+        {/* Clip the PNG's internal whitespace — overflow:hidden crops ~50% of built-in padding */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <div className="px-1">
-          <img src="/scorpanion-logo-new.png" alt="Scorpanion" className="object-contain h-[128px] w-auto"
-            onError={(e) => { (e.target as HTMLImageElement).src = "/scorpanion-full.png" }} />
+        <div style={{ overflow: "hidden", height: "90px", display: "flex", alignItems: "center" }}>
+          <img
+            src="/scorpanion-logo-new.png"
+            alt="Scorpanion"
+            style={{ height: "128px", width: "auto", marginTop: "-19px", marginBottom: "-19px", objectFit: "contain" }}
+            onError={(e) => { (e.target as HTMLImageElement).src = "/scorpanion-full.png" }}
+          />
         </div>
 
         {/* Optional action slot — floated left */}
         {titleAction && <div className="absolute left-4 flex-shrink-0">{titleAction}</div>}
 
-        {/* Right: auth — absolute so it doesn't shift the logo */}
+        {/* Right: auth */}
         <div className="absolute right-4 flex-shrink-0">
           <AuthButton />
         </div>
       </div>
 
-      {/* Divider between logo and filter bar — with breathing room before logos */}
-      <div className="mx-4 mt-1 mb-5" style={{ height: "1px", background: "rgba(255,255,255,0.12)" }} />
-
-      {/* Slot for filter bars etc. */}
-      {children}
+      {/* Slot for filter bars etc. — line is border-bottom of logo row, space is gap here */}
+      {children && <div className="pt-5">{children}</div>}
     </div>
   )
 }

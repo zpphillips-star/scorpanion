@@ -9,6 +9,7 @@ import PageHeader from "@/components/PageHeader"
 import { TodayGameCard } from "@/components/TodayGameCard"
 import GameDetailSheet from "@/components/GameDetailSheet"
 import { OFFSEASON_DISPLAY } from "@/lib/seasonDates"
+import PGASection from "@/components/PGATournamentCard"
 
 // Use explicit timezone for all date comparisons (matches phone's local time)
 function getTimezone(): string {
@@ -438,7 +439,6 @@ export default function HomeClient() {
         <div className="mt-10">
           <div className="flex items-center gap-3 px-4 mb-6">
             <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>Recent</span>
-            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
           </div>
           <div className="overflow-x-auto no-scrollbar px-4">
             <div className="flex items-stretch min-w-max">
@@ -489,6 +489,17 @@ export default function HomeClient() {
           </div>
         )
       })()}
+
+      {/* ── PGA Tour section (when followed) ─────────────────────────────── */}
+      {selectedTeamIds.includes("pga") && (activeFilter === "all" || activeFilter === "pga") && (
+        <div className="mt-10">
+          <div className="flex items-center gap-3 px-4 mb-6">
+            <span className="text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ color: "var(--text-faint)" }}>⛳ PGA Tour</span>
+            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+          </div>
+          <PGASection />
+        </div>
+      )}
 
       {/* ── Off-season (no games anywhere) ──────────────────────────────── */}
       {todayGames.length === 0 && !hasAnyLive && recent.length === 0 && allUpcoming.length === 0 && (
