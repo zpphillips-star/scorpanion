@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { SEATTLE_TEAMS } from '@/lib/teams'
+import { ALL_PRO_TEAMS } from '@/lib/allProTeams'
 
 const STORAGE_KEY = 'seattle-sports-teams'
 
@@ -20,9 +21,12 @@ export function useSelectedTeams() {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
         const parsed = JSON.parse(stored)
-        // Filter out college IDs and any stale team IDs
-        const validTeamIds = SEATTLE_TEAMS.map(t => t.id)
-        const filtered = parsed.filter((id: string) => validTeamIds.includes(id) && !COLLEGE_IDS.includes(id))
+        // Valid = any SEATTLE_TEAMS id OR any ALL_PRO_TEAMS id, minus college IDs
+        const seattleIds = new Set(SEATTLE_TEAMS.map(t => t.id))
+        const proIds = new Set(ALL_PRO_TEAMS.map(t => t.id))
+        const filtered = parsed.filter((id: string) =>
+          (seattleIds.has(id) || proIds.has(id)) && !COLLEGE_IDS.includes(id)
+        )
         if (filtered.length !== parsed.length) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered))
         }
