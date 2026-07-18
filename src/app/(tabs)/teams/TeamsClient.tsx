@@ -481,7 +481,7 @@ export default function TeamsClient() {
       </div>
 
       {/* ── Map — pinned at the top, always visible ── */}
-      <div className="px-4 pt-3 pb-2">
+      <div className="px-4 pt-2 pb-2">
         <div className="flex items-center justify-between mb-1.5">
           <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest">🗺️ Discover by Location</h2>
           {selectedMapState && (

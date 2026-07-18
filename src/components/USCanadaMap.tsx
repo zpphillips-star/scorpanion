@@ -29,14 +29,18 @@ const CANADA_PROVINCES = [
   { abbr: 'PE', label: 'PE' }, { abbr: 'NL', label: 'NL' },
 ]
 
-const FULL_VB = { x: 0, y: 0, w: 800, h: 450 }
+// geoAlbersUsa at scale 680 leaves ~50px of dead space above the continental US
+// within the 800×450 SVG canvas.  Start at y=50 and crop to h=370 so the map
+// fills the container without a large void at the top (Alaska/Hawaii still fit
+// comfortably; their insets end around y=400 → 400–50=350 < 370 ✓).
+const FULL_VB = { x: 0, y: 50, w: 800, h: 370 }
 const MIN_W = 80; const MAX_W = 800
 
 type VB = { x: number; y: number; w: number; h: number }
 
 function clampVB(vb: VB): VB {
   const w = Math.max(MIN_W, Math.min(MAX_W, vb.w))
-  const h = w * (450 / 800)
+  const h = w * (FULL_VB.h / FULL_VB.w) // keep zoomed viewBox in same aspect ratio as cropped full view
   const x = Math.max(0, Math.min(800 - w, vb.x))
   const y = Math.max(0, Math.min(450 - h, vb.y))
   return { x, y, w, h }
@@ -141,7 +145,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
       {/* Map container — full aspect ratio, no maxHeight cap */}
       <div
         ref={containerRef}
-        style={{ width: '100%', position: 'relative', aspectRatio: '800/450', overflow: 'hidden', touchAction: 'none', cursor: isZoomed ? 'grab' : 'default' }}
+        style={{ width: '100%', position: 'relative', aspectRatio: '800/370', overflow: 'hidden', touchAction: 'none', cursor: isZoomed ? 'grab' : 'default' }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
