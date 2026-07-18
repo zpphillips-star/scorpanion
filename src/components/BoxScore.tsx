@@ -483,11 +483,11 @@ function SoccerScoreboard({ data }: { data: BoxScoreData; seattleTeamId?: string
           style={{ gridTemplateColumns: "1fr 40px 1fr", columnGap: "8px" }}
         >
           <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest text-right">
-            {homeAbbr}
+            {awayAbbr}
           </span>
           <span />
           <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest text-left">
-            {awayAbbr}
+            {homeAbbr}
           </span>
         </div>
 
@@ -508,17 +508,17 @@ function SoccerScoreboard({ data }: { data: BoxScoreData; seattleTeamId?: string
                   className="grid items-center w-full"
                   style={{ gridTemplateColumns: "1fr 40px 1fr", columnGap: "8px" }}
                 >
-                  {/* Home scorer — right-aligned on left column */}
+                  {/* Away scorer — right-aligned on left column */}
                   <span className="text-[12px] text-white font-semibold text-right leading-snug">
-                    {isHome ? label : ""}
+                    {!isHome ? label : ""}
                   </span>
                   {/* Minute — dimmed, centered */}
                   <span className="text-[11px] text-zinc-500 font-medium leading-none text-center tabular-nums">
                     {minDisplay}
                   </span>
-                  {/* Away scorer — left-aligned on right column */}
+                  {/* Home scorer — left-aligned on right column */}
                   <span className="text-[12px] text-white font-semibold text-left leading-snug">
-                    {!isHome ? label : ""}
+                    {isHome ? label : ""}
                   </span>
                 </div>
               )
