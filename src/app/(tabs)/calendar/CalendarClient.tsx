@@ -225,8 +225,8 @@ export default function CalendarClient() {
                     isSelected ? 'ring-2 ring-[#00d4ff]' : hasGames ? 'cursor-pointer active:bg-white/10' : 'cursor-default'
                   }`}
                   style={{
-                    background: isSelected ? 'rgba(0,212,255,0.12)' : hasGames ? 'var(--surface)' : 'transparent',
-                    border: hasGames && !isSelected ? '1px solid var(--border)' : isSelected ? 'none' : '1px solid transparent',
+                    background: isSelected ? 'rgba(0,212,255,0.12)' : hasGames ? 'var(--surface-2)' : 'var(--surface)',
+                    border: isSelected ? '1.5px solid rgba(0,212,255,0.6)' : hasGames ? '1px solid var(--border)' : '1px solid rgba(255,255,255,0.04)',
                   }}
                 >
                   <span

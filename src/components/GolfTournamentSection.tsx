@@ -77,7 +77,7 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label }: G
         <>
           {/* Tournament name + course */}
           <div className="mb-3">
-            <div className="text-[15px] font-bold text-white leading-tight">{tournament.name}</div>
+            <div className="text-[12px] font-semibold text-zinc-300 leading-tight uppercase tracking-wide">{tournament.name}</div>
             {tournament.course && (
               <div className="text-[11px] text-zinc-500 mt-0.5">{tournament.course}{tournament.location ? ` · ${tournament.location}` : ''}</div>
             )}

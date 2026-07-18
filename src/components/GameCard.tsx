@@ -168,11 +168,11 @@ export default function GameCard({ game }: GameCardProps) {
             {/* Inner sheet */}
             <div
               className="overflow-y-auto"
-              style={{ background: "#0f0f18", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "88dvh" }}
+              style={{ background: "#0c1b31", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "88dvh" }}
             >
 
               {/* ── SECTION 1: SCOREBOARD ─────────────────────────────────── */}
-              <div className="relative bg-gradient-to-b from-[#0a1628] to-[#0f0f18] px-5 pt-4 pb-5">
+              <div className="relative bg-gradient-to-b from-[#0c1b31] to-[#142236] px-5 pt-4 pb-5">
                 <button onClick={() => setOpen(false)} className="absolute top-2 right-4 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-sm">✕</button>
 
                 {/* Status + meta */}

@@ -389,8 +389,8 @@ export default function TeamsClient() {
   }
 
   const DrillDownPanel = ({ config }: { config: DrillDownConfig }) => (
-    <div className="fixed inset-0 z-50 bg-[#0a0a0f] flex flex-col overflow-hidden">
-      <div className="shrink-0 flex items-center gap-3 px-4 py-4 border-b border-white/10 bg-[#0a0a0f]/95 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 bg-[#0c1b31] flex flex-col overflow-hidden">
+      <div className="shrink-0 flex items-center gap-3 px-4 py-4 border-b border-white/10 bg-[#0c1b31]/95 backdrop-blur-md">
         <button
           onClick={() => setDrillDown(null)}
           className="p-2 rounded-md hover:bg-white/10 transition-colors"

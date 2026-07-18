@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import PageHeader from '@/components/PageHeader'
 
 const CANNED_RESPONSE = `I'm the Seattle Sports assistant! Here's what I can help with:
 
@@ -38,9 +39,7 @@ export default function AssistantPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <div className="sticky top-0 z-30 px-4 py-3 bg-[#0a0a0f]/95 backdrop-blur-md border-b border-white/10">
-        <h1 className="text-xl font-bold text-white">Assistant</h1>
-      </div>
+      <PageHeader title="Assistant" />
       
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {messages.map((msg, i) => (

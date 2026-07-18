@@ -7,6 +7,7 @@ import { useFollowedOtherTeams } from "@/hooks/useFollowedOtherTeams"
 import { useTeamClickCounts } from "@/hooks/useTeamClickCounts"
 import { ALL_PRO_TEAMS } from "@/lib/allProTeams"
 import TeamLogo from "@/components/TeamLogo"
+import PageHeader from "@/components/PageHeader"
 
 interface StandingsEntry {
   teamId: string; teamName: string; abbr: string; logo: string
@@ -667,12 +668,8 @@ export default function StandingsClient() {
 
   return (
     <div style={{ paddingBottom: "1rem" }}>
-      {/* Sticky header + filter bar */}
-      <div className="sticky top-0 z-30 glass-header">
-        <div className="px-4 py-3">
-          <h1 className="font-display text-[26px] font-800 text-white leading-none tracking-tight uppercase">Standings</h1>
-        </div>
-
+      {/* Sticky header — uses PageHeader for consistent logo + filter bar */}
+      <PageHeader title="Standings">
         {/* League logo filter bar */}
         <div className="relative overflow-x-auto no-scrollbar px-4 pb-3 pt-1">
           <div className="flex gap-3 min-w-max">
@@ -689,8 +686,8 @@ export default function StandingsClient() {
                     className="w-12 h-12 rounded-full flex items-center justify-center transition-all overflow-hidden"
                     style={{
                       background: active ? `${info?.color}25` : "var(--surface-2)",
-                      border: `2px solid ${active ? info?.color : "rgba(255,255,255,0.1)"}`,
-                      boxShadow: active ? `0 0 14px ${info?.color}55` : "none",
+                      border: `2px solid ${active ? "#D95C17" : "rgba(255,255,255,0.1)"}`,
+                      boxShadow: active ? "0 0 10px rgba(217,92,23,0.4)" : "none",
                       opacity: !active && activeLeague ? 0.45 : 1,
                       padding: "6px",
                     }}
@@ -709,7 +706,7 @@ export default function StandingsClient() {
                       <span className="font-display text-[11px] font-800 text-zinc-400">{leagueId.toUpperCase()}</span>
                     )}
                   </div>
-                  <span className="font-display text-[9px] font-700 uppercase tracking-widest" style={{ color: active ? (info?.color || "var(--accent)") : "#4b5563" }}>
+                  <span className="font-display text-[9px] font-700 uppercase tracking-widest" style={{ color: active ? (info?.color || "#D95C17") : "#4b5563" }}>
                     {info?.label || leagueId.toUpperCase()}
                   </span>
                 </button>
@@ -729,9 +726,9 @@ export default function StandingsClient() {
                     <div
                       className="w-12 h-12 rounded-full flex items-center justify-center transition-all overflow-hidden p-1 relative"
                       style={{
-                        background: open ? `${rep.primaryColor}30` : "var(--surface-2)",
-                        border: `2px solid ${open ? rep.primaryColor : "rgba(255,255,255,0.1)"}`,
-                        boxShadow: open ? `0 0 14px ${rep.primaryColor}55` : "none",
+                        background: open ? `${rep.primaryColor}25` : "var(--surface-2)",
+                        border: `2px solid ${open ? "#D95C17" : "rgba(255,255,255,0.1)"}`,
+                        boxShadow: open ? "0 0 10px rgba(217,92,23,0.4)" : "none",
                         opacity: !open && activeLeague ? 0.5 : 1,
                       }}
                     >
@@ -739,7 +736,7 @@ export default function StandingsClient() {
                       <span className="absolute bottom-0.5 right-0.5 text-[8px] text-white/60">▾</span>
                     </div>
                   </button>
-                  <span className="font-display text-[9px] font-700 uppercase tracking-widest" style={{ color: open ? rep.primaryColor : "#4b5563" }}>
+                  <span className="font-display text-[9px] font-700 uppercase tracking-widest" style={{ color: open ? "#D95C17" : "#4b5563" }}>
                     {gk === "uw" ? "Huskies" : gk === "wsu" ? "Cougars" : gk.toUpperCase()}
                   </span>
 
@@ -757,7 +754,7 @@ export default function StandingsClient() {
             })}
           </div>
         </div>
-      </div>
+      </PageHeader>
 
       {loading && (
         <div className="flex items-center justify-center h-64">
