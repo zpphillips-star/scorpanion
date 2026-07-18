@@ -249,9 +249,9 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[10000]" onClick={onClose} />
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-4xl lg:mx-auto overflow-hidden flex flex-col animate-slide-up"
+        className="fixed bottom-0 left-0 right-0 z-[10000] lg:max-w-4xl lg:mx-auto overflow-hidden flex flex-col animate-slide-up"
         style={{ background: "#0c1b31", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "96dvh" }}
         onClick={e => e.stopPropagation()}
       >
