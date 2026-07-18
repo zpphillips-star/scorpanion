@@ -553,35 +553,50 @@ export default function HomeClient() {
                 <span className="text-[11px] uppercase tracking-wider font-normal text-zinc-500">{fmtDayHeader(ds)}</span>
                 <div className="flex-1 h-px bg-zinc-800" />
               </div>
-              {/* Compact rows */}
+              {/* Compact rows — away | time | home, matching DayGameRow conventions */}
               {upcomingByDate[ds].map(g => {
                 const seattleLogoUrl = getTeamLogoUrl(g.seattleTeam)
+                // Resolve away/home sides so the row always reads left=away, right=home
+                const awayLogo  = g.isHome ? g.opponent.logo        : seattleLogoUrl
+                const awayEmoji = g.isHome ? "🏟️"                  : g.seattleTeam.emoji
+                const awayAbbr  = g.isHome ? g.opponent.abbr        : g.seattleTeam.abbr
+                const awayName  = g.isHome
+                  ? (g.opponent.shortName || g.opponent.name)
+                  : g.seattleTeam.shortName
+                const homeLogo  = g.isHome ? seattleLogoUrl         : g.opponent.logo
+                const homeEmoji = g.isHome ? g.seattleTeam.emoji    : "🏟️"
+                const homeAbbr  = g.isHome ? g.seattleTeam.abbr     : g.opponent.abbr
+                const homeName  = g.isHome
+                  ? g.seattleTeam.shortName
+                  : (g.opponent.shortName || g.opponent.name)
                 return (
                   <div
                     key={g.id}
                     className="flex items-center px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer"
                     onClick={() => setSelectedRecentGame(g)}
                   >
-                    {/* Time */}
-                    <div className="w-[72px] flex-shrink-0">
-                      <span className="text-[12px] font-medium text-zinc-300 whitespace-nowrap">{fmtTime(g.kickoff)}</span>
-                    </div>
-                    {/* Seattle (right-aligned) */}
+                    {/* Away team — name + logo, right-aligned */}
                     <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
-                      <span className="text-[13px] font-semibold text-white truncate text-right">{g.seattleTeam.shortName}</span>
-                      <TeamLogo src={seattleLogoUrl} emoji={g.seattleTeam.emoji} abbr={g.seattleTeam.abbr} size={24} />
+                      <span className="text-[13px] font-semibold text-white truncate text-right leading-tight">
+                        {awayName}
+                      </span>
+                      <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={24} className="flex-shrink-0" />
                     </div>
-                    {/* vs */}
-                    <div className="w-10 flex-shrink-0 text-center">
-                      <span className="text-[12px] font-medium text-zinc-500">vs</span>
+                    {/* Center: time badge */}
+                    <div className="w-[60px] flex-shrink-0 flex flex-col items-center gap-0.5 px-1">
+                      <span className="text-[11px] font-medium text-zinc-400 tabular-nums whitespace-nowrap leading-tight">
+                        {fmtTime(g.kickoff)}
+                      </span>
+                      {g.broadcast && (
+                        <span className="text-[9px] text-zinc-600 truncate max-w-full">{g.broadcast}</span>
+                      )}
                     </div>
-                    {/* Opponent (left-aligned) */}
+                    {/* Home team — logo + name, left-aligned */}
                     <div className="flex-1 flex items-center gap-2 min-w-0">
-                      {g.opponent.logo
-                        ? <img src={g.opponent.logo} alt={g.opponent.abbr} width={28} height={28} className="object-contain flex-shrink-0" />
-                        : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />
-                      }
-                      <span className="text-[13px] font-semibold text-white truncate">{g.opponent.shortName || g.opponent.name}</span>
+                      <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={24} className="flex-shrink-0" />
+                      <span className="text-[13px] font-semibold text-white truncate leading-tight">
+                        {homeName}
+                      </span>
                     </div>
                   </div>
                 )
