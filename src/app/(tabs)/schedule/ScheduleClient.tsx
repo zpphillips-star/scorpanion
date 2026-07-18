@@ -496,14 +496,13 @@ export default function ScheduleClient() {
         titleAction={
           <button
             onClick={scrollToToday}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all active:scale-95"
-            style={{ background: "rgba(217,92,23,0.12)", border: "1px solid rgba(217,92,23,0.35)" }}
+            className="flex items-center gap-2 transition-opacity active:opacity-60"
           >
             <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D95C17] opacity-75" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D95C17] opacity-60" />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#D95C17]" />
             </span>
-            <span className="font-display text-[11px] font-800 uppercase tracking-wide" style={{ color: "#D95C17" }}>Today</span>
+            <span className="font-display text-[11px] font-700 uppercase tracking-widest text-zinc-500">Today</span>
           </button>
         }
       >
