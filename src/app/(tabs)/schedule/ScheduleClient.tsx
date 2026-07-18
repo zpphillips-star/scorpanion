@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { Game } from '@/lib/types'
 import { SEATTLE_TEAMS, getTeamLogoUrl } from '@/lib/teams'
+import { ALL_PRO_TEAMS } from '@/lib/allProTeams'
 import { useTeamClickCounts } from '@/hooks/useTeamClickCounts'
 import { useSportsData } from '@/context/SportsDataContext'
 import TeamLogo from '@/components/TeamLogo'
@@ -326,7 +327,8 @@ export default function ScheduleClient() {
 
   const filteredGames = (() => {
     if (activeTeamFilter === 'all') return allGames
-    const item = SEATTLE_TEAMS.find(t => t.id === activeTeamFilter)
+    // Check SEATTLE_TEAMS first, then ALL_PRO_TEAMS
+    const item = SEATTLE_TEAMS.find(t => t.id === activeTeamFilter) ?? ALL_PRO_TEAMS.find(t => t.id === activeTeamFilter)
     if (!item) return allGames
     const gk = getCollegeGroupKey(activeTeamFilter)
     if (gk) {
@@ -343,7 +345,7 @@ export default function ScheduleClient() {
     const visibleTeamIds: string[] = activeTeamFilter === 'all'
       ? selectedTeamIds
       : (() => {
-          const item = SEATTLE_TEAMS.find(t => t.id === activeTeamFilter)
+          const item = SEATTLE_TEAMS.find(t => t.id === activeTeamFilter) ?? ALL_PRO_TEAMS.find(t => t.id === activeTeamFilter)
           if (!item) return [activeTeamFilter]
           const gk = getCollegeGroupKey(activeTeamFilter)
           if (gk) return SEATTLE_TEAMS.filter(t => getCollegeGroupKey(t.id) === gk).map(t => t.id)
@@ -353,13 +355,14 @@ export default function ScheduleClient() {
     const seenLeagues = new Set<string>()
     const result: string[] = []
     for (const teamId of visibleTeamIds) {
-      const team = SEATTLE_TEAMS.find(t => t.id === teamId)
-      if (!team || !STANDINGS_LEAGUE_KEY[team.league]) continue
-      if (seenLeagues.has(team.league)) continue
-      seenLeagues.add(team.league)
+      const team = SEATTLE_TEAMS.find(t => t.id === teamId) ?? ALL_PRO_TEAMS.find(t => t.id === teamId)
+      if (!team || !STANDINGS_LEAGUE_KEY[(team as typeof SEATTLE_TEAMS[0]).league ?? (team as typeof ALL_PRO_TEAMS[0]).league?.toLowerCase()]) continue
+      const leagueKey = (team as typeof SEATTLE_TEAMS[0]).league ?? (team as typeof ALL_PRO_TEAMS[0]).league?.toLowerCase()
+      if (seenLeagues.has(leagueKey)) continue
+      seenLeagues.add(leagueKey)
 
       const hasUpcoming = allGames.some(g => g.seattleTeamId === teamId && g.status !== 'ft')
-      if (!hasUpcoming) result.push(team.league)
+      if (!hasUpcoming) result.push(leagueKey)
     }
     return result
   }, [activeTeamFilter, selectedTeamIds, allGames])
@@ -481,7 +484,7 @@ export default function ScheduleClient() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-[#00d4ff] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#D95C17] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -494,13 +497,13 @@ export default function ScheduleClient() {
           <button
             onClick={scrollToToday}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all active:scale-95"
-            style={{ background: "rgba(0,212,255,0.12)", border: "1px solid rgba(0,212,255,0.3)" }}
+            style={{ background: "rgba(217,92,23,0.12)", border: "1px solid rgba(217,92,23,0.35)" }}
           >
             <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00d4ff] opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#00d4ff]" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D95C17] opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#D95C17]" />
             </span>
-            <span className="font-display text-[11px] font-800 uppercase tracking-wide" style={{ color: "#00d4ff" }}>Today</span>
+            <span className="font-display text-[11px] font-800 uppercase tracking-wide" style={{ color: "#D95C17" }}>Today</span>
           </button>
         }
       >
@@ -560,22 +563,22 @@ export default function ScheduleClient() {
                 {isToday ? (
                   <div
                     className="sticky top-[116px] z-20 px-4 py-2 flex items-center gap-2.5"
-                    style={{ background: 'rgba(8,8,15,0.97)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(0,212,255,0.2)', borderTop: '2px solid rgba(0,212,255,0.3)' }}
+                    style={{ background: 'rgba(12,27,49,0.98)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(217,92,23,0.2)', borderTop: '2px solid rgba(217,92,23,0.25)' }}
                   >
-                    <span className="font-display text-[15px] font-800 uppercase tracking-widest text-[#00d4ff]">Today</span>
+                    <span className="font-display text-[15px] font-800 uppercase tracking-widest text-white">Today</span>
                     <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00d4ff] opacity-60" />
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#00d4ff]" />
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D95C17] opacity-60" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#D95C17]" />
                     </span>
                     <span className="font-display text-[11px] text-zinc-500">
                       {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
                     </span>
-                    <div className="flex-1 h-px" style={{ background: 'rgba(0,212,255,0.2)' }} />
+                    <div className="flex-1 h-px" style={{ background: 'rgba(217,92,23,0.2)' }} />
                   </div>
                 ) : (
                   <div
                     className="sticky top-[116px] z-20 px-4 py-2 flex items-center gap-3"
-                    style={{ background: 'rgba(8,8,15,0.97)', backdropFilter: 'blur(8px)' }}
+                    style={{ background: 'rgba(12,27,49,0.98)', backdropFilter: 'blur(8px)' }}
                   >
                     <span className="text-[12px] uppercase tracking-widest font-bold text-white">{label}</span>
                     <div className="flex-1 h-px bg-zinc-800" />
