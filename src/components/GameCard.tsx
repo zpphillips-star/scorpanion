@@ -247,8 +247,8 @@ export default function GameCard({ game }: GameCardProps) {
                 )}
               </div>
 
-              {/* ── SECTION 2: TEAM RECORDS ───────────────────────────────── */}
-              {(game.seattleRecord || game.opponentRecord) && (
+              {/* ── SECTION 2: TEAM RECORDS — always shown for live/final ─── */}
+              {(isLive || isFt) && (
                 <div className="px-4 py-4 border-t border-white/5">
                   <div className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-600 mb-3">Season Records</div>
                   <div className="grid grid-cols-2 gap-3">

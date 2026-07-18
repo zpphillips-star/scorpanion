@@ -295,16 +295,16 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
               const teamScorers = scoresByTeam[team.teamId] ?? []
               if (teamScorers.length === 0) return null
               return (
-                <div key={team.teamId} className={`relative ${teamIdx > 0 ? "mt-3 pt-3 border-t-2 border-zinc-800" : ""}`}>
-                  {/* Ghost watermark */}
+                <div key={team.teamId} className={`relative overflow-hidden ${teamIdx > 0 ? "mt-3 pt-3 border-t-2 border-zinc-800" : ""}`}>
+                  {/* Ghost watermark — contained, won't overflow */}
                   {team.logo && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={team.logo}
                       alt=""
                       aria-hidden
-                      className="absolute inset-0 m-auto pointer-events-none select-none"
-                      style={{ width: 80, height: 80, opacity: 0.09, objectFit: "contain", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
+                      className="absolute pointer-events-none select-none"
+                      style={{ width: 64, height: 64, opacity: 0.08, objectFit: "contain", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
                     />
                   )}
                   {teamScorers.map((s, idx) => (

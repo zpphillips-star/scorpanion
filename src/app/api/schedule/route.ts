@@ -240,13 +240,34 @@ async function fetchNHLSchedule(team: SeattleTeam): Promise<Game[]> {
 
 // ── ESPN fallback ─────────────────────────────────────────────────────────────
 function parseRecord(comp: any): TeamRecord | undefined {
+  // Strategy 1: comp.records array (most ESPN endpoints)
   const records: any[] = comp.records || []
-  const overall = records.find((r: any) => r.type === 'total' || r.name === 'overall' || r.type === 'overall') || records[0]
-  if (!overall) return undefined
-  const summary: string = overall.summary || ''
-  const parts = summary.split('-').map((s: string) => parseInt(s.trim(), 10))
-  if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-    return { wins: parts[0], losses: parts[1], ties: parts[2], summary }
+  const overall = records.find((r: any) =>
+    r.type === 'total' || r.type === 'overall' || r.name === 'overall' ||
+    r.type === 'Total' || r.type === 'cumulative'
+  ) || records[0]
+  if (overall?.summary) {
+    const parts = overall.summary.split('-').map((s: string) => parseInt(s.trim(), 10))
+    if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      return { wins: parts[0], losses: parts[1], ties: parts[2], summary: overall.summary }
+    }
+  }
+  // Strategy 2: comp.statistics array (some WNBA / NCAAB endpoints)
+  const stats: any[] = comp.statistics || []
+  const winsStat  = stats.find((s: any) => s.name === 'wins'   || s.abbreviation === 'W')
+  const lossesStat = stats.find((s: any) => s.name === 'losses' || s.abbreviation === 'L')
+  if (winsStat && lossesStat) {
+    const w = parseInt(winsStat.displayValue  ?? winsStat.value,  10)
+    const l = parseInt(lossesStat.displayValue ?? lossesStat.value, 10)
+    if (!isNaN(w) && !isNaN(l)) return { wins: w, losses: l, summary: `${w}-${l}` }
+  }
+  // Strategy 3: comp.team.record (some league overviews)
+  const teamRec = comp.team?.record
+  if (teamRec?.displayValue) {
+    const parts = teamRec.displayValue.split('-').map((s: string) => parseInt(s.trim(), 10))
+    if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      return { wins: parts[0], losses: parts[1], summary: teamRec.displayValue }
+    }
   }
   return undefined
 }
