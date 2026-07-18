@@ -4,6 +4,7 @@ import { Game } from "@/lib/types"
 import { getTeamLogoUrl } from "@/lib/teams"
 import TeamLogo from "./TeamLogo"
 import BoxScore from "./BoxScore"
+import CompactBaseballLineScore from "./CompactBaseballLineScore"
 import TeamDetailSheet from "./TeamDetailSheet"
 
 const PRO_TEAM_IDS = ["seahawks","mariners","kraken","sounders","storm","reign"]
@@ -239,8 +240,13 @@ export default function GameCard({ game }: GameCardProps) {
                   </button>
                 </div>
 
-                {/* Line score — for completed/live */}
-                {canShowBoxScore && (
+                {/* Line score — baseball uses compact line score, others use full BoxScore */}
+                {canShowBoxScore && game.sport === "baseball" && (
+                  <div className="mt-4">
+                    <CompactBaseballLineScore gameId={game.id} league={game.league} seattleTeamId={game.seattleTeam.espnId || game.seattleTeam.id} isLive={isLive} />
+                  </div>
+                )}
+                {canShowBoxScore && game.sport !== "baseball" && (
                   <div className="mt-4">
                     <BoxScore eventId={game.id} league={game.league} seattleTeamId={game.seattleTeam.espnId} color={seattleColor} />
                   </div>

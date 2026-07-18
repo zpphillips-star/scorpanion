@@ -605,12 +605,17 @@ export async function GET(req: Request) {
     let payload: Record<string, unknown> | null = null
 
     if (league === "mlb") {
-      // ── Official MLB API ────────────────────────────────────────────────
+      // ── MLB: try official MLB Stats API first (Mariners gamePk IDs)
+      // ── If that fails, fall back to ESPN (non-Mariners use ESPN event IDs)
       payload = await fetchMLBBoxScore(eventId)
+      if (!payload) {
+        // ESPN fallback for non-Mariners MLB teams (their IDs come from ESPN)
+        payload = await fetchESPNBoxScore(eventId, league, "baseball/mlb", "baseball", cacheKey)
+      }
       if (!payload) {
         const cached = bsCache.get(cacheKey)
         if (cached) return NextResponse.json(cached)
-        return NextResponse.json({ error: "MLB API error" }, { status: 502 })
+        return NextResponse.json({ error: "MLB boxscore unavailable" }, { status: 502 })
       }
     } else if (league === "nhl") {
       // ── Official NHL API ────────────────────────────────────────────────
