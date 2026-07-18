@@ -180,29 +180,27 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
 
   // ── 3. Live-score polling (single shared poller) ───────────────────────────
   const [liveScores, setLiveScores] = useState<Record<string, ScoreUpdate>>({})
-  const liveScoresRef = useRef(liveScores)
-  useEffect(() => { liveScoresRef.current = liveScores }, [liveScores])
+
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const fetchLiveScores = useCallback(async () => {
     try {
       const r = await fetch('/api/live-scores')
       if (!r.ok) return
-      setLiveScores(await r.json())
+      const data = await r.json()
+      setLiveScores(data)
+      // Immediately adjust poll rate based on live game presence
+      const hasLive = Object.values(data as Record<string, { status: string }>).some(s => s.status === 'live')
+      const targetInterval = hasLive ? 2_000 : 30_000
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      intervalRef.current = setInterval(fetchLiveScores, targetInterval)
     } catch { /* network hiccup — keep previous scores */ }
   }, [])
 
   useEffect(() => {
     fetchLiveScores()
-    let interval = setInterval(fetchLiveScores, 30_000)
-
-    // Every 5 s, adjust poll rate based on whether any game is currently live
-    const adaptive = setInterval(() => {
-      const hasLive = Object.values(liveScoresRef.current).some(s => s.status === 'live')
-      clearInterval(interval)
-      interval = setInterval(fetchLiveScores, hasLive ? 2_000 : 30_000)
-    }, 5_000)
-
-    return () => { clearInterval(interval); clearInterval(adaptive) }
+    intervalRef.current = setInterval(fetchLiveScores, 30_000)
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   }, [fetchLiveScores])
 
   // ── 4. Merge schedule + live scores ───────────────────────────────────────

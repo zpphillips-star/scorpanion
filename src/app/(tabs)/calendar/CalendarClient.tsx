@@ -25,8 +25,6 @@ export default function CalendarClient() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [activeFilter, setActiveFilter] = useState('all')
-  const liveScoresRef = useRef(liveScores)
-  useEffect(() => { liveScoresRef.current = liveScores }, [liveScores])
 
   const now = new Date()
   const [viewYear, setViewYear] = useState(now.getFullYear())
@@ -88,24 +86,26 @@ export default function CalendarClient() {
 
   useEffect(() => { if (loaded) fetchSchedule() }, [loaded, fetchSchedule])
 
-  // ── Live-score polling (same cadence as Home/Schedule) ─────────────────────
+  // ── Live-score polling — 2s when live, 30s otherwise, switches immediately ──
+  const calIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
   const fetchLiveScores = useCallback(async () => {
     try {
       const r = await fetch('/api/live-scores')
       if (!r.ok) return
-      setLiveScores(await r.json())
+      const data = await r.json()
+      setLiveScores(data)
+      const hasLive = Object.values(data as Record<string, { status: string }>).some(s => s.status === 'live')
+      const next = hasLive ? 2_000 : 30_000
+      if (calIntervalRef.current) clearInterval(calIntervalRef.current)
+      calIntervalRef.current = setInterval(fetchLiveScores, next)
     } catch { /* silent */ }
   }, [])
 
   useEffect(() => {
     fetchLiveScores()
-    let interval = setInterval(fetchLiveScores, 30_000)
-    const adaptive = setInterval(() => {
-      const hasLive = Object.values(liveScoresRef.current).some(s => s.status === 'live')
-      clearInterval(interval)
-      interval = setInterval(fetchLiveScores, hasLive ? 2_000 : 30_000)
-    }, 5_000)
-    return () => { clearInterval(interval); clearInterval(adaptive) }
+    calIntervalRef.current = setInterval(fetchLiveScores, 30_000)
+    return () => { if (calIntervalRef.current) clearInterval(calIntervalRef.current) }
   }, [fetchLiveScores])
 
   // Merge live scores into schedule data
