@@ -54,30 +54,31 @@ export default function CalendarClient() {
       // Fetch golf tournament dates separately
       const golfMap = new Map<string, { color: string; label: string }[]>()
       const golfFetches: Promise<void>[] = []
-      if (selectedTeamIds.includes('pga')) {
+
+      // Helper: fetch full season schedule and plot every tournament day
+      const addGolfTour = (tour: string, color: string) => {
         golfFetches.push(
-          fetch('/api/golf?tour=pga').then(r => r.ok ? r.json() : null).then(d => {
-            if (!d?.startDate || !d?.endDate) return
-            const start = new Date(d.startDate); const end = new Date(d.endDate)
-            for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
-              const key = dt.toISOString().split('T')[0]
-              const arr = golfMap.get(key) ?? []; arr.push({ color: '#003087', label: d.name }); golfMap.set(key, arr)
-            }
-          }).catch(() => {})
+          fetch(`/api/golf?tour=${tour}&mode=schedule`)
+            .then(r => r.ok ? r.json() : [])
+            .then((tournaments: { startDate: string; endDate: string; name: string }[]) => {
+              for (const t of tournaments) {
+                if (!t.startDate) continue
+                const start = new Date(t.startDate)
+                const end = new Date(t.endDate || t.startDate)
+                for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
+                  const key = dt.toISOString().split('T')[0]
+                  const arr = golfMap.get(key) ?? []
+                  if (!arr.some(a => a.label === t.name)) arr.push({ color, label: t.name })
+                  golfMap.set(key, arr)
+                }
+              }
+            }).catch(() => {})
         )
       }
-      if (selectedTeamIds.includes('lpga')) {
-        golfFetches.push(
-          fetch('/api/golf?tour=lpga').then(r => r.ok ? r.json() : null).then(d => {
-            if (!d?.startDate || !d?.endDate) return
-            const start = new Date(d.startDate); const end = new Date(d.endDate)
-            for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
-              const key = dt.toISOString().split('T')[0]
-              const arr = golfMap.get(key) ?? []; arr.push({ color: '#b5006e', label: d.name }); golfMap.set(key, arr)
-            }
-          }).catch(() => {})
-        )
-      }
+
+      if (selectedTeamIds.includes('pga'))  addGolfTour('pga',  '#003087')
+      if (selectedTeamIds.includes('lpga')) addGolfTour('lpga', '#b5006e')
+
       await Promise.all(golfFetches)
       setGolfDays(golfMap)
     } catch {}

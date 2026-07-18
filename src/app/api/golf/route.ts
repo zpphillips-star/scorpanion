@@ -101,7 +101,29 @@ async function fetchTour(slug: string): Promise<GolfTournament | null> {
 
 export async function GET(req: NextRequest) {
   const tour = new URL(req.url).searchParams.get('tour') ?? 'pga'
+  const mode = new URL(req.url).searchParams.get('mode') ?? 'current'
   const slug = tour === 'lpga' ? 'lpga' : 'pga'
+
+  // Schedule mode: return all tournaments for the season (for calendar dots)
+  if (mode === 'schedule') {
+    try {
+      const url = `https://site.api.espn.com/apis/site/v2/sports/golf/${slug}/scoreboard`
+      const res = await fetch(url, { next: { revalidate: 3600 } })
+      if (!res.ok) return Response.json([], { status: 200 })
+      const data: any = await res.json()
+      const calendar: any[] = data.leagues?.[0]?.calendar ?? []
+      const tournaments = calendar.map((entry: any) => ({
+        id: entry.id,
+        name: entry.label ?? entry.name ?? 'Tournament',
+        startDate: entry.startDate ?? '',
+        endDate: entry.endDate ?? entry.startDate ?? '',
+      })).filter((t: any) => t.startDate)
+      return Response.json(tournaments)
+    } catch {
+      return Response.json([])
+    }
+  }
+
   const result = await fetchTour(slug)
   if (!result) return Response.json({ error: 'No active tournament' }, { status: 404 })
   return Response.json(result)
