@@ -92,10 +92,8 @@ function GolfDetailSheet({ tournament, label, accentColor, onClose }: {
 
         {/* Column headers — sticky above scroll */}
         <div className="flex-shrink-0 flex items-center px-5 py-2 border-b border-white/[0.06]" style={{ background: "#0d1520" }}>
-          {/* rank placeholder */}
-          <div className="w-6 flex-shrink-0" />
-          {/* name */}
-          <div className="flex-1 text-[9px] font-bold uppercase tracking-widest text-zinc-600 ml-3">Player</div>
+          {/* name (rank is now inline, no placeholder needed) */}
+          <div className="flex-1 text-[9px] font-bold uppercase tracking-widest text-zinc-600">Player</div>
           {/* stat headers right-side group */}
           <div className="flex gap-4 flex-shrink-0">
             <div className="w-10 text-center text-[9px] font-bold uppercase tracking-widest text-zinc-600">Today</div>
@@ -124,35 +122,30 @@ function GolfDetailSheet({ tournament, label, accentColor, onClose }: {
                   className={`flex items-center px-5 py-3 border-b border-white/[0.05] ${isCut ? 'opacity-40' : ''}`}
                   style={isEven ? { background: "rgba(255,255,255,0.02)" } : undefined}
                 >
-                  {/* Rank */}
-                  <div className="w-6 flex-shrink-0 text-right">
-                    <span className="text-[11px] text-zinc-600 font-mono tabular-nums">{player.rank}</span>
-                  </div>
-
-                  {/* Name + country */}
-                  <div className="flex-1 min-w-0 ml-3 mr-4">
-                    <div className="text-[15px] font-semibold text-white truncate leading-tight">{player.name}</div>
+                  {/* Rank inline with name + country stacked below */}
+                  <div className="flex-1 min-w-0 mr-4">
+                    <div className="flex items-baseline">
+                      <span className="text-[12px] text-zinc-500 mr-1.5">{player.rank}</span>
+                      <span className="text-[15px] font-semibold text-white truncate leading-tight">{player.name}</span>
+                    </div>
                     {player.country && (
                       <div className="text-[11px] text-zinc-500 mt-0.5 truncate">{player.country}</div>
                     )}
                   </div>
 
-                  {/* Stat pills */}
+                  {/* Stat values — no per-row labels, header row covers labeling */}
                   <div className="flex gap-4 flex-shrink-0">
-                    <div className="w-10 flex flex-col items-center gap-0.5">
-                      <span className="text-[9px] uppercase tracking-widest text-zinc-600">Rd</span>
+                    <div className="w-10 flex items-center justify-center">
                       <span className="text-[14px] font-bold tabular-nums leading-none" style={{ color: isCut ? '#52525b' : scoreColor(player.today) }}>
                         {player.today || '–'}
                       </span>
                     </div>
-                    <div className="w-10 flex flex-col items-center gap-0.5">
-                      <span className="text-[9px] uppercase tracking-widest text-zinc-600">Tot</span>
+                    <div className="w-10 flex items-center justify-center">
                       <span className="text-[16px] font-bold tabular-nums leading-none" style={{ color: isCut ? '#52525b' : scoreColor(player.score) }}>
                         {player.score}
                       </span>
                     </div>
-                    <div className="w-10 flex flex-col items-center gap-0.5">
-                      <span className="text-[9px] uppercase tracking-widest text-zinc-600">Thru</span>
+                    <div className="w-10 flex items-center justify-center">
                       <span className="text-[13px] font-semibold tabular-nums leading-none text-zinc-300">
                         {isCut ? 'CUT' : (player.thru || '–')}
                       </span>
