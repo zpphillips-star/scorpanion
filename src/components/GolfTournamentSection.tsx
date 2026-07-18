@@ -213,7 +213,7 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label, mod
           ) : (
             <>
               {/* Tournament name — subtle subtitle */}
-              <div className="px-5 mb-2">
+              <div className="px-4 mb-2">
                 <span className="text-[12px] text-zinc-400">{tournament.name}</span>
                 {tournament.course && (
                   <span className="text-[11px] text-zinc-600 ml-2">· {tournament.course}{tournament.location ? `, ${tournament.location}` : ''}</span>
@@ -221,7 +221,7 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label, mod
               </div>
 
               {/* Column headers */}
-              <div className="flex items-center px-5 py-1.5 border-b border-white/[0.06]">
+              <div className="flex items-center px-4 py-1.5 border-b border-white/[0.06]">
                 <div className="w-6 flex-shrink-0" />
                 <div className="flex-1 text-[9px] font-bold text-zinc-600 uppercase tracking-widest ml-3">Player</div>
                 <div className="flex gap-4 flex-shrink-0">
@@ -245,14 +245,14 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label, mod
                   return (
                     <div key={player.name + i}>
                       {showCutLine && (
-                        <div className="flex items-center gap-3 px-5 my-1">
+                        <div className="flex items-center gap-3 px-4 my-1">
                           <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
                           <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Cut</span>
                           <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
                         </div>
                       )}
                       <div
-                        className={`flex items-center px-5 py-2.5 border-b border-white/[0.05] ${isCut ? 'opacity-40' : ''}`}
+                        className={`flex items-center px-4 py-2.5 border-b border-white/[0.05] ${isCut ? 'opacity-40' : ''}`}
                         style={isEven ? { background: "rgba(255,255,255,0.015)" } : undefined}
                       >
                         <div className="w-6 flex-shrink-0 text-right">
@@ -286,7 +286,7 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label, mod
               </div>
 
               {/* Tap hint */}
-              <div className="px-5 pt-1.5 pb-1">
+              <div className="px-4 pt-1.5 pb-1">
                 <span className="text-[11px] text-zinc-600">
                   {mode === 'preview' ? 'Tap for full leaderboard →' : 'Tap for tournament details →'}
                 </span>
