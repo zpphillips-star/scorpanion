@@ -623,8 +623,12 @@ export async function GET(request: NextRequest) {
 
     // ── Official NHL standings ─────────────────────────────────────────────
     if (leagueId === 'nhl') {
-      const response = await fetchNHLStandings(highlightAbbrs)
-      return Response.json(response, NO_CACHE)
+      try {
+        const response = await fetchNHLStandings(highlightAbbrs)
+        return Response.json(response, NO_CACHE)
+      } catch {
+        // NHL official API failed — fall through to ESPN fallback below
+      }
     }
 
     // ── ESPN fallback for all other leagues ───────────────────────────────

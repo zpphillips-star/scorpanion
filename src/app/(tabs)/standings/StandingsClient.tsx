@@ -8,6 +8,7 @@ import { useTeamClickCounts } from "@/hooks/useTeamClickCounts"
 import { ALL_PRO_TEAMS } from "@/lib/allProTeams"
 import TeamLogo from "@/components/TeamLogo"
 import PageHeader from "@/components/PageHeader"
+import { GolfTournamentSection } from "@/components/GolfTournamentSection"
 
 interface StandingsEntry {
   teamId: string; teamName: string; abbr: string; logo: string
@@ -49,10 +50,14 @@ const LEAGUE_INFO: Record<string, { label: string; logo: string; color: string }
   mls:  { label: "MLS",  logo: "https://a.espncdn.com/i/teamlogos/leagues/500/mls.png",  color: "#5D9732" },
   nfl:  { label: "NFL",  logo: "https://a.espncdn.com/i/teamlogos/leagues/500/nfl.png",  color: "#013369" },
   nba:  { label: "NBA",  logo: "https://a.espncdn.com/i/teamlogos/leagues/500/nba.png",  color: "#1d428a" },
+  pga:  { label: "PGA",  logo: "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/pgatour.png", color: "#003087" },
+  lpga: { label: "LPGA", logo: "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/lpga.png",    color: "#b5006e" },
 }
 
-// Supported leagues for standings API
+// Leagues with traditional standings
 const SUPPORTED_STANDINGS = new Set(["mlb", "nhl", "wnba", "mls", "nfl", "nba"])
+// Golf tours — show leaderboard instead of standings
+const GOLF_TOURS = new Set(["pga", "lpga"])
 
 function getCollegeGroupKey(teamId: string): string | null {
   if (teamId.startsWith("uw-")) return "uw"
@@ -554,7 +559,7 @@ export default function StandingsClient() {
     return [...abbrs]
   }
 
-  // Build available leagues from all followed teams (Seattle + others)
+  // Build available leagues from all followed teams (Seattle + others + golf tours)
   const availableLeagues = (() => {
     const seen = new Set<string>()
     const result: { leagueId: string; teamId: string }[] = []
@@ -566,6 +571,11 @@ export default function StandingsClient() {
         seen.add(leagueId)
         result.push({ leagueId, teamId: team.id })
       }
+      // Golf tours from SEATTLE_TEAMS (pga, lpga)
+      if ((team.id === 'pga' || team.id === 'lpga') && !seen.has(team.id)) {
+        seen.add(team.id)
+        result.push({ leagueId: team.id, teamId: team.id })
+      }
     }
     // Other followed pro teams
     for (const pid of followedIds) {
@@ -575,6 +585,13 @@ export default function StandingsClient() {
       if (SUPPORTED_STANDINGS.has(leagueId) && !seen.has(leagueId)) {
         seen.add(leagueId)
         result.push({ leagueId, teamId: pid })
+      }
+    }
+    // Golf tours from selectedTeamIds directly
+    for (const tour of ['pga', 'lpga']) {
+      if (selectedTeamIds.includes(tour) && !seen.has(tour)) {
+        seen.add(tour)
+        result.push({ leagueId: tour, teamId: tour })
       }
     }
     return result
@@ -603,7 +620,7 @@ export default function StandingsClient() {
   }, [loaded, followedLoaded, availableLeagues, activeLeague])
 
   useEffect(() => {
-    if (!activeLeague || !SUPPORTED_STANDINGS.has(activeLeague)) return
+    if (!activeLeague || !SUPPORTED_STANDINGS.has(activeLeague)) return  // skip golf tours
     const highlight = getFollowedAbbrsForLeague(activeLeague).join(',')
     setLoading(true); setError(null); setData(null)
     fetch(`/api/standings?league=${activeLeague}${highlight ? `&highlight=${highlight}` : ''}`)
@@ -776,7 +793,19 @@ export default function StandingsClient() {
         </div>
       )}
 
-      {data && !loading && activeLeague && (
+      {/* Golf tour leaderboard */}
+      {activeLeague && GOLF_TOURS.has(activeLeague) && (
+        <div className="mt-4">
+          <GolfTournamentSection
+            tourId={activeLeague as 'pga' | 'lpga'}
+            accentColor={LEAGUE_INFO[activeLeague]?.color ?? '#003087'}
+            logoUrl={LEAGUE_INFO[activeLeague]?.logo ?? ''}
+            label={LEAGUE_INFO[activeLeague]?.label ?? activeLeague.toUpperCase()}
+          />
+        </div>
+      )}
+
+      {data && !loading && activeLeague && SUPPORTED_STANDINGS.has(activeLeague) && (
         <>
           {/* Season status banner (offseason / preseason / regular) */}
           {data.season && data.season.status !== 'playoffs' && (
