@@ -9,6 +9,23 @@ import { SeattleTeam } from '@/lib/types'
 import USCanadaMap from '@/components/USCanadaMap'
 import { ALL_PRO_TEAMS, ProTeam, getTeamsByState } from '@/lib/allProTeams'
 
+// ── Bridge: ALL_PRO_TEAMS IDs → SEATTLE_TEAMS IDs ────────────────────────────
+// Seattle teams appear in both datasets under different ID conventions.
+// The default seed writes SEATTLE_TEAMS IDs to 'seattle-sports-teams', but
+// ProTeamCard renders ALL_PRO_TEAMS entries with their own IDs (nfl-sea, etc.).
+// This map lets us treat them as the same selection.
+const PRO_TO_SEATTLE_ID: Record<string, string> = {
+  'nfl-sea':    'seahawks',
+  'mlb-sea':    'mariners',
+  'nhl-sea':    'kraken',
+  'mls-seattle':'sounders',
+  'wnba-sea':   'storm',
+  'nwsl-reign': 'reign',
+}
+const SEATTLE_TO_PRO_ID: Record<string, string> = Object.fromEntries(
+  Object.entries(PRO_TO_SEATTLE_ID).map(([k, v]) => [v, k])
+)
+
 // ── Sport filter tabs ────────────────────────────────────────────────────────
 const SPORT_TABS = [
   { id: 'ALL',  label: 'All' },
@@ -131,6 +148,29 @@ export default function TeamsClient() {
     return map
   }, [])
 
+  // Bridge: produce a Set of ALL_PRO_TEAMS IDs that the user effectively follows,
+  // including teams seeded via the SEATTLE_TEAMS key (different ID namespace).
+  const effectivelyFollowedProIds = useMemo(() => {
+    const set = new Set(followedIds)
+    for (const seattleId of selectedTeamIds) {
+      const proId = SEATTLE_TO_PRO_ID[seattleId]
+      if (proId) set.add(proId)
+    }
+    return set
+  }, [followedIds, selectedTeamIds])
+
+  // Smart toggle for ProTeamCard / StateSpotlightRow:
+  // – Seattle-equivalent teams are canonical in the SEATTLE_TEAMS key → use toggleTeam
+  // – All other pro teams live in followed_other_teams → use toggleFollow
+  const toggleProTeam = (proId: string) => {
+    const seattleId = PRO_TO_SEATTLE_ID[proId]
+    if (seattleId) {
+      toggleTeam(seattleId)
+    } else {
+      toggleFollow(proId)
+    }
+  }
+
   // Filter + sort teams: followed first, then Seattle, then alphabetical
   const filteredTeams = useMemo(() => {
     let base = activeTab === 'ALL'
@@ -146,21 +186,30 @@ export default function TeamsClient() {
       )
     }
     return [...base].sort((a, b) => {
-      const aF = followedIds.includes(a.id)
-      const bF = followedIds.includes(b.id)
+      const aF = effectivelyFollowedProIds.has(a.id)
+      const bF = effectivelyFollowedProIds.has(b.id)
       if (aF !== bF) return aF ? -1 : 1
       const aS = a.state === SEATTLE_STATE
       const bS = b.state === SEATTLE_STATE
       if (aS !== bS) return aS ? -1 : 1
       return a.name.localeCompare(b.name)
     })
-  }, [activeTab, followedIds, searchQuery])
+  }, [activeTab, effectivelyFollowedProIds, searchQuery])
 
-  const proFollowedCount = followedIds.filter(id => ALL_PRO_TEAMS.some(t => t.id === id)).length
-  // selectedTeamIds already merges both the Seattle-teams key and the followed_other_teams key
-  // (see useSelectedTeams.readFromStorage), so proFollowedCount is already included — use it
-  // only for the section label; the grand total is just selectedTeamIds.length.
-  const totalFollowed = selectedTeamIds.length
+  // Count of pro teams in the ALL_PRO_TEAMS list that the user follows
+  const proFollowedCount = ALL_PRO_TEAMS.filter(t => effectivelyFollowedProIds.has(t.id)).length
+  // Grand total across both lists (Seattle-only + pro grid), deduplicated
+  const totalFollowed = useMemo(() => {
+    const seattleIds = new Set(selectedTeamIds.filter(id => SEATTLE_TEAMS.some(t => t.id === id)))
+    const proIds = new Set(ALL_PRO_TEAMS.filter(t => effectivelyFollowedProIds.has(t.id)).map(t => t.id))
+    // Don't double-count teams that appear in both datasets
+    const counted = new Set([...seattleIds, ...proIds])
+    // Remove pro IDs that are already counted via their seattle counterpart
+    for (const [proId, seattleId] of Object.entries(PRO_TO_SEATTLE_ID)) {
+      if (counted.has(seattleId) && counted.has(proId)) counted.delete(proId)
+    }
+    return counted.size
+  }, [selectedTeamIds, effectivelyFollowedProIds])
 
   if (!loaded) {
     return (
@@ -190,7 +239,7 @@ export default function TeamsClient() {
 
   // ── Pro-team grid card (all-leagues browse) ──────────────────────────────
   const ProTeamCard = ({ team }: { team: ProTeam }) => {
-    const isFollowed = followedIds.includes(team.id)
+    const isFollowed = effectivelyFollowedProIds.has(team.id)
     const isSeattle = team.state === SEATTLE_STATE
     const isStateMatch = selectedMapState !== null && team.state === selectedMapState && !isFollowed && !isSeattle
 
@@ -198,8 +247,8 @@ export default function TeamsClient() {
       <div
         role="button"
         tabIndex={0}
-        onClick={() => toggleFollow(team.id)}
-        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') toggleFollow(team.id) }}
+        onClick={() => toggleProTeam(team.id)}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') toggleProTeam(team.id) }}
         className="relative flex flex-col items-center gap-1.5 p-2.5 rounded-lg transition-all active:scale-95 cursor-pointer select-none"
         style={{
           background: isFollowed
@@ -291,11 +340,11 @@ export default function TeamsClient() {
         <div className="overflow-x-auto no-scrollbar px-4 pb-3">
           <div className="flex gap-2.5" style={{ width: 'max-content' }}>
             {stateTeams.map(team => {
-              const isFollowed = followedIds.includes(team.id)
+              const isFollowed = effectivelyFollowedProIds.has(team.id)
               return (
                 <button
                   key={team.id}
-                  onClick={() => toggleFollow(team.id)}
+                  onClick={() => toggleProTeam(team.id)}
                   className="relative flex flex-col items-center gap-1 p-2.5 rounded-lg transition-all active:scale-95 shrink-0"
                   style={{
                     width: 76,
