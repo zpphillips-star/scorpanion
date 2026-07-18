@@ -559,7 +559,7 @@ export default function TeamsClient() {
         )}
       </div>
 
-      {/* ── Seattle section (local / college teams) — hidden during search ── */}
+      {/* ── Seattle section (local pro teams + golf tours) — hidden during search ── */}
       {activeTab === 'ALL' && !searchQuery && (
         <>
           <div className="px-4 mt-8 pb-1">
@@ -574,23 +574,6 @@ export default function TeamsClient() {
             <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Pro Teams</h2>
             <div className="grid grid-cols-4 lg:grid-cols-6 gap-3">
               {byIds(PRO_TEAM_IDS).map(team => <SeattleTeamCard key={team.id} team={team} />)}
-            </div>
-          </div>
-
-          <div className="px-4 mt-6">
-            <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">University of Washington</h2>
-            <UniversityCard config={UW_CONFIG} />
-          </div>
-
-          <div className="px-4 mt-6">
-            <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Washington State</h2>
-            <UniversityCard config={WSU_CONFIG} />
-          </div>
-
-          <div className="px-4 mt-6">
-            <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Other</h2>
-            <div className="grid grid-cols-4 lg:grid-cols-6 gap-3">
-              {byIds(OTHER_IDS).map(team => <SeattleTeamCard key={team.id} team={team} />)}
             </div>
           </div>
 
