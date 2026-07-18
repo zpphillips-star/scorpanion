@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 
 interface GolfPlayer {
   rank: number
@@ -167,13 +167,28 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label, mod
   const [tournament, setTournament] = useState<GolfTournament | null>(null)
   const [loading, setLoading] = useState(true)
   const [showDetail, setShowDetail] = useState(false)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  useEffect(() => {
+  const doFetch = useCallback(() => {
     fetch(`/api/golf?tour=${tourId}`)
       .then(r => r.ok ? r.json() : null)
-      .then(d => { setTournament(d); setLoading(false) })
+      .then(d => {
+        setTournament(d)
+        setLoading(false)
+        // Reschedule: 60 s when tournament is live, 5 min otherwise
+        const isLive = d?.status === 'in'
+        const nextInterval = isLive ? 60_000 : 5 * 60_000
+        if (intervalRef.current) clearInterval(intervalRef.current)
+        intervalRef.current = setInterval(doFetch, nextInterval)
+      })
       .catch(() => setLoading(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tourId])
+
+  useEffect(() => {
+    doFetch()
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [doFetch])
 
   return (
     <>

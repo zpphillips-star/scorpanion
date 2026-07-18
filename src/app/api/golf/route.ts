@@ -29,7 +29,8 @@ interface GolfTournament {
 async function fetchTour(slug: string): Promise<GolfTournament | null> {
   try {
     const url = `https://site.api.espn.com/apis/site/v2/sports/golf/${slug}/scoreboard`
-    const res = await fetch(url, { next: { revalidate: 120 } })
+    // No server-side cache — client polls on its own interval; always serve fresh data
+    const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return null
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = await res.json()
@@ -44,26 +45,40 @@ async function fetchTour(slug: string): Promise<GolfTournament | null> {
 
     const venue = comp.venue ?? {}
     const status = event.status?.type?.state ?? 'pre'  // 'pre' | 'in' | 'post'
-    const round = comp.status?.period ?? 1
+    // currentRound comes from the competition status (e.g. period=3 = "Round 3")
+    const currentRound = comp.status?.period ?? 1
+    const round = currentRound
     const totalRounds = 4
 
+    const fmtScore = (v: string | number | null | undefined): string => {
+      if (v == null || v === '' || v === 'E' || v === '--') return (v as string) || 'E'
+      const n = Number(v)
+      if (isNaN(n)) return String(v)
+      if (n === 0) return 'E'
+      return n > 0 ? `+${n}` : `${n}`
+    }
+
     const leaders: GolfPlayer[] = (comp.competitors ?? []).map((c: any) => {
-      const stats = c.statistics ?? []
-      const scoreStat = stats.find((s: any) => s.name === 'scoreToPar' || s.abbreviation === 'STP')
-      const todayStat = stats.find((s: any) => s.name === 'roundScore' || s.abbreviation === 'RS')
-      const thruStat  = stats.find((s: any) => s.name === 'holesPlayed' || s.abbreviation === 'HP')
+      // Total score: ESPN provides c.score as a number (e.g. -10), not via statistics
+      const rawScore = c.score ?? 'E'
 
-      const rawScore = scoreStat?.displayValue ?? c.score ?? 'E'
-      const rawToday = todayStat?.displayValue ?? ''
-      const rawThru  = thruStat?.displayValue ?? '–'
+      // Round-by-round linescores: one object per round, each has .displayValue (score to par)
+      // and an inner .linescores array (one entry per hole completed)
+      const roundLinescores: any[] = c.linescores ?? []
 
-      const fmtScore = (v: string) => {
-        if (!v || v === 'E' || v === '--') return v || 'E'
-        const n = Number(v)
-        if (isNaN(n)) return v
-        if (n === 0) return 'E'
-        return n > 0 ? `+${n}` : `${n}`
-      }
+      // Today's linescore = the entry matching the current round
+      const todayLs = roundLinescores.find((ls: any) => ls.period === currentRound)
+      const rawToday = todayLs?.displayValue ?? ''
+
+      // Thru: count completed holes in today's round inner array
+      const holesCompleted: number = todayLs?.linescores?.length ?? 0
+      const thru = holesCompleted >= 18 ? 'F'
+        : holesCompleted > 0 ? String(holesCompleted)
+        : '–'
+
+      // Cut detection: player has no linescore data for the current round (round 3+)
+      const hasTodayData = todayLs != null && (todayLs.displayValue != null || holesCompleted > 0)
+      const playerIsCut = currentRound > 2 && roundLinescores.length > 0 && !hasTodayData
 
       return {
         rank: c.order ?? 0,
@@ -71,9 +86,9 @@ async function fetchTour(slug: string): Promise<GolfTournament | null> {
         country: c.athlete?.flag?.alt ?? '',
         score: fmtScore(rawScore),
         today: fmtScore(rawToday),
-        thru: rawThru === '18' ? 'F' : rawThru,
+        thru,
         status: c.status?.type?.name === 'Withdrawn' ? 'wd'
-          : c.status?.type?.name === 'Cut' ? 'cut'
+          : (c.status?.type?.name === 'Cut' || playerIsCut) ? 'cut'
           : status === 'post' ? 'complete' : 'active',
       }
     }).filter((p: GolfPlayer) => p.status !== 'wd') // keep cut players, remove WD only
