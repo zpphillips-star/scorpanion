@@ -153,15 +153,9 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label, mod
         onClick={() => tournament && setShowDetail(true)}
       >
         <div className="pb-2">
-          {/* Section header */}
-          <div className="flex items-center gap-3 px-5 mb-3">
+          {/* Section label — matches TodayGameCard league label: small dim text, no separator */}
+          <div className="px-4 mb-3">
             <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>{label}</span>
-            <div className="flex-1 h-px bg-zinc-800" />
-            {tournament && (
-              <span className="text-[10px] text-zinc-500 uppercase tracking-wider">
-                {tournament.status === 'in' ? `Round ${tournament.round}` : tournament.status === 'post' ? 'Final' : 'Upcoming'}
-              </span>
-            )}
           </div>
 
           {loading ? (
