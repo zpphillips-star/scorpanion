@@ -80,16 +80,15 @@ function GolfDetailSheet({ tournament, label, accentColor, onClose }: {
         </div>
 
         {/* Column headers */}
-        <div className="flex-shrink-0 flex items-center px-5 py-2 border-b border-zinc-800">
-          <div className="w-8 text-[10px] text-zinc-600 uppercase tracking-wider text-right">#</div>
-          <div className="flex-1 text-[10px] text-zinc-600 uppercase tracking-wider ml-3">Player</div>
+        <div className="flex-shrink-0 flex items-center pl-5 pr-8 py-2 border-b border-zinc-800">
+          <div className="flex-1 text-[10px] text-zinc-600 uppercase tracking-wider">Player</div>
           <div className="w-12 text-[10px] text-zinc-600 uppercase tracking-wider text-right">Today</div>
           <div className="w-12 text-[10px] text-zinc-600 uppercase tracking-wider text-right">Total</div>
           <div className="w-10 text-[10px] text-zinc-600 uppercase tracking-wider text-right">Thru</div>
         </div>
 
         {/* Full leaderboard — all players, cut players dimmed */}
-        <div className="overflow-y-auto flex-1 px-5">
+        <div className="overflow-y-auto flex-1 pl-5 pr-8">
           {tournament.leaders.map((player, i) => {
             const isCut = player.status === 'cut'
             const prevCut = i > 0 && tournament.leaders[i - 1].status !== 'cut'
@@ -104,10 +103,12 @@ function GolfDetailSheet({ tournament, label, accentColor, onClose }: {
                   </div>
                 )}
                 <div className={`flex items-center py-3 border-b border-zinc-800/40 ${isCut ? 'opacity-40' : ''}`}>
-                  <div className="w-8 text-[12px] text-zinc-500 font-mono text-right flex-shrink-0">{player.rank}</div>
-                  <div className="flex-1 min-w-0 ml-3">
-                    <div className="text-[14px] font-semibold text-white truncate">{player.name}</div>
-                    {player.country && <div className="text-[11px] text-zinc-600">{player.country}</div>}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-[12px] text-zinc-500 font-mono tabular-nums flex-shrink-0">{player.rank}</span>
+                      <span className="text-[14px] font-semibold text-white truncate">{player.name}</span>
+                    </div>
+                    {player.country && <div className="text-[11px] text-zinc-600 ml-5">{player.country}</div>}
                   </div>
                   <div className="w-12 text-right flex-shrink-0">
                     <span className="text-[13px] font-semibold tabular-nums" style={{ color: isCut ? '#52525b' : scoreColor(player.today) }}>
