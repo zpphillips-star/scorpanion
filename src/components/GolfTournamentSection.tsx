@@ -122,15 +122,15 @@ function GolfDetailSheet({ tournament, label, accentColor, onClose }: {
                   className={`flex items-center px-5 py-3 border-b border-white/[0.05] ${isCut ? 'opacity-40' : ''}`}
                   style={isEven ? { background: "rgba(255,255,255,0.02)" } : undefined}
                 >
-                  {/* Rank inline with name + country stacked below */}
-                  <div className="flex-1 min-w-0 mr-4">
-                    <div className="flex items-baseline">
-                      <span className="text-[12px] text-zinc-500 mr-1.5">{player.rank}</span>
+                  {/* Rank (fixed width, left) + flex-col block (name top, country below) */}
+                  <div className="flex-1 min-w-0 flex items-start gap-3 mr-4">
+                    <span className="w-6 flex-shrink-0 text-right text-[12px] text-zinc-500 tabular-nums pt-0.5">{player.rank}</span>
+                    <div className="flex flex-col min-w-0">
                       <span className="text-[15px] font-semibold text-white truncate leading-tight">{player.name}</span>
+                      {player.country && (
+                        <span className="text-[11px] text-zinc-500 truncate mt-0.5">{player.country}</span>
+                      )}
                     </div>
-                    {player.country && (
-                      <div className="text-[11px] text-zinc-500 mt-0.5 truncate">{player.country}</div>
-                    )}
                   </div>
 
                   {/* Stat values — no per-row labels, header row covers labeling */}
