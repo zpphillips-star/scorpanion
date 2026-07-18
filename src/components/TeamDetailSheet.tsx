@@ -100,7 +100,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
               <div className="flex-1 h-px bg-white/5" />
             </div>
             <div className="grid grid-cols-3 gap-2">
-              {[...data.recentForm].reverse().map((g, i) => {
+              {[...data.recentForm].reverse().slice(0, 3).map((g, i) => {
                 const win = g.result === "W"
                 const loss = g.result === "L"
                 const rc = win ? "#34d399" : loss ? "#f87171" : "#9ca3af"
