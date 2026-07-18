@@ -83,26 +83,38 @@ export default function CalendarClient() {
 
   useEffect(() => { if (loaded) fetchSchedule() }, [loaded, fetchSchedule])
 
-  // ── Live-score polling — 2s when live, 30s otherwise, switches immediately ──
-  const calIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // ── Live-score polling — 2s when live, 30s otherwise ────────────────────────
+  // Uses setTimeout (schedule-after-completion) to prevent overlapping requests
+  // and a mountedRef guard to prevent orphaned timers after unmount.
+  const calTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const calMountedRef = useRef(false)
 
   const fetchLiveScores = useCallback(async () => {
     try {
       const r = await fetch('/api/live-scores')
-      if (!r.ok) return
-      const data = await r.json()
-      setLiveScores(data)
-      const hasLive = Object.values(data as Record<string, { status: string }>).some(s => s.status === 'live')
-      const next = hasLive ? 2_000 : 30_000
-      if (calIntervalRef.current) clearInterval(calIntervalRef.current)
-      calIntervalRef.current = setInterval(fetchLiveScores, next)
-    } catch { /* silent */ }
+      if (!r.ok || !calMountedRef.current) return
+      const data = await r.json() as Record<string, { status: string }>
+      if (!calMountedRef.current) return
+      setLiveScores(data as Record<string, ScoreUpdate>)
+      const hasLive = Object.values(data).some(s => s.status === 'live')
+      calTimeoutRef.current = setTimeout(fetchLiveScores, hasLive ? 2_000 : 30_000)
+    } catch {
+      if (calMountedRef.current) {
+        calTimeoutRef.current = setTimeout(fetchLiveScores, 30_000)
+      }
+    }
   }, [])
 
   useEffect(() => {
+    calMountedRef.current = true
     fetchLiveScores()
-    calIntervalRef.current = setInterval(fetchLiveScores, 30_000)
-    return () => { if (calIntervalRef.current) clearInterval(calIntervalRef.current) }
+    return () => {
+      calMountedRef.current = false
+      if (calTimeoutRef.current) {
+        clearTimeout(calTimeoutRef.current)
+        calTimeoutRef.current = null
+      }
+    }
   }, [fetchLiveScores])
 
   // Merge live scores into schedule data

@@ -202,28 +202,49 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
   }, [fetchSchedule])
 
   // ── 3. Live-score polling (single shared poller) ───────────────────────────
+  //
+  // Uses setTimeout (not setInterval) so each poll is only scheduled AFTER the
+  // previous fetch completes — prevents overlapping requests when the network is
+  // slow or the 2 s live interval is tight.  A mountedRef guard ensures no new
+  // timer is created after the provider unmounts (avoids orphaned timers / the
+  // "Can't perform a state update on an unmounted component" warning).
+  //
+  // Interval logic:
+  //   • Any game whose status is 'live' → 2 s
+  //   • All games pre/post  → 30 s
+
   const [liveScores, setLiveScores] = useState<Record<string, ScoreUpdate>>({})
 
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timeoutRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const mountedRef  = useRef(false)
 
   const fetchLiveScores = useCallback(async () => {
     try {
       const r = await fetch('/api/live-scores')
-      if (!r.ok) return
-      const data = await r.json()
-      setLiveScores(data)
-      // Immediately adjust poll rate based on live game presence
-      const hasLive = Object.values(data as Record<string, { status: string }>).some(s => s.status === 'live')
-      const targetInterval = hasLive ? 2_000 : 30_000
-      if (intervalRef.current) clearInterval(intervalRef.current)
-      intervalRef.current = setInterval(fetchLiveScores, targetInterval)
-    } catch { /* network hiccup — keep previous scores */ }
+      if (!r.ok || !mountedRef.current) return
+      const data = await r.json() as Record<string, { status: string }>
+      if (!mountedRef.current) return
+      setLiveScores(data as Record<string, ScoreUpdate>)
+      const hasLive = Object.values(data).some(s => s.status === 'live')
+      timeoutRef.current = setTimeout(fetchLiveScores, hasLive ? 2_000 : 30_000)
+    } catch {
+      // Network hiccup — keep previous scores; retry in 30 s
+      if (mountedRef.current) {
+        timeoutRef.current = setTimeout(fetchLiveScores, 30_000)
+      }
+    }
   }, [])
 
   useEffect(() => {
+    mountedRef.current = true
     fetchLiveScores()
-    intervalRef.current = setInterval(fetchLiveScores, 30_000)
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+    return () => {
+      mountedRef.current = false
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
+      }
+    }
   }, [fetchLiveScores])
 
   // ── 4. Merge schedule + live scores ───────────────────────────────────────
