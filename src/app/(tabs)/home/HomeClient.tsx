@@ -472,10 +472,7 @@ export default function HomeClient() {
 
       {/* ── FEATURED: Always-on Today section ───────────────────────────── */}
       {(() => {
-        const hasLive = liveGames.length > 0
-        // When live games exist, show only those; otherwise show all today's games
-        const displayGames = hasLive ? liveGames : todayGames
-        const hasGames = displayGames.length > 0
+        const hasGames = todayGames.length > 0
         const todayDate = new Date()
         const dateLabel = todayDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
 
@@ -489,7 +486,7 @@ export default function HomeClient() {
             </div>
 
             {hasGames ? (
-              displayGames.map(g => <TodayGameCard key={g.id} game={g} />)
+              todayGames.map(g => <TodayGameCard key={g.id} game={g} />)
             ) : (
               <div className="px-4 py-8 flex items-center justify-center">
                 <span className="text-[15px] text-zinc-600 font-medium">No games today</span>

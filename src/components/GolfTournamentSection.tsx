@@ -138,7 +138,7 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label }: G
       >
         <div className="pb-2">
           {/* Section header */}
-          <div className="flex items-center gap-3 px-4 mb-3">
+          <div className="flex items-center gap-3 px-5 mb-3">
             <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">{label}</span>
             <div className="flex-1 h-px bg-zinc-800" />
             {tournament && (
@@ -153,13 +153,13 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label }: G
               <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accentColor, borderTopColor: 'transparent' }} />
             </div>
           ) : !tournament ? (
-            <div className="px-4 py-6 text-center">
+            <div className="px-5 py-6 text-center">
               <span className="text-[13px] text-zinc-600">No active tournament</span>
             </div>
           ) : (
             <>
               {/* Tournament name — subtle subtitle */}
-              <div className="px-4 mb-2">
+              <div className="px-5 mb-2">
                 <span className="text-[12px] text-zinc-400">{tournament.name}</span>
                 {tournament.course && (
                   <span className="text-[11px] text-zinc-600 ml-2">· {tournament.course}{tournament.location ? `, ${tournament.location}` : ''}</span>
@@ -167,7 +167,7 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label }: G
               </div>
 
               {/* Top 3 preview rows */}
-              <div className="px-4 pr-6">
+              <div className="px-5 pr-6">
                 {tournament.leaders.slice(0, 3).map((player, i) => (
                   <div key={player.name}>
                     {i > 0 && <div className="h-px bg-zinc-800/60" />}
@@ -197,7 +197,7 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label }: G
 
               {/* "Tap to see full leaderboard" hint */}
               {(tournament.leaders?.length ?? 0) > 3 && (
-                <div className="px-4 pt-1 pb-1">
+                <div className="px-5 pt-1 pb-1">
                   <span className="text-[11px] text-zinc-600">
                     +{tournament.leaders.length - 3} more · tap to open →
                   </span>
