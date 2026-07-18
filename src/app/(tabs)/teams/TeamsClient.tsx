@@ -162,7 +162,7 @@ export default function TeamsClient() {
   if (!loaded) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-[#00d4ff] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#D95C17] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -175,22 +175,12 @@ export default function TeamsClient() {
         onClick={() => toggleTeam(team.id)}
         className="relative flex flex-col items-center gap-2 p-3 rounded-lg transition-all active:scale-95"
         style={{
-          background: selected ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.04)',
-          border: `2px solid ${selected ? '#00d4ff' : 'rgba(255,255,255,0.08)'}`,
-          boxShadow: selected ? '0 0 16px rgba(0,212,255,0.5)' : 'none',
+          background: selected ? 'rgba(217,92,23,0.15)' : 'rgba(255,255,255,0.04)',
+          border: `2px solid ${selected ? '#D95C17' : 'rgba(255,255,255,0.08)'}`,
+          boxShadow: selected ? '0 0 12px rgba(217,92,23,0.35)' : 'none',
         }}
       >
         <TeamLogo src={getTeamLogoUrl(team)} emoji={team.emoji} abbr={team.abbr} size={44} />
-        {selected && (
-          <div
-            className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: '#00d4ff' }}
-          >
-            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-        )}
       </button>
     )
   }
@@ -200,7 +190,6 @@ export default function TeamsClient() {
     const isFollowed = followedIds.includes(team.id)
     const isSeattle = team.state === SEATTLE_STATE
     const isStateMatch = selectedMapState !== null && team.state === selectedMapState && !isFollowed && !isSeattle
-    const badgeColor = LEAGUE_BADGE[team.league] ?? '#333'
 
     return (
       <div
@@ -211,45 +200,28 @@ export default function TeamsClient() {
         className="relative flex flex-col items-center gap-1.5 p-2.5 rounded-lg transition-all active:scale-95 cursor-pointer select-none"
         style={{
           background: isFollowed
-            ? 'rgba(0,212,255,0.15)'
+            ? 'rgba(217,92,23,0.15)'
             : isStateMatch
             ? 'rgba(251,191,36,0.07)'
             : isSeattle
-            ? 'rgba(0,212,255,0.06)'
+            ? 'rgba(217,92,23,0.06)'
             : 'rgba(255,255,255,0.03)',
           border: `2px solid ${
             isFollowed
-              ? '#00d4ff'
+              ? '#D95C17'
               : isStateMatch
               ? 'rgba(251,191,36,0.45)'
               : isSeattle
-              ? 'rgba(0,212,255,0.25)'
+              ? 'rgba(217,92,23,0.2)'
               : 'rgba(255,255,255,0.07)'
           }`,
           boxShadow: isFollowed
-            ? '0 0 18px rgba(0,212,255,0.5)'
+            ? '0 0 12px rgba(217,92,23,0.35)'
             : isStateMatch
             ? '0 0 8px rgba(251,191,36,0.15)'
             : 'none',
         }}
       >
-        {/* Follow checkmark badge */}
-        {isFollowed && (
-          <div
-            className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full flex items-center justify-center z-10"
-            style={{ backgroundColor: '#00d4ff' }}
-          >
-            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-        )}
-
-        {/* Seattle star indicator */}
-        {isSeattle && !isFollowed && (
-          <div className="absolute top-1.5 right-1.5 text-[#00d4ff] text-[10px] leading-none">★</div>
-        )}
-
         {/* Logo */}
         <div className="w-11 h-11 flex items-center justify-center mt-0.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -262,13 +234,10 @@ export default function TeamsClient() {
           />
         </div>
 
-        {/* Name + league badge */}
+        {/* Name + league — no badge background */}
         <div className="w-full text-center px-0.5">
           <div className="text-white text-[11px] font-semibold leading-tight line-clamp-2">{team.shortName}</div>
-          <div
-            className="text-[8px] font-700 uppercase tracking-wider mt-0.5 px-1 py-0.5 rounded inline-block"
-            style={{ background: badgeColor, color: '#fff' }}
-          >
+          <div className="text-[9px] font-700 uppercase tracking-wider mt-0.5 text-zinc-600">
             {team.league}
           </div>
         </div>
@@ -327,29 +296,15 @@ export default function TeamsClient() {
                   className="relative flex flex-col items-center gap-1 p-2.5 rounded-lg transition-all active:scale-95 shrink-0"
                   style={{
                     width: 76,
-                    background: isFollowed ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.07)',
-                    border: `2px solid ${isFollowed ? '#00d4ff' : 'rgba(0,212,255,0.22)'}`,
-                    boxShadow: isFollowed ? '0 0 16px rgba(0,212,255,0.5)' : '0 0 6px rgba(0,212,255,0.06)',
+                    background: isFollowed ? 'rgba(217,92,23,0.15)' : 'rgba(255,255,255,0.07)',
+                    border: `2px solid ${isFollowed ? '#D95C17' : 'rgba(255,255,255,0.1)'}`,
+                    boxShadow: isFollowed ? '0 0 10px rgba(217,92,23,0.3)' : 'none',
                   }}
                 >
-                  {/* Follow checkmark badge */}
-                  {isFollowed && (
-                    <div
-                      className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full flex items-center justify-center z-10"
-                      style={{ backgroundColor: '#00d4ff' }}
-                    >
-                      <svg className="w-2 h-2" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  )}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={team.logo} alt={team.name} width={40} height={40} style={{ objectFit: "contain", maxHeight: 40 }} />
                   <div className="text-[10px] font-semibold text-white leading-tight text-center line-clamp-2 w-full">{team.shortName}</div>
-                  <span
-                    className="text-[8px] font-700 uppercase px-1 py-0.5 rounded"
-                    style={{ background: LEAGUE_BADGE[team.league] ?? '#333', color: '#fff' }}
-                  >{team.league}</span>
+                  <span className="text-[8px] font-700 uppercase tracking-wider text-zinc-600">{team.league}</span>
                 </button>
               )
             })}
