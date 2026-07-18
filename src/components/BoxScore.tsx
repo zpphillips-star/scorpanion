@@ -452,9 +452,6 @@ function SoccerScoreboard({ data }: { data: BoxScoreData; seattleTeamId?: string
   const { linescores, goalScorers } = data
   if (linescores.length < 2) return null
 
-  const away = linescores.find(t => t.homeAway === "away") ?? linescores[0]
-  const home = linescores.find(t => t.homeAway === "home") ?? linescores[1]
-
   // Sort all scorers chronologically
   const sorted = [...goalScorers].sort((a, b) => parseInt(a.minute) - parseInt(b.minute))
 
@@ -465,47 +462,19 @@ function SoccerScoreboard({ data }: { data: BoxScoreData; seattleTeamId?: string
         {goalScorers.length === 0 ? (
           <div className="text-center text-[12px] text-zinc-600 py-3">No goals recorded</div>
         ) : (
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col">
             {sorted.map((s, i) => {
-              const isAway = s.teamId === away.teamId
               const suffix = s.type === "Own Goal" ? " (OG)" : s.type === "Penalty" ? " (P)" : ""
               return (
-                <div key={i} className="grid items-center w-full" style={{ gridTemplateColumns: "1fr 40px 1fr", columnGap: "8px" }}>
-                  <span className="text-[12px] text-white font-semibold text-right leading-none">
-                    {isAway ? `${s.name}${suffix}` : ""}
-                  </span>
-                  <span className="text-[11px] text-zinc-500 font-medium leading-none text-center">{s.minute}′</span>
-                  <span className="text-[12px] text-white font-semibold text-left leading-none">
-                    {!isAway ? `${s.name}${suffix}` : ""}
-                  </span>
+                <div key={i} className="flex items-center gap-3 py-2.5 border-b border-zinc-800/50 last:border-0">
+                  <span className="font-display text-[13px] font-600 text-zinc-500 w-10 flex-shrink-0 tabular-nums">{s.minute}′</span>
+                  <span className="flex-1 text-[13px] font-700 text-white truncate">{s.name}{suffix}</span>
                 </div>
               )
             })}
           </div>
         )}
-
-        {/* Half-time breakdown */}
-        {(away.linescores.length > 0 || home.linescores.length > 0) && (
-          <div className="flex items-center gap-2 mt-4">
-            <div className="flex-1 h-px bg-zinc-800" />
-            <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
-              HT {away.linescores[0] ?? 0} – {home.linescores[0] ?? 0}
-            </span>
-            <div className="flex-1 h-px bg-zinc-800" />
-          </div>
-        )}
       </div>
-
-      {/* Half-time breakdown — WC hairline style */}
-      {(away.linescores.length > 0 || home.linescores.length > 0) && (
-        <div className="mx-5 mt-1 mb-5 flex items-center gap-3 pt-3 border-t border-zinc-800">
-          <span className="text-[13px] tabular-nums font-600 text-zinc-300">{home.linescores[0] ?? 0} – {away.linescores[0] ?? 0}</span>
-          <div className="flex-1 h-px bg-zinc-800" />
-          <span className="text-[10px] uppercase tracking-widest text-zinc-600 flex-shrink-0">Half Time</span>
-          <div className="flex-1 h-px bg-zinc-800" />
-          <span className="text-[13px] tabular-nums font-600 text-zinc-300">{home.linescores[1] ?? 0} – {away.linescores[1] ?? 0}</span>
-        </div>
-      )}
     </>
   )
 }
