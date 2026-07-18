@@ -1,8 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SEATTLE_TEAMS } from '@/lib/teams'
+import { ALL_PRO_TEAMS } from '@/lib/allProTeams'
 import { ScoreUpdate } from '@/lib/types'
 
 export const runtime = 'edge'
+
+// ── Pro-league → ESPN sport/league slug ──────────────────────────────────────
+const PRO_LEAGUE_SLUG: Record<string, string> = {
+  NFL:  'football/nfl',
+  NBA:  'basketball/nba',
+  WNBA: 'basketball/wnba',
+  MLS:  'soccer/usa.1',
+  NWSL: 'soccer/usa.nwsl',
+  // NHL and MLB are handled by dedicated APIs — excluded here
+}
 
 // ── MLB Mariners official team ID ─────────────────────────────────────────────
 const MLB_MARINERS_TEAM_ID = 136
@@ -116,13 +127,18 @@ async function fetchNHLLiveScores(today: string): Promise<Record<string, ScoreUp
 }
 
 export async function GET() {
-  // Group non-MLB, non-NHL teams by sport+league for ESPN scoreboard fetches
+  // Group non-MLB, non-NHL teams by sport+league for ESPN scoreboard fetches.
+  // Include leagues from both SEATTLE_TEAMS and ALL_PRO_TEAMS so followed
+  // non-Seattle teams (Lakers, Chiefs, etc.) also get live-score overlays.
   const NON_ESPN_LEAGUES = ['pwhl', 'whl', 'ncaa-softball', 'ncaa-soccer', 'mlb', 'nhl']
-  const sportLeagues = [...new Set(
-    SEATTLE_TEAMS
-      .filter(t => t.espnId && !NON_ESPN_LEAGUES.includes(t.league))
-      .map(t => `${t.sport}/${t.league}`)
-  )]
+  const seattleSportLeagues = SEATTLE_TEAMS
+    .filter(t => t.espnId && !NON_ESPN_LEAGUES.includes(t.league))
+    .map(t => `${t.sport}/${t.league}`)
+
+  // Add leagues from ALL_PRO_TEAMS (excluding MLB/NHL which have dedicated APIs)
+  const proSportLeagues = Object.values(PRO_LEAGUE_SLUG)
+
+  const sportLeagues = [...new Set([...seattleSportLeagues, ...proSportLeagues])]
 
   const updates: Record<string, ScoreUpdate> = {}
 
@@ -155,10 +171,22 @@ export async function GET() {
           else if (statusName === 'STATUS_FINAL' || comp.status?.type?.completed) status = 'ft'
 
           for (const competitor of comp.competitors ?? []) {
+            // ── Match against SEATTLE_TEAMS first ───────────────────────────
             const seattleTeam = SEATTLE_TEAMS.find(
               t => t.sport === sport && t.league === league && t.espnId === competitor.team.id
             )
-            if (!seattleTeam) continue
+
+            // ── Fallback: match against ALL_PRO_TEAMS ───────────────────────
+            // ALL_PRO_TEAMS.league is uppercase ('NBA', 'NFL', etc.); we compare
+            // against the ESPN slug derived from PRO_LEAGUE_SLUG.
+            const proTeam = seattleTeam ? null : ALL_PRO_TEAMS.find(
+              t => t.espnId === competitor.team.id &&
+                   PRO_LEAGUE_SLUG[t.league] === `${sport}/${league}`
+            )
+
+            const matchedId    = seattleTeam?.id ?? proTeam?.id
+            const matchedEspnId = seattleTeam?.espnId ?? proTeam?.espnId
+            if (!matchedId || !matchedEspnId) continue
 
             // Skip injecting score updates for scheduled games — scores are 0/"" pre-game
             // and would overwrite the schedule API's cleaner undefined values.
@@ -166,15 +194,20 @@ export async function GET() {
             if (status === 'upcoming') continue
 
             const opponentComp = comp.competitors?.find((c: any) => c.homeAway !== competitor.homeAway)
-            const gameId = `${seattleTeam.id}|${event.id}`
+            const gameId = `${matchedId}|${event.id}`
             const parseScore = (val: unknown): number => {
               if (val === undefined || val === null || val === '') return 0
+              if (typeof val === 'object') {
+                const obj = val as Record<string, unknown>
+                val = obj.displayValue ?? obj.value
+                if (val === undefined || val === null || val === '') return 0
+              }
               const n = Number(val)
               return isNaN(n) ? 0 : n
             }
             updates[gameId] = {
               gameId,
-              seattleTeamId: seattleTeam.id,
+              seattleTeamId: matchedId,
               seattleScore: parseScore(competitor.score),
               opponentScore: parseScore(opponentComp?.score),
               status,

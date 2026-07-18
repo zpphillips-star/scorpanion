@@ -1,13 +1,10 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Game, ScoreUpdate } from '@/lib/types'
-import { getTeamLogoUrl } from '@/lib/teams'
 import { useSelectedTeams } from '@/hooks/useSelectedTeams'
 import { useTeamClickCounts } from '@/hooks/useTeamClickCounts'
-import GameCard from '@/components/GameCard'
-import GameDetailSheet from '@/components/GameDetailSheet'
+import DayGamesSheet from '@/components/DayGamesSheet'
 import TeamFilterBar, { getCollegeGroupKey } from '@/components/TeamFilterBar'
-import TeamLogo from '@/components/TeamLogo'
 import PageHeader from '@/components/PageHeader'
 
 const DOW = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
@@ -23,7 +20,6 @@ export default function CalendarClient() {
   const [liveScores, setLiveScores] = useState<Record<string, ScoreUpdate>>({})
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [activeFilter, setActiveFilter] = useState('all')
 
   const now = new Date()
@@ -265,9 +261,9 @@ export default function CalendarClient() {
               return (
                 <button
                   key={ds}
-                  onClick={() => { if (hasGames || isToday) setSelectedDate(ds === selectedDate ? null : ds) }}
-                  className={`relative flex flex-col items-center justify-start pt-1.5 rounded-lg transition-all active:scale-95 ${
-                    isSelected ? 'ring-2 ring-[#00d4ff]' : hasGames ? 'cursor-pointer active:bg-white/10' : 'cursor-default'
+                  onClick={() => setSelectedDate(ds === selectedDate ? null : ds)}
+                  className={`relative flex flex-col items-center justify-start pt-1.5 rounded-lg transition-all active:scale-95 cursor-pointer ${
+                    isSelected ? 'ring-2 ring-[#00d4ff]' : hasGames ? 'active:bg-white/10' : 'opacity-50'
                   }`}
                   style={{
                     background: isSelected ? 'rgba(0,212,255,0.12)' : hasGames ? 'var(--surface-2)' : 'var(--surface)',
@@ -297,47 +293,18 @@ export default function CalendarClient() {
             })}
           </div>
 
-          {/* ── Day game list (inline below grid when date selected) ──── */}
-          {selectedDate && selectedGames.length > 0 && (
-            <div
-              className="flex-shrink-0 border-t animate-slide-up overflow-y-auto"
-              style={{ borderColor: 'var(--border)', background: 'var(--surface)', maxHeight: '38dvh', paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
-            >
-              <div className="px-5 py-3 flex items-center justify-between sticky top-0" style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-                <div>
-                  <div className="font-display text-[16px] font-800 text-white uppercase tracking-tight">
-                    {new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-                  </div>
-                  <div className="font-display text-[10px] font-600 text-zinc-500 uppercase tracking-widest">
-                    {selectedGames.length} Game{selectedGames.length !== 1 ? 's' : ''}
-                  </div>
-                </div>
-                <button onClick={() => setSelectedDate(null)} className="w-7 h-7 rounded-full flex items-center justify-center text-zinc-400 text-sm" style={{ background: 'rgba(255,255,255,0.08)' }}>✕</button>
-              </div>
-              <div className="py-2">
-                {selectedGames.map(g => (
-                  <div key={g.id} onClick={() => setSelectedGame(g)} className="cursor-pointer">
-                    <GameCard game={g} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Empty day */}
-          {selectedDate && selectedGames.length === 0 && (
-            <div className="flex-shrink-0 border-t py-6 text-center animate-slide-up" style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}>
-              <div className="text-3xl mb-2">🗓️</div>
-              <div className="font-display text-[13px] font-700 text-zinc-400 uppercase tracking-wide">No games this day</div>
-              <button onClick={() => setSelectedDate(null)} className="mt-3 text-[11px] text-zinc-500 underline">Dismiss</button>
-            </div>
-          )}
+          {/* ── Day game list (bottom sheet when date selected) ──── */}
+          {/* Handled by DayGamesSheet below */}
         </div>
       )}
 
-      {/* ── Game detail sheet (same as everywhere else) ────────────────── */}
-      {selectedGame && (
-        <GameDetailSheet game={selectedGame} onClose={() => setSelectedGame(null)} />
+      {/* ── Day games bottom sheet ──────────────────────────────────────── */}
+      {selectedDate && (
+        <DayGamesSheet
+          date={selectedDate}
+          games={selectedGames}
+          onClose={() => setSelectedDate(null)}
+        />
       )}
     </>
   )

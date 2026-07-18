@@ -17,10 +17,14 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
   const isLive = game.status === "live"
   const isFt   = game.status === "ft"
   const isUp   = game.status === "upcoming"
-  // For live games, default to 0-0 if score not yet available
-  const hasScore = isLive || isFt
-  const awayScore = game.isHome ? (game.opponentScore ?? (isLive ? 0 : undefined)) : (game.seattleScore ?? (isLive ? 0 : undefined))
-  const homeScore = game.isHome ? (game.seattleScore ?? (isLive ? 0 : undefined)) : (game.opponentScore ?? (isLive ? 0 : undefined))
+  // For live games, default to 0-0 if score not yet available.
+  // For final games, only show scores if they are actually defined.
+  const awayScoreRaw = game.isHome ? game.opponentScore : game.seattleScore
+  const homeScoreRaw = game.isHome ? game.seattleScore  : game.opponentScore
+  const awayScore = awayScoreRaw !== undefined ? awayScoreRaw : (isLive ? 0 : undefined)
+  const homeScore = homeScoreRaw !== undefined ? homeScoreRaw : (isLive ? 0 : undefined)
+  const hasDefinedScores = awayScore !== undefined && homeScore !== undefined
+  const hasScore = (isLive || isFt) && hasDefinedScores
   const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
 
   const awayLogo  = game.isHome ? game.opponent.logo  : seattleLogoUrl
@@ -33,8 +37,8 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
   const homeAbbr  = game.isHome ? game.seattleTeam.abbr  : game.opponent.abbr
   const homeName  = game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)
 
-  const awayWon = isFt && (awayScore ?? 0) > (homeScore ?? 0)
-  const homeWon = isFt && (homeScore ?? 0) > (awayScore ?? 0)
+  const awayWon = isFt && hasDefinedScores && (awayScore ?? 0) > (homeScore ?? 0)
+  const homeWon = isFt && hasDefinedScores && (homeScore ?? 0) > (awayScore ?? 0)
   const logoSize = featured ? 60 : 48
 
   return (

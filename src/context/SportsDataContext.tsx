@@ -178,6 +178,13 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
     if (loaded) fetchSchedule()
   }, [loaded, fetchSchedule])
 
+  // Periodically refetch the schedule so final scores for ALL_PRO_TEAMS and
+  // non-ESPN teams (WHL/PWHL/NCAA) appear without a full page reload.
+  useEffect(() => {
+    const timer = setInterval(fetchSchedule, 5 * 60_000)
+    return () => clearInterval(timer)
+  }, [fetchSchedule])
+
   // ── 3. Live-score polling (single shared poller) ───────────────────────────
   const [liveScores, setLiveScores] = useState<Record<string, ScoreUpdate>>({})
 
