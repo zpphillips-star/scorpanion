@@ -452,23 +452,74 @@ function SoccerScoreboard({ data }: { data: BoxScoreData; seattleTeamId?: string
   const { linescores, goalScorers } = data
   if (linescores.length < 2) return null
 
-  // Sort all scorers chronologically
-  const sorted = [...goalScorers].sort((a, b) => parseInt(a.minute) - parseInt(b.minute))
+  // Identify home vs away by the homeAway flag on each linescore entry
+  const homeEntry = linescores.find(t => t.homeAway === "home") ?? linescores[1]
+  const awayEntry = linescores.find(t => t.homeAway === "away") ?? linescores[0]
+  const homeTeamId = homeEntry.teamId
+  const awayTeamId = awayEntry.teamId
+  const homeAbbr   = homeEntry.abbr
+  const awayAbbr   = awayEntry.abbr
+
+  // Sort goals chronologically; minute strings may include "+" for stoppage (e.g. "45+2")
+  const sorted = [...goalScorers].sort((a, b) => {
+    const parse = (m: string) => { const [base, extra = "0"] = m.split("+"); return parseInt(base) * 100 + parseInt(extra) }
+    return parse(a.minute) - parse(b.minute)
+  })
+
+  // Goal type suffix — matches WCScores: (OG) for own goal, (P) for penalty
+  const goalSuffix = (type: string) => {
+    if (/own.?goal/i.test(type)) return " (OG)"
+    if (/penalty/i.test(type)) return " (P)"
+    return ""
+  }
 
   return (
     <>
       <SectionHeader label="Goals" first />
-      <div className="pb-2">
+      <div className="mb-6">
+        {/* Team abbreviation column headers */}
+        <div
+          className="grid items-center w-full mb-2"
+          style={{ gridTemplateColumns: "1fr 40px 1fr", columnGap: "8px" }}
+        >
+          <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest text-right">
+            {homeAbbr}
+          </span>
+          <span />
+          <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest text-left">
+            {awayAbbr}
+          </span>
+        </div>
+
         {goalScorers.length === 0 ? (
           <div className="text-center text-[12px] text-zinc-600 py-3">No goals recorded</div>
         ) : (
-          <div className="flex flex-col">
+          <div className="flex flex-col gap-1.5">
             {sorted.map((s, i) => {
-              const suffix = s.type === "Own Goal" ? " (OG)" : s.type === "Penalty" ? " (P)" : ""
+              const isHome = s.teamId === homeTeamId
+              const label  = s.name + goalSuffix(s.type)
+              // minute display: include stoppage time portion if present (e.g. "45+2′")
+              const minDisplay = s.minute.includes("+")
+                ? s.minute.replace("+", "+") + "′"
+                : s.minute + "′"
               return (
-                <div key={i} className="flex items-center gap-3 py-2.5 border-b border-zinc-800/50 last:border-0">
-                  <span className="font-display text-[13px] font-600 text-zinc-500 w-10 flex-shrink-0 tabular-nums">{s.minute}′</span>
-                  <span className="flex-1 text-[13px] font-700 text-white truncate">{s.name}{suffix}</span>
+                <div
+                  key={i}
+                  className="grid items-center w-full"
+                  style={{ gridTemplateColumns: "1fr 40px 1fr", columnGap: "8px" }}
+                >
+                  {/* Home scorer — right-aligned on left column */}
+                  <span className="text-[12px] text-white font-semibold text-right leading-snug">
+                    {isHome ? label : ""}
+                  </span>
+                  {/* Minute — dimmed, centered */}
+                  <span className="text-[11px] text-zinc-500 font-medium leading-none text-center tabular-nums">
+                    {minDisplay}
+                  </span>
+                  {/* Away scorer — left-aligned on right column */}
+                  <span className="text-[12px] text-white font-semibold text-left leading-snug">
+                    {!isHome ? label : ""}
+                  </span>
                 </div>
               )
             })}
