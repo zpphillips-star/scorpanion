@@ -125,17 +125,15 @@ function TeamContextCard({
         <div className="flex-1 min-w-0">
           <div className="font-display text-[13px] font-700 text-white truncate">{name}</div>
           <div className="font-display text-[10px] uppercase tracking-widest text-zinc-600">{label}</div>
-        </div>
-        {wins !== undefined && losses !== undefined && (
-          <div className="text-right">
-            <div className="font-display text-[22px] font-800 text-white tabular-nums leading-none">
+          {wins !== undefined && losses !== undefined && (
+            <div className="text-[11px] text-zinc-500 mt-0.5">
               {wins}–{losses}{ties !== undefined && ties > 0 ? `–${ties}` : ""}
+              {divRank !== null && divRank !== undefined && divName && (
+                <span className="ml-1.5">· #{divRank} {divName}</span>
+              )}
             </div>
-            {divRank !== null && divRank !== undefined && divName && (
-              <div className="font-display text-[10px] text-zinc-500 mt-0.5 text-right">#{divRank} {divName}</div>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Last 5 Games form dots */}
@@ -292,6 +290,11 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
               <span className="font-display text-[14px] font-semibold text-white text-center leading-tight">
                 {game.isHome ? (game.opponent.shortName || game.opponent.name) : game.seattleTeam.shortName}
               </span>
+              {(awayRecord || awayDetail?.wins !== undefined) && (
+                <span className="text-[11px] text-zinc-500 text-center leading-none -mt-1">
+                  {awayRecord ? formatRecord(awayRecord) : `${awayDetail!.wins}-${awayDetail!.losses}`}
+                </span>
+              )}
             </button>
 
             {/* Score */}
@@ -319,6 +322,11 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
               <span className="font-display text-[14px] font-semibold text-white text-center leading-tight">
                 {game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)}
               </span>
+              {(homeRecord || homeDetail?.wins !== undefined) && (
+                <span className="text-[11px] text-zinc-500 text-center leading-none -mt-1">
+                  {homeRecord ? formatRecord(homeRecord) : `${homeDetail!.wins}-${homeDetail!.losses}`}
+                </span>
+              )}
             </button>
           </div>
 
@@ -352,40 +360,6 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
               seattleTeamId={game.seattleTeam.espnId}
               color={isLive ? "#ef4444" : (game.seattleTeam.primaryColor ?? "#D95C17")}
             />
-          )}
-
-          {/* Season Records — always show for finished/live games */}
-          {(isLive || isFt) && (
-            <div className="mt-6">
-              <SectionHeader label="Season Records" />
-              <div className="flex gap-4 items-start">
-                {/* Away team record */}
-                <div className="flex-1 flex flex-col items-center gap-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={18} />
-                    <span className="text-[12px] font-semibold text-white">{awayName}</span>
-                  </div>
-                  <span className="text-[36px] font-black text-white tabular-nums leading-none">
-                    {awayRecord
-                      ? `${awayRecord.wins}-${awayRecord.losses}`
-                      : (awayDetail?.wins !== undefined ? `${awayDetail.wins}-${awayDetail.losses}` : "–")}
-                  </span>
-                </div>
-                <div className="w-px bg-zinc-800 self-stretch" />
-                {/* Home team record */}
-                <div className="flex-1 flex flex-col items-center gap-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={18} />
-                    <span className="text-[12px] font-semibold text-white">{homeName}</span>
-                  </div>
-                  <span className="text-[36px] font-black text-white tabular-nums leading-none">
-                    {homeRecord
-                      ? `${homeRecord.wins}-${homeRecord.losses}`
-                      : (homeDetail?.wins !== undefined ? `${homeDetail.wins}-${homeDetail.losses}` : "–")}
-                  </span>
-                </div>
-              </div>
-            </div>
           )}
 
           {/* Upcoming Schedule */}
