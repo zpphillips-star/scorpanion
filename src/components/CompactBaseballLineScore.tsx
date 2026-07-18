@@ -204,25 +204,3 @@ interface BoxScoreData {
   currentPeriod: number | null
 }
 
-// ─── Helper: is this column index the currently-live inning? ─────────────────
-
-function isCurrentCol(periodIdx: number, currentPeriod: number | null): boolean {
-  if (currentPeriod === null) return false
-  // ESPN baseball: period = half-inning (1 = top 1st, 2 = bot 1st, 3 = top 2nd …)
-  const inningCol = Math.ceil(currentPeriod / 2) - 1
-  return periodIdx === inningCol
-}
-
-// ─── Props ────────────────────────────────────────────────────────────────────
-
-interface Props {
-  /** Raw game.id — may be prefixed like "mariners|401234567" */
-  gameId: string
-  /** e.g. "mlb" */
-  league: string
-  /** ESPN team ID for the Seattle team */
-  seattleTeamId: string
-  /** Whether the game is currently live (controls column highlight) */
-  isLive: boolean
-}
-
