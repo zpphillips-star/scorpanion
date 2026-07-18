@@ -550,7 +550,7 @@ export default function HomeClient() {
                 className="px-4 py-2 flex items-center gap-3"
                 style={{ background: "rgba(12,27,49,0.98)", backdropFilter: "blur(8px)" }}
               >
-                <span className="text-[12px] uppercase tracking-widest font-bold text-white">{fmtDayHeader(ds)}</span>
+                <span className="text-[11px] uppercase tracking-wider font-normal text-zinc-500">{fmtDayHeader(ds)}</span>
                 <div className="flex-1 h-px bg-zinc-800" />
               </div>
               {/* Compact rows */}
