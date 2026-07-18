@@ -256,8 +256,8 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
       style={isLive ? { background: "rgba(239,68,68,0.05)" } : undefined}
       onClick={onTap}
     >
-      {/* Left: status/time — fixed 72px */}
-      <div className="w-[72px] flex-shrink-0 flex flex-col justify-center gap-0.5">
+      {/* Left: status/time — fixed 72px, indented from edge */}
+      <div className="w-[72px] flex-shrink-0 flex flex-col justify-center gap-0.5 pl-2">
         {isLive ? (
           <>
             <div className="flex items-center gap-1">
