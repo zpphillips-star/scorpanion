@@ -374,7 +374,7 @@ export default function HomeClient() {
   }
 
   return (
-    <div style={{ paddingBottom: "1rem" }}>
+    <div style={{ paddingBottom: "6rem" }}>
       {/* ── Sticky header ───────────────────────────────────────────────── */}
       <PageHeader title="Home">
         {/* ── Team logo filter bar ─────────────────────────────────── */}
@@ -454,8 +454,8 @@ export default function HomeClient() {
 
       {/* ── Recent results (horizontal scroll, tappable) ─────────────────── */}
       {recent.length > 0 && (
-        <div className="mt-5">
-          <div className="flex items-center gap-3 px-4 mb-3">
+        <div className="mt-8">
+          <div className="flex items-center gap-3 px-4 mb-4">
             <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Recent</span>
             <div className="flex-1 h-px bg-zinc-800" />
             <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">Last 7 days</span>
@@ -480,9 +480,9 @@ export default function HomeClient() {
         const dateLabel = todayDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
 
         return (
-          <div className="mt-8">
+          <div className="mt-14">
             {/* Section header — matches Recent / Upcoming style exactly */}
-            <div className="flex items-center gap-3 px-4 mb-3">
+            <div className="flex items-center gap-3 px-4 mb-4">
               <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Today</span>
               <div className="flex-1 h-px bg-zinc-800" />
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{dateLabel}</span>
@@ -502,7 +502,7 @@ export default function HomeClient() {
       {/* ── Off-season (no games anywhere) ──────────────────────────────── */}
       {todayGames.length === 0 && !hasAnyLive && recent.length === 0 && allUpcoming.length === 0 && (
         <>
-          <div className="mt-5 px-4 mb-2 flex items-center gap-3">
+          <div className="mt-14 px-4 mb-2 flex items-center gap-3">
             <span className="font-display text-[13px] font-800 text-zinc-400 uppercase tracking-widest">Off Season</span>
             <div className="flex-1 h-px bg-zinc-800" />
           </div>
@@ -512,7 +512,7 @@ export default function HomeClient() {
 
       {/* ── Golf: PGA / LPGA — only show when filter is "all" or that specific tour ── */}
       {selectedTeamIds.includes('pga') && (activeFilter === 'all' || activeFilter === 'pga') && (
-        <div className="mt-8">
+        <div className="mt-14">
           <GolfTournamentSection
             tourId="pga"
             accentColor="#003087"
@@ -522,7 +522,7 @@ export default function HomeClient() {
         </div>
       )}
       {selectedTeamIds.includes('lpga') && (activeFilter === 'all' || activeFilter === 'lpga') && (
-        <div className="mt-8">
+        <div className="mt-14">
           <GolfTournamentSection
             tourId="lpga"
             accentColor="#b5006e"
@@ -534,8 +534,8 @@ export default function HomeClient() {
 
       {/* ── Upcoming — WC compact rows ───────────────────────────────────── */}
       {upcomingDates.length > 0 && (
-        <div className="mt-8">
-          <div className="px-4 mb-1 flex items-center gap-3">
+        <div className="mt-14">
+          <div className="px-4 mb-4 flex items-center gap-3">
             <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Upcoming</span>
             <div className="flex-1 h-px bg-zinc-800" />
             <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">
