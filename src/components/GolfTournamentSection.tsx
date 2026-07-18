@@ -132,7 +132,7 @@ function GolfDetailSheet({ tournament, label, accentColor, onClose }: {
   )
 }
 
-// ── Main section (tappable, shows top 3, opens detail sheet) ─────────────────
+// ── Main section (tappable, shows full field, opens detail sheet) ────────────
 export function GolfTournamentSection({ tourId, accentColor, logoUrl, label }: GolfTournamentSectionProps) {
   const [tournament, setTournament] = useState<GolfTournament | null>(null)
   const [loading, setLoading] = useState(true)
@@ -181,43 +181,60 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label }: G
                 )}
               </div>
 
-              {/* Top 3 preview rows */}
-              <div className="px-5 pr-6">
-                {tournament.leaders.slice(0, 3).map((player, i) => (
-                  <div key={player.name}>
-                    {i > 0 && <div className="h-px bg-zinc-800/60" />}
-                    <div className="flex items-center gap-3 py-2.5">
-                      <div className="w-5 flex-shrink-0 text-right">
-                        <span className="text-[11px] text-zinc-600 font-mono">{player.rank}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="text-[13px] font-semibold text-white truncate block">{player.name}</span>
-                      </div>
-                      <div className="w-10 text-right flex-shrink-0">
-                        <span className="text-[11px]" style={{ color: scoreColor(player.today) }}>{player.today || '–'}</span>
-                        <div className="text-[9px] text-zinc-700 uppercase">Rd</div>
-                      </div>
-                      <div className="w-10 text-right flex-shrink-0">
-                        <span className="text-[14px] font-bold tabular-nums" style={{ color: scoreColor(player.score) }}>{player.score}</span>
-                        <div className="text-[9px] text-zinc-700 uppercase">Tot</div>
-                      </div>
-                      <div className="w-8 text-right flex-shrink-0">
-                        <span className="text-[11px] text-zinc-500">{player.thru}</span>
-                        <div className="text-[9px] text-zinc-700 uppercase">Thru</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              {/* Column headers */}
+              <div className="flex items-center px-5 py-1.5 border-b border-zinc-800/60">
+                <div className="w-5 flex-shrink-0" />
+                <div className="flex-1 text-[10px] text-zinc-600 uppercase tracking-wider ml-3">Player</div>
+                <div className="w-10 text-[10px] text-zinc-600 uppercase tracking-wider text-right flex-shrink-0">Rd</div>
+                <div className="w-10 text-[10px] text-zinc-600 uppercase tracking-wider text-right flex-shrink-0">Tot</div>
+                <div className="w-8 text-[10px] text-zinc-600 uppercase tracking-wider text-right flex-shrink-0">Thru</div>
               </div>
 
-              {/* "Tap to see full field" hint */}
-              {(tournament.leaders?.length ?? 0) > 3 && (
-                <div className="px-5 pt-1 pb-1">
-                  <span className="text-[11px] text-zinc-600">
-                    Full field ({tournament.leaders.length} players) · tap to open →
-                  </span>
-                </div>
-              )}
+              {/* Full field — every player, cut players dimmed */}
+              <div className="px-5 pr-6">
+                {tournament.leaders.map((player, i) => {
+                  const isCut = player.status === 'cut'
+                  const prevNotCut = i > 0 && tournament.leaders[i - 1].status !== 'cut'
+                  const showCutLine = isCut && prevNotCut
+                  return (
+                    <div key={player.name + i}>
+                      {showCutLine && (
+                        <div className="flex items-center gap-2 my-1.5">
+                          <div className="flex-1 h-px bg-zinc-800" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Cut</span>
+                          <div className="flex-1 h-px bg-zinc-800" />
+                        </div>
+                      )}
+                      <div className={`flex items-center gap-3 py-2.5 border-b border-zinc-800/40 ${isCut ? 'opacity-40' : ''}`}>
+                        <div className="w-5 flex-shrink-0 text-right">
+                          <span className="text-[11px] text-zinc-600 font-mono">{player.rank}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[13px] font-semibold text-white truncate block">{player.name}</span>
+                        </div>
+                        <div className="w-10 text-right flex-shrink-0">
+                          <span className="text-[11px] tabular-nums" style={{ color: isCut ? '#52525b' : scoreColor(player.today) }}>
+                            {player.today || '–'}
+                          </span>
+                        </div>
+                        <div className="w-10 text-right flex-shrink-0">
+                          <span className="text-[14px] font-bold tabular-nums" style={{ color: isCut ? '#52525b' : scoreColor(player.score) }}>
+                            {player.score}
+                          </span>
+                        </div>
+                        <div className="w-8 text-right flex-shrink-0">
+                          <span className="text-[11px] text-zinc-500">{isCut ? 'CUT' : player.thru}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Tap hint — now for tournament details, not full field */}
+              <div className="px-5 pt-1.5 pb-1">
+                <span className="text-[11px] text-zinc-600">Tap for tournament details →</span>
+              </div>
             </>
           )}
         </div>
