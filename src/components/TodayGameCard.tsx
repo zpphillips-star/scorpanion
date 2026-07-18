@@ -4,7 +4,6 @@ import { Game } from "@/lib/types"
 import { getTeamLogoUrl } from "@/lib/teams"
 import TeamLogo from "./TeamLogo"
 import CompactBaseballLineScore from "./CompactBaseballLineScore"
-import TeamDetailSheet from "./TeamDetailSheet"
 import GameDetailSheet from "@/components/GameDetailSheet"
 
 function formatTime(iso: string) {
@@ -14,7 +13,6 @@ function formatTime(iso: string) {
 /** Full-width WC-style featured card for today games */
 export function TodayGameCard({ game, featured = false }: { game: Game; featured?: boolean }) {
   const [showDetail, setShowDetail] = useState(false)
-  const [teamSheet, setTeamSheet] = useState<{ id: string; name: string; logo: string } | null>(null)
 
   const isLive = game.status === "live"
   const isFt   = game.status === "ft"
@@ -27,14 +25,12 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
   const awayAbbr  = game.isHome ? game.opponent.abbr  : game.seattleTeam.abbr
   const awayName  = game.isHome ? (game.opponent.shortName || game.opponent.name) : game.seattleTeam.shortName
   const awayScore = game.isHome ? game.opponentScore  : game.seattleScore
-  const awayId    = game.isHome ? game.opponent.id    : game.seattleTeam.espnId
 
   const homeLogo  = game.isHome ? seattleLogoUrl      : game.opponent.logo
   const homeEmoji = game.isHome ? game.seattleTeam.emoji : "🏟️"
   const homeAbbr  = game.isHome ? game.seattleTeam.abbr  : game.opponent.abbr
   const homeName  = game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)
   const homeScore = game.isHome ? game.seattleScore   : game.opponentScore
-  const homeId    = game.isHome ? game.seattleTeam.espnId : game.opponent.id
 
   const awayWon = isFt && hasScore && (awayScore ?? 0) > (homeScore ?? 0)
   const homeWon = isFt && hasScore && (homeScore ?? 0) > (awayScore ?? 0)
@@ -88,11 +84,8 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
           <div className="flex items-center pr-4 py-5 gap-2">
             {/* Away team */}
             <div className="flex-1 flex flex-col items-center gap-2">
-              <button className="active:scale-90 transition-transform"
-                      onClick={e => { e.stopPropagation(); setTeamSheet({ id: awayId, name: awayName, logo: awayLogo }) }}>
-                <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={logoSize}
-                  className={`rounded-xl${isFt && !awayWon && homeWon ? " opacity-30" : ""}`} />
-              </button>
+              <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={logoSize}
+                className={`rounded-xl${isFt && !awayWon && homeWon ? " opacity-30" : ""}`} />
               <div className="text-center">
                 <div className="text-[13px] font-bold leading-tight"
                      style={{ color: isFt && !awayWon && homeWon ? "#3a5070" : "#f0f0f8" }}>
@@ -129,11 +122,8 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
 
             {/* Home team */}
             <div className="flex-1 flex flex-col items-center gap-2">
-              <button className="active:scale-90 transition-transform"
-                      onClick={e => { e.stopPropagation(); setTeamSheet({ id: homeId, name: homeName, logo: homeLogo }) }}>
-                <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={logoSize}
-                  className={`rounded-xl${isFt && !homeWon && awayWon ? " opacity-30" : ""}`} />
-              </button>
+              <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={logoSize}
+                className={`rounded-xl${isFt && !homeWon && awayWon ? " opacity-30" : ""}`} />
               <div className="text-center">
                 <div className="text-[13px] font-bold leading-tight"
                      style={{ color: isFt && !homeWon && awayWon ? "#3a5070" : "#f0f0f8" }}>
@@ -164,10 +154,6 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
       </button>
 
       {showDetail && <GameDetailSheet game={game} onClose={() => setShowDetail(false)} />}
-      {teamSheet && (
-        <TeamDetailSheet teamId={teamSheet.id} teamName={teamSheet.name} teamLogo={teamSheet.logo}
-          league={game.league} onClose={() => setTeamSheet(null)} />
-      )}
     </>
   )
 }
