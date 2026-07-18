@@ -122,7 +122,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
   const isZoomed = vb.w < MAX_W * 0.98
 
   return (
-    <div style={{ width: '100%' }}>
+    <div style={{ width: '100%', overflow: 'hidden' }}>
       {/* Canada province pill row */}
       <div style={{ marginBottom: 6 }}>
         <div style={{ fontSize: 9, color: '#4b5563', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
@@ -141,7 +141,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
       {/* Map container — full aspect ratio, no maxHeight cap */}
       <div
         ref={containerRef}
-        style={{ width: '100%', position: 'relative', aspectRatio: '800/450', touchAction: 'none', cursor: isZoomed ? 'grab' : 'default' }}
+        style={{ width: '100%', position: 'relative', aspectRatio: '800/450', overflow: 'hidden', touchAction: 'none', cursor: isZoomed ? 'grab' : 'default' }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}

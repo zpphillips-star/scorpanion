@@ -157,7 +157,10 @@ export default function TeamsClient() {
   }, [activeTab, followedIds, searchQuery])
 
   const proFollowedCount = followedIds.filter(id => ALL_PRO_TEAMS.some(t => t.id === id)).length
-  const totalFollowed = selectedTeamIds.length + proFollowedCount
+  // selectedTeamIds already merges both the Seattle-teams key and the followed_other_teams key
+  // (see useSelectedTeams.readFromStorage), so proFollowedCount is already included — use it
+  // only for the section label; the grand total is just selectedTeamIds.length.
+  const totalFollowed = selectedTeamIds.length
 
   if (!loaded) {
     return (
