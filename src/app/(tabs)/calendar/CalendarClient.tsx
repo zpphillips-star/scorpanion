@@ -19,6 +19,7 @@ export default function CalendarClient() {
   const { selectedTeamIds, loaded } = useSelectedTeams()
   const { counts: teamClickCounts, recordClick } = useTeamClickCounts()
   const [games, setGames] = useState<Game[]>([])
+  const [golfDays, setGolfDays] = useState<Map<string, { color: string; label: string }[]>>(new Map())
   const [liveScores, setLiveScores] = useState<Record<string, ScoreUpdate>>({})
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
@@ -38,9 +39,10 @@ export default function CalendarClient() {
   const fetchSchedule = useCallback(async () => {
     if (!loaded || selectedTeamIds.length === 0) return
     try {
+      const GOLF_IDS = ['pga', 'lpga']
       const WHL = ['thunderbirds', 'silvertips']
       const NCAA = ['uw-softball', 'uw-soccer']
-      const espn = selectedTeamIds.filter(id => id !== 'torrent' && !WHL.includes(id) && !NCAA.includes(id))
+      const espn = selectedTeamIds.filter(id => id !== 'torrent' && !WHL.includes(id) && !NCAA.includes(id) && !GOLF_IDS.includes(id))
       const fetches: Promise<Game[]>[] = []
       if (espn.length > 0) fetches.push(fetch(`/api/schedule?teams=${espn.join(',')}`).then(r => r.ok ? r.json() : []))
       if (selectedTeamIds.includes('torrent')) fetches.push(fetch('/api/pwhl').then(r => r.ok ? r.json() : []))
@@ -50,6 +52,36 @@ export default function CalendarClient() {
         fetches.push(fetch('/api/ncaa', { signal: AbortSignal.timeout(8000) }).then(r => r.ok ? r.json() as Promise<Game[]> : []).then(gs => gs.filter(g => selectedTeamIds.includes(g.seattleTeamId))).catch(() => []))
       const results = await Promise.all(fetches)
       setGames(results.flat())
+
+      // Fetch golf tournament dates separately
+      const golfMap = new Map<string, { color: string; label: string }[]>()
+      const golfFetches: Promise<void>[] = []
+      if (selectedTeamIds.includes('pga')) {
+        golfFetches.push(
+          fetch('/api/golf?tour=pga').then(r => r.ok ? r.json() : null).then(d => {
+            if (!d?.startDate || !d?.endDate) return
+            const start = new Date(d.startDate); const end = new Date(d.endDate)
+            for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
+              const key = dt.toISOString().split('T')[0]
+              const arr = golfMap.get(key) ?? []; arr.push({ color: '#003087', label: d.name }); golfMap.set(key, arr)
+            }
+          }).catch(() => {})
+        )
+      }
+      if (selectedTeamIds.includes('lpga')) {
+        golfFetches.push(
+          fetch('/api/golf?tour=lpga').then(r => r.ok ? r.json() : null).then(d => {
+            if (!d?.startDate || !d?.endDate) return
+            const start = new Date(d.startDate); const end = new Date(d.endDate)
+            for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
+              const key = dt.toISOString().split('T')[0]
+              const arr = golfMap.get(key) ?? []; arr.push({ color: '#b5006e', label: d.name }); golfMap.set(key, arr)
+            }
+          }).catch(() => {})
+        )
+      }
+      await Promise.all(golfFetches)
+      setGolfDays(golfMap)
     } catch {}
     finally { setLoading(false) }
   }, [loaded, selectedTeamIds])
@@ -140,6 +172,18 @@ export default function CalendarClient() {
       const e = gamesByDay.get(key)!
       e.count++
       if (!e.colors.includes(g.seattleTeam.primaryColor)) e.colors.push(g.seattleTeam.primaryColor)
+    }
+  }
+  // Merge golf days into gamesByDay — add golf colors as dots
+  for (const [key, entries] of golfDays) {
+    const [ky, km] = key.split('-').map(Number)
+    if (ky === viewYear && km - 1 === viewMonth) {
+      if (!gamesByDay.has(key)) gamesByDay.set(key, { count: 0, colors: [], logos: [] })
+      const e = gamesByDay.get(key)!
+      e.count += entries.length
+      for (const { color } of entries) {
+        if (!e.colors.includes(color)) e.colors.push(color)
+      }
     }
   }
 

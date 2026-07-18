@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import { SEATTLE_TEAMS, getTeamLogoUrl } from "@/lib/teams"
+import { ALL_PRO_TEAMS } from "@/lib/allProTeams"
 import TeamLogo from "@/components/TeamLogo"
 
 const SPORT_LABELS: Record<string, string> = {
@@ -103,7 +104,19 @@ export default function TeamFilterBar({
       .reduce((sum, t) => sum + (teamClickCounts[t.id] || 0), 0)
   }
 
-  const followedSorted = SEATTLE_TEAMS
+  // Merge SEATTLE_TEAMS + ALL_PRO_TEAMS into a unified shape for the filter bar
+  const allKnownTeams: typeof SEATTLE_TEAMS = [
+    ...SEATTLE_TEAMS,
+    ...ALL_PRO_TEAMS
+      .filter(t => !SEATTLE_TEAMS.some(st => st.id === t.id))
+      .map(t => ({
+        id: t.id, name: t.name, shortName: t.shortName, abbr: t.abbr,
+        sport: t.sport, league: t.league.toLowerCase(), espnId: t.espnId,
+        primaryColor: t.primaryColor, secondaryColor: '#ffffff', emoji: '', logoUrl: t.logo,
+      } as typeof SEATTLE_TEAMS[0])),
+  ]
+
+  const followedSorted = allKnownTeams
     .filter(t => selectedTeamIds.includes(t.id))
     .sort((a, b) => (getAggregatedClicks(b) - getAggregatedClicks(a)) || a.shortName.localeCompare(b.shortName))
 
@@ -119,12 +132,12 @@ export default function TeamFilterBar({
   })()
 
   const filterMatchIds = (filterId: string): string[] => {
-    const item = SEATTLE_TEAMS.find(t => t.id === filterId)
+    const item = allKnownTeams.find(t => t.id === filterId)
     if (!item) return [filterId]
     const gk = getCollegeGroupKey(filterId)
-    if (gk) return SEATTLE_TEAMS.filter(t => getCollegeGroupKey(t.id) === gk).map(t => t.id)
+    if (gk) return allKnownTeams.filter(t => getCollegeGroupKey(t.id) === gk).map(t => t.id)
     const logoKey = getTeamLogoUrl(item) || filterId
-    return SEATTLE_TEAMS.filter(t => (getTeamLogoUrl(t) || t.id) === logoKey).map(t => t.id)
+    return allKnownTeams.filter(t => (getTeamLogoUrl(t) || t.id) === logoKey).map(t => t.id)
   }
 
   return (
