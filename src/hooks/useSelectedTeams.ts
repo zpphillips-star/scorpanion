@@ -1,10 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { SEATTLE_TEAMS } from '@/lib/teams'
-import { ALL_PRO_TEAMS } from '@/lib/allProTeams'
 
 const STORAGE_KEY       = 'seattle-sports-teams'
 const OTHER_STORAGE_KEY = 'followed_other_teams'
+
+// Pre-computed set of IDs that belong in STORAGE_KEY.
+// Only SEATTLE_TEAMS IDs should ever be written there; other pro teams live in OTHER_STORAGE_KEY.
+const SEATTLE_ID_SET = new Set(SEATTLE_TEAMS.map(t => t.id))
 
 /**
  * Default followed teams for first-time visitors (null stored value = never set).
@@ -34,18 +37,20 @@ export function useSelectedTeams() {
 
   function readFromStorage(): string[] {
     try {
-      const seattleIds = new Set(SEATTLE_TEAMS.map(t => t.id))
-      const proIds = new Set(ALL_PRO_TEAMS.map(t => t.id))
-
       const seattleStored = localStorage.getItem(STORAGE_KEY)
       let seattleList: string[] = []
       if (seattleStored === null) {
-        // First visit — seed with Seattle pro teams + golf tours
+        // True first visit (key never written) — seed with Seattle pro teams + golf tours.
+        // "[]" (user cleared everything) is NOT null, so we never re-seed after the user
+        // explicitly empties their selection.
         seattleList = DEFAULT_SEED_IDS
         localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SEED_IDS))
       } else {
         const parsed = JSON.parse(seattleStored) as string[]
-        seattleList = parsed.filter(id => (seattleIds.has(id) || proIds.has(id)) && !COLLEGE_IDS.includes(id))
+        // Keep only IDs that belong in this key (SEATTLE_TEAMS IDs, no college teams).
+        // Any non-SEATTLE_TEAMS ID that leaked in (e.g. via an older toggleTeam bug)
+        // gets pruned here so storage stays clean.
+        seattleList = parsed.filter(id => SEATTLE_ID_SET.has(id) && !COLLEGE_IDS.includes(id))
         if (seattleList.length !== parsed.length) localStorage.setItem(STORAGE_KEY, JSON.stringify(seattleList))
       }
 
@@ -75,7 +80,13 @@ export function useSelectedTeams() {
   const toggleTeam = (id: string) => {
     setSelectedTeamIds(prev => {
       const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+      // Only write SEATTLE_TEAMS IDs back to STORAGE_KEY.
+      // The merged `prev`/`next` may include "other" pro team IDs from OTHER_STORAGE_KEY,
+      // but those must stay in their own key — mixing them here would cause SportsDataContext's
+      // SEATTLE_TEAMS-only pruner to strip them on the next mount, and would also make it
+      // impossible for toggleFollow to cleanly remove them later.
+      const seattleNext = next.filter(x => SEATTLE_ID_SET.has(x))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(seattleNext))
       window.dispatchEvent(new CustomEvent('scorpanion:teams-changed', { detail: next }))
       return next
     })

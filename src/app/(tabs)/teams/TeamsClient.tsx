@@ -162,10 +162,26 @@ export default function TeamsClient() {
   // Smart toggle for ProTeamCard / StateSpotlightRow:
   // – Seattle-equivalent teams are canonical in the SEATTLE_TEAMS key → use toggleTeam
   // – All other pro teams live in followed_other_teams → use toggleFollow
+  //
+  // Legacy-cleanup: before the PRO_TO_SEATTLE_ID bridge existed, clicking a Seattle-
+  // equivalent ProTeamCard (e.g. wnba-sea) wrote the proId into OTHER_STORAGE_KEY via
+  // toggleFollow. Now that the bridge routes those taps to toggleTeam (STORAGE_KEY), the
+  // proId may still be in followedIds. We check both buckets so the *effective* followed
+  // state (effectivelyFollowedProIds) flips correctly on every tap.
   const toggleProTeam = (proId: string) => {
     const seattleId = PRO_TO_SEATTLE_ID[proId]
     if (seattleId) {
-      toggleTeam(seattleId)
+      const inSeattle = selectedTeamIds.includes(seattleId)
+      const inOther   = followedIds.includes(proId)   // legacy bucket
+
+      if (inSeattle || inOther) {
+        // Deselect: remove from whichever bucket(s) currently hold this team
+        if (inSeattle) toggleTeam(seattleId)
+        if (inOther)   toggleFollow(proId)
+      } else {
+        // Not followed anywhere → follow via canonical (STORAGE_KEY) bucket
+        toggleTeam(seattleId)
+      }
     } else {
       toggleFollow(proId)
     }
