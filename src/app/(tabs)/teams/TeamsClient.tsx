@@ -271,16 +271,12 @@ export default function TeamsClient() {
             ? 'rgba(217,92,23,0.15)'
             : isStateMatch
             ? 'rgba(251,191,36,0.07)'
-            : isSeattle
-            ? 'rgba(217,92,23,0.06)'
             : 'rgba(255,255,255,0.03)',
           border: `2px solid ${
             isFollowed
               ? '#D95C17'
               : isStateMatch
               ? 'rgba(251,191,36,0.45)'
-              : isSeattle
-              ? 'rgba(217,92,23,0.2)'
               : 'rgba(255,255,255,0.07)'
           }`,
           boxShadow: isFollowed
