@@ -553,53 +553,48 @@ export default function HomeClient() {
                 <span className="text-[11px] uppercase tracking-wider font-normal text-zinc-500">{fmtDayHeader(ds)}</span>
                 <div className="flex-1 h-px bg-zinc-800" />
               </div>
-              {/* Compact rows — away | time | home, matching DayGameRow conventions */}
+              {/* ── Upcoming game rows ── */}
               {upcomingByDate[ds].map(g => {
                 const seattleLogoUrl = getTeamLogoUrl(g.seattleTeam)
-                // Resolve away/home sides so the row always reads left=away, right=home
-                const awayLogo  = g.isHome ? g.opponent.logo        : seattleLogoUrl
-                const awayEmoji = g.isHome ? "🏟️"                  : g.seattleTeam.emoji
-                const awayAbbr  = g.isHome ? g.opponent.abbr        : g.seattleTeam.abbr
+                // Always: left = away, right = home
+                const awayLogo  = g.isHome ? g.opponent.logo     : seattleLogoUrl
+                const awayEmoji = g.isHome ? "🏟️"               : g.seattleTeam.emoji
+                const awayAbbr  = g.isHome ? g.opponent.abbr     : g.seattleTeam.abbr
                 const awayName  = g.isHome
                   ? (g.opponent.shortName || g.opponent.name)
                   : g.seattleTeam.shortName
-                const homeLogo  = g.isHome ? seattleLogoUrl         : g.opponent.logo
-                const homeEmoji = g.isHome ? g.seattleTeam.emoji    : "🏟️"
-                const homeAbbr  = g.isHome ? g.seattleTeam.abbr     : g.opponent.abbr
+                const homeLogo  = g.isHome ? seattleLogoUrl      : g.opponent.logo
+                const homeEmoji = g.isHome ? g.seattleTeam.emoji : "🏟️"
+                const homeAbbr  = g.isHome ? g.seattleTeam.abbr  : g.opponent.abbr
                 const homeName  = g.isHome
                   ? g.seattleTeam.shortName
                   : (g.opponent.shortName || g.opponent.name)
                 return (
                   <div
                     key={g.id}
-                    className="flex justify-center items-center px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer"
+                    className="py-3 border-b border-white/5 hover:bg-white/[0.03] active:bg-white/[0.06] transition-colors cursor-pointer"
                     onClick={() => setSelectedRecentGame(g)}
                   >
-                    {/* Centered matchup cluster: [AwayName AwayLogo] [time] [HomeLogo HomeName] */}
-                    <div className="flex items-center">
-                      {/* Away team — name then logo (logo touches time) */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-[13px] font-semibold text-white whitespace-nowrap leading-tight">
-                          {awayName}
-                        </span>
-                        <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={24} className="flex-shrink-0" />
-                      </div>
-                      {/* Time — sits between the two team blocks */}
-                      <div className="flex flex-col items-center mx-3">
-                        <span className="text-[12px] text-zinc-400 font-normal tabular-nums whitespace-nowrap leading-tight">
-                          {fmtTime(g.kickoff)}
-                        </span>
-                        {g.broadcast && (
-                          <span className="text-[9px] text-zinc-600 whitespace-nowrap">{g.broadcast}</span>
-                        )}
-                      </div>
-                      {/* Home team — logo then name (logo touches time) */}
-                      <div className="flex items-center gap-2">
-                        <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={24} className="flex-shrink-0" />
-                        <span className="text-[13px] font-semibold text-white whitespace-nowrap leading-tight">
-                          {homeName}
-                        </span>
-                      </div>
+                    {/* Time — left-aligned, small, dim */}
+                    <div className="pl-4 mb-1.5 flex items-center gap-2">
+                      <span className="text-[11px] text-zinc-500 font-normal uppercase tracking-wide tabular-nums">
+                        {fmtTime(g.kickoff)}
+                      </span>
+                      {g.broadcast && (
+                        <span className="text-[10px] text-zinc-600">{g.broadcast}</span>
+                      )}
+                    </div>
+                    {/* Teams row — centered: [AwayLogo] Away Name · Home Name [HomeLogo] */}
+                    <div className="flex items-center justify-center gap-2.5 px-5">
+                      <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={28} className="flex-shrink-0" />
+                      <span className="text-[14px] font-semibold text-white whitespace-nowrap leading-tight">
+                        {awayName}
+                      </span>
+                      <span className="text-zinc-600 text-[13px] font-normal select-none">·</span>
+                      <span className="text-[14px] font-semibold text-white whitespace-nowrap leading-tight">
+                        {homeName}
+                      </span>
+                      <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={28} className="flex-shrink-0" />
                     </div>
                   </div>
                 )
