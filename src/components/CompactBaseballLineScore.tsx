@@ -7,7 +7,7 @@ interface LineTeam {
   logo: string
   homeAway: "home" | "away"
   score: number
-  linescores: (number | undefined)[]
+  linescores: number[]
   record: string
   hits?: number
   errors?: number
