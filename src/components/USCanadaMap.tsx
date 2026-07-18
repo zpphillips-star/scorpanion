@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { ComposableMap, Geographies, Geography, GeoFeature } from 'react-simple-maps'
 
 interface Props {
@@ -8,10 +8,8 @@ interface Props {
   teamsPerState: Record<string, number>
 }
 
-// US states TopoJSON from CDN (includes AK + HI as insets via geoAlbersUsa)
 const US_GEO = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json'
 
-// FIPS numeric ID → state abbreviation
 const FIPS_TO_ABBR: Record<string, string> = {
   '01':'AL','02':'AK','04':'AZ','05':'AR','06':'CA','08':'CO','09':'CT',
   '10':'DE','11':'DC','12':'FL','13':'GA','15':'HI','16':'ID','17':'IL',
@@ -23,148 +21,135 @@ const FIPS_TO_ABBR: Record<string, string> = {
   '55':'WI','56':'WY',
 }
 
-// Canada province buttons (keep as a simple pill row — no free TopoJSON needed)
 const CANADA_PROVINCES = [
-  { abbr: 'BC', label: 'BC' },
-  { abbr: 'AB', label: 'AB' },
-  { abbr: 'SK', label: 'SK' },
-  { abbr: 'MB', label: 'MB' },
-  { abbr: 'ON', label: 'ON' },
-  { abbr: 'QC', label: 'QC' },
-  { abbr: 'NB', label: 'NB' },
-  { abbr: 'NS', label: 'NS' },
-  { abbr: 'PE', label: 'PE' },
-  { abbr: 'NL', label: 'NL' },
+  { abbr: 'BC', label: 'BC' }, { abbr: 'AB', label: 'AB' },
+  { abbr: 'SK', label: 'SK' }, { abbr: 'MB', label: 'MB' },
+  { abbr: 'ON', label: 'ON' }, { abbr: 'QC', label: 'QC' },
+  { abbr: 'NB', label: 'NB' }, { abbr: 'NS', label: 'NS' },
+  { abbr: 'PE', label: 'PE' }, { abbr: 'NL', label: 'NL' },
 ]
 
-function getFill(abbr: string, selected: string | null, teamsPerState: Record<string, number>): string {
-  if (selected === abbr) return 'rgba(0,212,255,0.28)'
+const FULL_VB = { x: 0, y: 0, w: 800, h: 450 }
+const MIN_W = 80; const MAX_W = 800
+
+type VB = { x: number; y: number; w: number; h: number }
+
+function clampVB(vb: VB): VB {
+  const w = Math.max(MIN_W, Math.min(MAX_W, vb.w))
+  const h = w * (450 / 800)
+  const x = Math.max(0, Math.min(800 - w, vb.x))
+  const y = Math.max(0, Math.min(450 - h, vb.y))
+  return { x, y, w, h }
+}
+
+function getFill(abbr: string, selected: string | null, teamsPerState: Record<string, number>) {
+  if (selected === abbr) return 'rgba(217,92,23,0.35)'
   if ((teamsPerState[abbr] || 0) > 0) return 'rgba(255,255,255,0.11)'
   return 'rgba(255,255,255,0.03)'
 }
-
-function getStroke(abbr: string, selected: string | null): string {
-  if (selected === abbr) return '#00d4ff'
-  return 'rgba(255,255,255,0.15)'
+function getStroke(abbr: string, selected: string | null) {
+  return selected === abbr ? '#D95C17' : 'rgba(255,255,255,0.15)'
 }
 
-function getHoverFill(abbr: string, selected: string | null, teamsPerState: Record<string, number>): string {
-  if (selected === abbr) return 'rgba(0,212,255,0.35)'
-  if ((teamsPerState[abbr] || 0) > 0) return 'rgba(255,255,255,0.2)'
-  return 'rgba(255,255,255,0.09)'
-}
-
-// react-simple-maps v3 spreads extra props onto the underlying <svg>, but
-// ComposableMapProps doesn't declare viewBox.  Cast to let TypeScript through.
 type ComposableMapWithViewBox = React.ComponentType<
   React.ComponentProps<typeof ComposableMap> & { viewBox?: string }
 >
 const ComposableMapVB = ComposableMap as ComposableMapWithViewBox
 
-// ─── East coast zoom ─────────────────────────────────────────────────────────
-const VIEWBOX_FULL     = '0 0 800 450'
-const VIEWBOX_EAST     = '490 30 315 290'  // x=490→805, y=30→320: ME at top, TN fully at bottom
-
-// States that are too small to tap at full zoom.
-// Rule: TN and north, eastern half only. Everything south of TN or west → select directly.
-const ZOOM_STATES = new Set([
-  // New England (tiny)
-  'ME','NH','VT','MA','RI','CT',
-  // Mid-Atlantic (small)
-  'NY','NJ','PA','DE','MD','DC',
-  // Upper South / Appalachia (still small on screen)
-  'VA','WV','KY','TN',
-  // Great Lakes (hard to distinguish borders)
-  'OH','IN','MI',
-])
-
-
 export default function USCanadaMap({ selectedState, onStateSelect, teamsPerState }: Props) {
-  const [hoveredState, setHoveredState] = useState<string | null>(null)
-  const [neZoom, setNeZoom]             = useState(false)
+  const [vb, setVb] = useState<VB>(FULL_VB)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const touchRef = useRef<{ touches: { clientX: number; clientY: number }[]; vb: VB } | null>(null)
+  // Track whether a drag occurred so we don't fire a tap after a pan
+  const didDragRef = useRef(false)
 
   const provinceStyle = (abbr: string): React.CSSProperties => {
     const has = (teamsPerState[abbr] || 0) > 0
     const sel = selectedState === abbr
-    if (sel) return {
-      background: 'rgba(0,212,255,0.25)', border: '2px solid #00d4ff',
-      color: '#00d4ff', boxShadow: '0 0 6px rgba(0,212,255,0.45)',
-    }
-    if (has) return {
-      background: 'rgba(255,255,255,0.11)', border: '1px solid rgba(255,255,255,0.22)',
-      color: '#e5e7eb',
-    }
-    return {
-      background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
-      color: '#4b5563',
+    if (sel) return { background: 'rgba(217,92,23,0.25)', border: '2px solid #D95C17', color: '#D95C17' }
+    if (has) return { background: 'rgba(255,255,255,0.11)', border: '1px solid rgba(255,255,255,0.22)', color: '#e5e7eb' }
+    return { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: '#4b5563' }
+  }
+
+  const resetZoom = useCallback(() => setVb(FULL_VB), [])
+
+  function onTouchStart(e: React.TouchEvent) {
+    didDragRef.current = false
+    touchRef.current = { touches: Array.from(e.touches).map(t => ({ clientX: t.clientX, clientY: t.clientY })), vb: { ...vb } }
+  }
+
+  function onTouchMove(e: React.TouchEvent) {
+    if (!touchRef.current || !containerRef.current) return
+    e.preventDefault()
+    const rect = containerRef.current.getBoundingClientRect()
+    const sv = touchRef.current.vb
+
+    if (e.touches.length === 1 && touchRef.current.touches.length >= 1) {
+      // Pan
+      const dx = e.touches[0].clientX - touchRef.current.touches[0].clientX
+      const dy = e.touches[0].clientY - touchRef.current.touches[0].clientY
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didDragRef.current = true
+      const sx = sv.w / rect.width
+      const sy = sv.h / rect.height
+      setVb(clampVB({ ...sv, x: sv.x - dx * sx, y: sv.y - dy * sy }))
+    } else if (e.touches.length === 2 && touchRef.current.touches.length >= 2) {
+      // Pinch zoom
+      didDragRef.current = true
+      const t1 = e.touches[0]; const t2 = e.touches[1]
+      const s1 = touchRef.current.touches[0]; const s2 = touchRef.current.touches[1]
+      const curDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY)
+      const startDist = Math.hypot(s2.clientX - s1.clientX, s2.clientY - s1.clientY)
+      const scale = startDist / curDist
+      const newW = Math.max(MIN_W, Math.min(MAX_W, sv.w * scale))
+      const newH = newW * (450 / 800)
+      // Zoom toward pinch center
+      const pcx = (t1.clientX + t2.clientX) / 2 - rect.left
+      const pcy = (t1.clientY + t2.clientY) / 2 - rect.top
+      const svgX = sv.x + (pcx / rect.width) * sv.w
+      const svgY = sv.y + (pcy / rect.height) * sv.h
+      setVb(clampVB({
+        x: svgX - (pcx / rect.width) * newW,
+        y: svgY - (pcy / rect.height) * newH,
+        w: newW, h: newH,
+      }))
     }
   }
+
+  function onTouchEnd() {
+    touchRef.current = null
+  }
+
+  const isZoomed = vb.w < MAX_W * 0.98
 
   return (
     <div style={{ width: '100%' }}>
       {/* Canada province pill row */}
       <div style={{ marginBottom: 6 }}>
-        <div style={{
-          fontSize: 9, color: '#4b5563', fontWeight: 700,
-          letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4,
-        }}>
+        <div style={{ fontSize: 9, color: '#4b5563', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
           Canada
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
           {CANADA_PROVINCES.map(({ abbr, label }) => (
-            <button
-              key={abbr}
-              onClick={() => onStateSelect(abbr)}
-              style={{
-                padding: '3px 7px',
-                borderRadius: 4,
-                fontSize: 10,
-                fontWeight: 700,
-                cursor: 'pointer',
-                userSelect: 'none',
-                transition: 'all 0.1s',
-                letterSpacing: '0.01em',
-                ...provinceStyle(abbr),
-              }}
-            >
+            <button key={abbr} onClick={() => onStateSelect(abbr)}
+              style={{ padding: '3px 7px', borderRadius: 4, fontSize: 10, fontWeight: 700, cursor: 'pointer', userSelect: 'none', transition: 'all 0.1s', ...provinceStyle(abbr) }}>
               {label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Real geographic US SVG map */}
-      <div style={{ width: '100%', position: 'relative', overflow: 'hidden', aspectRatio: '800/450', maxHeight: 210 }}>
-        {/* Glow filter for selected state */}
-        <svg width="0" height="0" style={{ position: 'absolute' }}>
-          <defs>
-            <filter id="state-glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="2" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-        </svg>
-
-        {/* NE zoom label — only visible when zoomed */}
-        {neZoom && (
-          <div style={{
-            position: 'absolute', top: 6, left: 8, zIndex: 2,
-            fontSize: 9, fontWeight: 700, letterSpacing: '0.07em',
-            textTransform: 'uppercase', color: '#00d4ff',
-            pointerEvents: 'none',
-          }}>
-            East coast — tap a state · tap outside to zoom out
-          </div>
-        )}
-
+      {/* Map container — full aspect ratio, no maxHeight cap */}
+      <div
+        ref={containerRef}
+        style={{ width: '100%', position: 'relative', aspectRatio: '800/450', touchAction: 'none', cursor: isZoomed ? 'grab' : 'default' }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
         <ComposableMapVB
           projection="geoAlbersUsa"
           projectionConfig={{ scale: 1000 }}
-          /* viewBox crop drives the zoom — no projection change needed */
-          viewBox={neZoom ? VIEWBOX_EAST : VIEWBOX_FULL}
+          viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
           style={{ width: '100%', height: '100%', display: 'block' }}
         >
           <Geographies geography={US_GEO}>
@@ -172,33 +157,14 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
               geographies.map((geo) => {
                 const abbr = FIPS_TO_ABBR[geo.id] ?? ''
                 const isSelected = selectedState === abbr
-                const isHovered = hoveredState === abbr
-                const hasTeams = (teamsPerState[abbr] || 0) > 0
-
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
                     onClick={() => {
-                      if (!abbr) return
-                      if (neZoom) {
-                        // While zoomed: tapping outside the colonies region zooms back out
-                        if (!ZOOM_STATES.has(abbr)) {
-                          setNeZoom(false)
-                        } else {
-                          onStateSelect(abbr)
-                        }
-                      } else {
-                        // Not zoomed: tapping a small colonies state zooms in first
-                        if (ZOOM_STATES.has(abbr)) {
-                          setNeZoom(true)
-                        } else {
-                          onStateSelect(abbr)
-                        }
-                      }
+                      if (didDragRef.current) return // ignore tap after pan/zoom
+                      if (abbr) onStateSelect(abbr)
                     }}
-                    onMouseEnter={() => setHoveredState(abbr)}
-                    onMouseLeave={() => setHoveredState(null)}
                     tabIndex={abbr ? 0 : -1}
                     style={{
                       default: {
@@ -207,22 +173,17 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
                         strokeWidth: isSelected ? 1.5 : 0.5,
                         outline: 'none',
                         cursor: abbr ? 'pointer' : 'default',
-                        filter: isSelected ? 'drop-shadow(0 0 4px rgba(0,212,255,0.7))' : undefined,
-                        transition: 'fill 0.15s, stroke 0.15s',
+                        filter: isSelected ? 'drop-shadow(0 0 4px rgba(217,92,23,0.7))' : undefined,
+                        transition: 'fill 0.1s',
                       },
                       hover: {
-                        fill: isHovered ? getHoverFill(abbr, selectedState, teamsPerState) : getFill(abbr, selectedState, teamsPerState),
-                        stroke: isSelected ? '#00d4ff' : hasTeams ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.2)',
+                        fill: isSelected ? 'rgba(217,92,23,0.45)' : (teamsPerState[abbr] || 0) > 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.09)',
+                        stroke: isSelected ? '#D95C17' : 'rgba(255,255,255,0.3)',
                         strokeWidth: isSelected ? 1.5 : 0.7,
                         outline: 'none',
                         cursor: 'pointer',
                       },
-                      pressed: {
-                        fill: 'rgba(0,212,255,0.2)',
-                        stroke: '#00d4ff',
-                        strokeWidth: 1,
-                        outline: 'none',
-                      },
+                      pressed: { fill: 'rgba(217,92,23,0.2)', stroke: '#D95C17', strokeWidth: 1, outline: 'none' },
                     }}
                   />
                 )
@@ -231,44 +192,33 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
           </Geographies>
         </ComposableMapVB>
 
-        {/* Back button — only visible when zoomed into NE */}
-        {neZoom && (
+        {/* Reset zoom button — only visible when zoomed in */}
+        {isZoomed && (
           <button
-            onClick={() => setNeZoom(false)}
-            aria-label="Return to full US map"
+            onClick={resetZoom}
             style={{
-              position: 'absolute', top: 6, right: 6, zIndex: 3,
-              background: '#f59e0b',
-              border: 'none',
-              color: '#000',
-              borderRadius: 6, padding: '6px 14px',
-              fontSize: 13, fontWeight: 800, letterSpacing: '0.02em',
-              cursor: 'pointer', userSelect: 'none',
-              boxShadow: '0 2px 10px rgba(245,158,11,0.55)',
+              position: 'absolute', bottom: 6, right: 6, zIndex: 3,
+              background: 'rgba(12,27,49,0.9)', border: '1px solid rgba(255,255,255,0.2)',
+              color: '#9ca3af', borderRadius: 6, padding: '4px 10px',
+              fontSize: 11, fontWeight: 700, cursor: 'pointer',
             }}
           >
-            ← Full US
+            ↺ Reset
           </button>
         )}
       </div>
 
-      {/* Legend */}
-      <div style={{ display: 'flex', gap: 12, marginTop: 6, fontSize: 10 }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <span style={{
-            display: 'inline-block', width: 10, height: 10, borderRadius: 2,
-            background: 'rgba(255,255,255,0.11)', border: '1px solid rgba(255,255,255,0.22)',
-          }} />
-          <span style={{ color: '#9ca3af' }}>Has teams</span>
-        </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <span style={{
-            display: 'inline-block', width: 10, height: 10, borderRadius: 2,
-            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
-          }} />
-          <span style={{ color: '#4b5563' }}>No teams</span>
+      {/* Hint + legend */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 5, fontSize: 10 }}>
+        <span style={{ color: '#4b5563' }}>Pinch to zoom · drag to pan</span>
+        <span style={{ display: 'flex', gap: 10 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: 'rgba(255,255,255,0.11)', border: '1px solid rgba(255,255,255,0.22)' }} />
+            <span style={{ color: '#9ca3af' }}>Has teams</span>
+          </span>
         </span>
       </div>
     </div>
   )
 }
+
