@@ -19,6 +19,7 @@ const SPORT_TABS = [
   { id: 'WNBA', label: 'WNBA' },
   { id: 'MLS',  label: 'MLS' },
   { id: 'NWSL', label: 'NWSL' },
+  { id: 'GOLF', label: 'Golf' },
 ] as const
 type SportTab = typeof SPORT_TABS[number]['id']
 
@@ -483,10 +484,10 @@ export default function TeamsClient() {
       {/* ── State spotlight — appears immediately below map when a state is tapped ── */}
       {selectedMapState && <StateSpotlightRow stateAbbr={selectedMapState} />}
 
-      {/* ── Search input ── */}
-      <div className="px-4 pt-2 pb-1">
+      {/* ── Search input — prominent ── */}
+      <div className="px-4 pt-3 pb-2">
         <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -494,16 +495,16 @@ export default function TeamsClient() {
             placeholder="Search team or city…"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-8 py-2 rounded-lg text-sm text-white placeholder-zinc-500 outline-none focus:ring-1 focus:ring-[rgba(0,212,255,0.3)]"
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)' }}
+            className="w-full pl-11 pr-10 py-3.5 rounded-2xl text-[15px] text-white placeholder-zinc-500 outline-none focus:ring-2 focus:ring-[rgba(217,92,23,0.4)]"
+            style={{ background: 'var(--surface-2)', border: '1.5px solid rgba(255,255,255,0.1)' }}
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
               aria-label="Clear search"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -511,8 +512,8 @@ export default function TeamsClient() {
         </div>
       </div>
 
-      {/* ── Sport filter tabs ── */}
-      <div className="overflow-x-auto no-scrollbar px-4 pt-1.5 pb-1">
+      {/* ── Sport filter tabs — bigger pills, not circles ── */}
+      <div className="overflow-x-auto no-scrollbar px-4 pt-2 pb-2">
         <div className="flex gap-2 min-w-max">
           {SPORT_TABS.map(tab => {
             const active = activeTab === tab.id
@@ -520,12 +521,13 @@ export default function TeamsClient() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className="px-6 py-2.5 rounded-xl text-[14px] font-display font-700 uppercase tracking-wide transition-all whitespace-nowrap"
+                className="px-5 py-3 rounded-2xl text-[15px] font-display font-700 uppercase tracking-wide transition-all whitespace-nowrap active:scale-95"
                 style={{
-                  background: active ? 'var(--accent)' : 'var(--surface-2)',
-                  color: active ? '#08080f' : '#9ca3af',
-                  border: `1px solid ${active ? 'var(--accent)' : 'rgba(255,255,255,0.08)'}`,
-                  boxShadow: active ? '0 0 12px rgba(0,212,255,0.35)' : 'none',
+                  background: active ? '#D95C17' : 'var(--surface-2)',
+                  color: active ? '#ffffff' : '#9ca3af',
+                  border: `1.5px solid ${active ? '#D95C17' : 'rgba(255,255,255,0.08)'}`,
+                  boxShadow: active ? '0 0 16px rgba(217,92,23,0.4)' : 'none',
+                  minWidth: '56px',
                 }}
               >
                 {tab.label}
@@ -535,29 +537,39 @@ export default function TeamsClient() {
         </div>
       </div>
 
-      {/* ── Pro teams grid ── */}
-      <div className="px-4 mt-3">
-        {/* Followed section header */}
-        {proFollowedCount > 0 && (
-          <p className="font-display text-[10px] font-700 text-zinc-500 uppercase tracking-widest mb-2">
-            ★ Following ({proFollowedCount})
-          </p>
-        )}
-        {/* State-match hint */}
-        {selectedMapState && !searchQuery && (
-          <p className="text-[10px] text-amber-400/70 mb-2">
-            ✦ Highlighted = {STATE_NAMES[selectedMapState] ?? selectedMapState} teams
-          </p>
-        )}
-        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2.5">
-          {filteredTeams.map(team => (
-            <ProTeamCard key={team.id} team={team} />
-          ))}
+      {/* ── Pro teams grid (hidden on Golf tab) ── */}
+      {activeTab !== 'GOLF' && (
+        <div className="px-4 mt-3">
+          {proFollowedCount > 0 && (
+            <p className="font-display text-[10px] font-700 text-zinc-500 uppercase tracking-widest mb-2">
+              ★ Following ({proFollowedCount})
+            </p>
+          )}
+          {selectedMapState && !searchQuery && (
+            <p className="text-[10px] text-amber-400/70 mb-2">
+              ✦ Highlighted = {STATE_NAMES[selectedMapState] ?? selectedMapState} teams
+            </p>
+          )}
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2.5">
+            {filteredTeams.map(team => (
+              <ProTeamCard key={team.id} team={team} />
+            ))}
+          </div>
+          {filteredTeams.length === 0 && (
+            <p className="text-zinc-600 text-sm text-center py-8">No teams found</p>
+          )}
         </div>
-        {filteredTeams.length === 0 && (
-          <p className="text-zinc-600 text-sm text-center py-8">No teams found</p>
-        )}
-      </div>
+      )}
+
+      {/* ── Golf tab content ── */}
+      {activeTab === 'GOLF' && (
+        <div className="px-4 mt-4">
+          <p className="text-zinc-500 text-[13px] mb-4">Follow a tour to see live leaderboards on the Home tab.</p>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+            {byIds(['pga', 'lpga']).map(team => <SeattleTeamCard key={team.id} team={team} />)}
+          </div>
+        </div>
+      )}
 
       {/* ── Seattle section (local pro teams + golf tours) — hidden during search ── */}
       {activeTab === 'ALL' && !searchQuery && (
@@ -570,26 +582,10 @@ export default function TeamsClient() {
             </div>
           </div>
 
-          <div className="px-4 mt-4">
+          <div className="px-4 mt-4 pb-6">
             <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Pro Teams</h2>
             <div className="grid grid-cols-4 lg:grid-cols-6 gap-3">
               {byIds(PRO_TEAM_IDS).map(team => <SeattleTeamCard key={team.id} team={team} />)}
-            </div>
-          </div>
-
-          {/* ── Tours & Leagues (opt-in golf tours) ─────────────────────── */}
-          <div className="px-4 mt-8 pb-1">
-            <div className="flex items-center gap-2">
-              <div className="flex-1 h-px bg-white/5" />
-              <p className="font-display text-[10px] font-700 text-zinc-600 uppercase tracking-widest">Tours &amp; Leagues</p>
-              <div className="flex-1 h-px bg-white/5" />
-            </div>
-          </div>
-
-          <div className="px-4 mt-4 pb-6">
-            <p className="text-zinc-600 text-[11px] mb-3">Follow a tour to see live leaderboards on the Home tab.</p>
-            <div className="grid grid-cols-4 lg:grid-cols-6 gap-3">
-              {byIds(['pga', 'lpga']).map(team => <SeattleTeamCard key={team.id} team={team} />)}
             </div>
           </div>
         </>
