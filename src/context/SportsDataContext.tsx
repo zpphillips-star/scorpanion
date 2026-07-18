@@ -25,6 +25,21 @@ import { SEATTLE_TEAMS } from '@/lib/teams'
 const STORAGE_KEY       = 'seattle-sports-teams'
 const OTHER_STORAGE_KEY = 'followed_other_teams'
 
+/**
+ * Default followed teams for first-time visitors (null stored value = never set).
+ * Seeds Seattle's five pro teams plus both golf tours so the app looks populated
+ * on first open. Users can deselect any of these at any time.
+ */
+const DEFAULT_SEED_IDS = [
+  'seahawks',  // NFL
+  'mariners',  // MLB
+  'kraken',    // NHL
+  'sounders',  // MLS
+  'storm',     // WNBA
+  'pga',       // PGA Tour
+  'lpga',      // LPGA Tour
+]
+
 const WHL_IDS  = ['thunderbirds', 'silvertips'] as const
 const NCAA_IDS = ['uw-softball', 'uw-soccer']   as const
 
@@ -77,7 +92,11 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
     try {
       const seattleStored = localStorage.getItem(STORAGE_KEY)
       let seattleIds: string[]
-      if (seattleStored) {
+      if (seattleStored === null) {
+        // First visit — seed with Seattle pro teams + golf tours
+        seattleIds = DEFAULT_SEED_IDS
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SEED_IDS))
+      } else {
         const parsed: unknown[] = JSON.parse(seattleStored)
         const validIds = new Set(SEATTLE_TEAMS.map(t => t.id))
         const filtered = (parsed as string[]).filter(id => validIds.has(id))
@@ -86,12 +105,9 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered))
         }
         seattleIds = filtered
-      } else {
-        // No stored selection — start empty
-        seattleIds = []
       }
 
-      const otherStored = localStorage.getItem(OTHER_STORAGE_KEY)
+      const otherStored= localStorage.getItem(OTHER_STORAGE_KEY)
       const otherIds: string[] = otherStored ? (JSON.parse(otherStored) as string[]) : []
 
       setSelectedTeamIds([...new Set([...seattleIds, ...otherIds])])
