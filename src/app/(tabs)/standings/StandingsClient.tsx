@@ -801,6 +801,7 @@ export default function StandingsClient() {
             accentColor={LEAGUE_INFO[activeLeague]?.color ?? '#003087'}
             logoUrl={LEAGUE_INFO[activeLeague]?.logo ?? ''}
             label={LEAGUE_INFO[activeLeague]?.label ?? activeLeague.toUpperCase()}
+            mode="full"
           />
         </div>
       )}

@@ -154,6 +154,9 @@ async function fetchMLBBoxScore(gamePk: string): Promise<Record<string, unknown>
   const gameData = feed.gameData
   const liveData = feed.liveData
   if (!gameData || !liveData) return null
+  // Guard: MLB Stats API returns gamePk=0 / empty teams for unknown IDs (e.g. ESPN IDs).
+  // Return null so the ESPN fallback can take over.
+  if (!feed.gamePk || feed.gamePk <= 0 || !gameData.teams?.away?.id || !gameData.teams?.home?.id) return null
 
   const linescore = liveData.linescore ?? {}
   const decisions = liveData.decisions ?? {}

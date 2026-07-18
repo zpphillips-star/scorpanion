@@ -29,6 +29,7 @@ interface GolfTournamentSectionProps {
   accentColor: string
   logoUrl: string
   label: string
+  mode?: 'preview' | 'full'
 }
 
 function scoreColor(score: string) {
@@ -133,7 +134,7 @@ function GolfDetailSheet({ tournament, label, accentColor, onClose }: {
 }
 
 // ── Main section (tappable, shows full field, opens detail sheet) ────────────
-export function GolfTournamentSection({ tourId, accentColor, logoUrl, label }: GolfTournamentSectionProps) {
+export function GolfTournamentSection({ tourId, accentColor, logoUrl, label, mode = 'full' }: GolfTournamentSectionProps) {
   const [tournament, setTournament] = useState<GolfTournament | null>(null)
   const [loading, setLoading] = useState(true)
   const [showDetail, setShowDetail] = useState(false)
@@ -190,12 +191,16 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label }: G
                 <div className="w-8 text-[10px] text-zinc-600 uppercase tracking-wider text-right flex-shrink-0">Thru</div>
               </div>
 
-              {/* Full field — every player, cut players dimmed */}
+              {/* Player rows — top 5 in preview, full field in full mode */}
               <div className="px-5 pr-6">
-                {tournament.leaders.map((player, i) => {
+                {(mode === 'preview'
+                  ? tournament.leaders.filter(p => p.status !== 'cut').slice(0, 5)
+                  : tournament.leaders
+                ).map((player, i, arr) => {
                   const isCut = player.status === 'cut'
-                  const prevNotCut = i > 0 && tournament.leaders[i - 1].status !== 'cut'
-                  const showCutLine = isCut && prevNotCut
+                  // Cut divider only in full mode: insert before the first cut player
+                  const prevWasActive = i > 0 && arr[i - 1].status !== 'cut'
+                  const showCutLine = mode === 'full' && isCut && prevWasActive
                   return (
                     <div key={player.name + i}>
                       {showCutLine && (
@@ -231,9 +236,11 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label }: G
                 })}
               </div>
 
-              {/* Tap hint — now for tournament details, not full field */}
+              {/* Tap hint */}
               <div className="px-5 pt-1.5 pb-1">
-                <span className="text-[11px] text-zinc-600">Tap for tournament details →</span>
+                <span className="text-[11px] text-zinc-600">
+                  {mode === 'preview' ? 'Tap for full leaderboard →' : 'Tap for tournament details →'}
+                </span>
               </div>
             </>
           )}

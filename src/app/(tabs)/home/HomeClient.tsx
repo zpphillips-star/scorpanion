@@ -515,6 +515,7 @@ export default function HomeClient() {
             accentColor="#003087"
             logoUrl="https://a.espncdn.com/i/teamlogos/leagues/500-dark/pga.png"
             label="PGA Tour"
+            mode="preview"
           />
         </div>
       )}
@@ -525,6 +526,7 @@ export default function HomeClient() {
             accentColor="#b5006e"
             logoUrl="https://a.espncdn.com/i/teamlogos/leagues/500-dark/lpga.png"
             label="LPGA"
+            mode="preview"
           />
         </div>
       )}
