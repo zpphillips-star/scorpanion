@@ -33,10 +33,10 @@ interface GolfTournamentSectionProps {
 }
 
 function scoreColor(score: string) {
-  if (!score || score === 'E' || score === '--') return '#a1a1aa'
+  if (!score || score === 'E' || score === '--') return '#e4e4e7'
   if (score.startsWith('-')) return '#4ade80'
   if (score.startsWith('+')) return '#f87171'
-  return '#a1a1aa'
+  return '#e4e4e7'
 }
 
 // ── Full detail sheet ─────────────────────────────────────────────────────────
@@ -48,27 +48,38 @@ function GolfDetailSheet({ tournament, label, accentColor, onClose }: {
 }) {
   const statusLabel = tournament.status === 'in'
     ? `Round ${tournament.round} of ${tournament.totalRounds}`
-    : tournament.status === 'post' ? 'Tournament Complete' : 'Upcoming'
+    : tournament.status === 'post' ? 'Final' : 'Upcoming'
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50" onClick={onClose} />
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-4xl lg:mx-auto overflow-hidden flex flex-col animate-slide-up"
-        style={{ background: "#0c1b31", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "92dvh" }}
+        className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-4xl lg:mx-auto overflow-hidden flex flex-col animate-slide-up rounded-t-2xl"
+        style={{ background: "#0d1520", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "92dvh" }}
         onClick={e => e.stopPropagation()}
       >
+        {/* Drag handle */}
+        <div className="flex-shrink-0 flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 rounded-full bg-white/20" />
+        </div>
+
         {/* Header */}
-        <div className="flex-shrink-0 px-5 pt-5 pb-4" style={{ background: "linear-gradient(to bottom, #142236, #0c1b31)" }}>
-          <button onClick={onClose} className="absolute top-4 right-5 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-sm">✕</button>
-          <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">{label}</div>
-          <div className="text-[22px] font-bold text-white leading-tight">{tournament.name}</div>
+        <div className="flex-shrink-0 px-5 pt-2 pb-4" style={{ background: "linear-gradient(to bottom, #111d2e, #0d1520)" }}>
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-5 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/70 text-sm hover:bg-white/15 transition-colors"
+          >✕</button>
+
+          <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: accentColor }}>
+            {label}
+          </div>
+          <div className="text-[22px] font-bold text-white leading-tight pr-10">{tournament.name}</div>
           {tournament.course && (
-            <div className="text-[12px] text-zinc-400 mt-1">
+            <div className="text-[12px] text-zinc-400 mt-0.5">
               {tournament.course}{tournament.location ? ` · ${tournament.location}` : ''}
             </div>
           )}
-          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.07)" }}>
             {tournament.status === 'in' && (
               <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: accentColor }} />
@@ -79,55 +90,79 @@ function GolfDetailSheet({ tournament, label, accentColor, onClose }: {
           </div>
         </div>
 
-        {/* Column headers */}
-        <div className="flex-shrink-0 flex items-center pl-5 pr-8 py-2 border-b border-zinc-800">
-          <div className="flex-1 text-[10px] text-zinc-600 uppercase tracking-wider">Player</div>
-          <div className="w-12 text-[10px] text-zinc-600 uppercase tracking-wider text-right">Today</div>
-          <div className="w-12 text-[10px] text-zinc-600 uppercase tracking-wider text-right">Total</div>
-          <div className="w-10 text-[10px] text-zinc-600 uppercase tracking-wider text-right">Thru</div>
+        {/* Column headers — sticky above scroll */}
+        <div className="flex-shrink-0 flex items-center px-5 py-2 border-b border-white/[0.06]" style={{ background: "#0d1520" }}>
+          {/* rank placeholder */}
+          <div className="w-6 flex-shrink-0" />
+          {/* name */}
+          <div className="flex-1 text-[9px] font-bold uppercase tracking-widest text-zinc-600 ml-3">Player</div>
+          {/* stat headers right-side group */}
+          <div className="flex gap-4 flex-shrink-0">
+            <div className="w-10 text-center text-[9px] font-bold uppercase tracking-widest text-zinc-600">Today</div>
+            <div className="w-10 text-center text-[9px] font-bold uppercase tracking-widest text-zinc-600">Total</div>
+            <div className="w-10 text-center text-[9px] font-bold uppercase tracking-widest text-zinc-600">Thru</div>
+          </div>
         </div>
 
         {/* Full leaderboard — all players, cut players dimmed */}
-        <div className="overflow-y-auto flex-1 pl-5 pr-8">
+        <div className="overflow-y-auto flex-1">
           {tournament.leaders.map((player, i) => {
             const isCut = player.status === 'cut'
             const prevCut = i > 0 && tournament.leaders[i - 1].status !== 'cut'
             const showCutLine = isCut && prevCut
+            const isEven = i % 2 === 0
             return (
               <div key={player.name + i}>
                 {showCutLine && (
-                  <div className="flex items-center gap-2 my-2">
-                    <div className="flex-1 h-px bg-zinc-700" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Cut</span>
-                    <div className="flex-1 h-px bg-zinc-700" />
+                  <div className="flex items-center gap-3 px-5 my-1">
+                    <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Cut</span>
+                    <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
                   </div>
                 )}
-                <div className={`flex items-center py-3 border-b border-zinc-800/40 ${isCut ? 'opacity-40' : ''}`}>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-[12px] text-zinc-500 font-mono tabular-nums flex-shrink-0">{player.rank}</span>
-                      <span className="text-[14px] font-semibold text-white truncate">{player.name}</span>
+                <div
+                  className={`flex items-center px-5 py-3 border-b border-white/[0.05] ${isCut ? 'opacity-40' : ''}`}
+                  style={isEven ? { background: "rgba(255,255,255,0.02)" } : undefined}
+                >
+                  {/* Rank */}
+                  <div className="w-6 flex-shrink-0 text-right">
+                    <span className="text-[11px] text-zinc-600 font-mono tabular-nums">{player.rank}</span>
+                  </div>
+
+                  {/* Name + country */}
+                  <div className="flex-1 min-w-0 ml-3 mr-4">
+                    <div className="text-[15px] font-semibold text-white truncate leading-tight">{player.name}</div>
+                    {player.country && (
+                      <div className="text-[11px] text-zinc-500 mt-0.5 truncate">{player.country}</div>
+                    )}
+                  </div>
+
+                  {/* Stat pills */}
+                  <div className="flex gap-4 flex-shrink-0">
+                    <div className="w-10 flex flex-col items-center gap-0.5">
+                      <span className="text-[9px] uppercase tracking-widest text-zinc-600">Rd</span>
+                      <span className="text-[14px] font-bold tabular-nums leading-none" style={{ color: isCut ? '#52525b' : scoreColor(player.today) }}>
+                        {player.today || '–'}
+                      </span>
                     </div>
-                    {player.country && <div className="text-[11px] text-zinc-600 ml-5">{player.country}</div>}
-                  </div>
-                  <div className="w-12 text-right flex-shrink-0">
-                    <span className="text-[13px] font-semibold tabular-nums" style={{ color: isCut ? '#52525b' : scoreColor(player.today) }}>
-                      {player.today || '–'}
-                    </span>
-                  </div>
-                  <div className="w-12 text-right flex-shrink-0">
-                    <span className="text-[16px] font-bold tabular-nums" style={{ color: isCut ? '#52525b' : scoreColor(player.score) }}>
-                      {player.score}
-                    </span>
-                  </div>
-                  <div className="w-10 text-right flex-shrink-0">
-                    <span className="text-[12px] text-zinc-400">{isCut ? 'CUT' : player.thru}</span>
+                    <div className="w-10 flex flex-col items-center gap-0.5">
+                      <span className="text-[9px] uppercase tracking-widest text-zinc-600">Tot</span>
+                      <span className="text-[16px] font-bold tabular-nums leading-none" style={{ color: isCut ? '#52525b' : scoreColor(player.score) }}>
+                        {player.score}
+                      </span>
+                    </div>
+                    <div className="w-10 flex flex-col items-center gap-0.5">
+                      <span className="text-[9px] uppercase tracking-widest text-zinc-600">Thru</span>
+                      <span className="text-[13px] font-semibold tabular-nums leading-none text-zinc-300">
+                        {isCut ? 'CUT' : (player.thru || '–')}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             )
           })}
-          <div className="h-6" />
+          <div className="h-8" />
         </div>
       </div>
     </>
@@ -178,16 +213,18 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label, mod
               </div>
 
               {/* Column headers */}
-              <div className="flex items-center px-5 py-1.5 border-b border-zinc-800/60">
-                <div className="w-5 flex-shrink-0" />
-                <div className="flex-1 text-[10px] text-zinc-600 uppercase tracking-wider ml-3">Player</div>
-                <div className="w-10 text-[10px] text-zinc-600 uppercase tracking-wider text-right flex-shrink-0">Rd</div>
-                <div className="w-10 text-[10px] text-zinc-600 uppercase tracking-wider text-right flex-shrink-0">Tot</div>
-                <div className="w-8 text-[10px] text-zinc-600 uppercase tracking-wider text-right flex-shrink-0">Thru</div>
+              <div className="flex items-center px-5 py-1.5 border-b border-white/[0.06]">
+                <div className="w-6 flex-shrink-0" />
+                <div className="flex-1 text-[9px] font-bold text-zinc-600 uppercase tracking-widest ml-3">Player</div>
+                <div className="flex gap-4 flex-shrink-0">
+                  <div className="w-10 text-center text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Rd</div>
+                  <div className="w-10 text-center text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Tot</div>
+                  <div className="w-10 text-center text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Thru</div>
+                </div>
               </div>
 
               {/* Player rows — top 5 in preview, full field in full mode */}
-              <div className="px-5 pr-6">
+              <div>
                 {(mode === 'preview'
                   ? tournament.leaders.filter(p => p.status !== 'cut').slice(0, 5)
                   : tournament.leaders
@@ -196,34 +233,43 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label, mod
                   // Cut divider only in full mode: insert before the first cut player
                   const prevWasActive = i > 0 && arr[i - 1].status !== 'cut'
                   const showCutLine = mode === 'full' && isCut && prevWasActive
+                  const isEven = i % 2 === 0
                   return (
                     <div key={player.name + i}>
                       {showCutLine && (
-                        <div className="flex items-center gap-2 my-1.5">
-                          <div className="flex-1 h-px bg-zinc-800" />
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Cut</span>
-                          <div className="flex-1 h-px bg-zinc-800" />
+                        <div className="flex items-center gap-3 px-5 my-1">
+                          <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Cut</span>
+                          <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
                         </div>
                       )}
-                      <div className={`flex items-center gap-3 py-2.5 border-b border-zinc-800/40 ${isCut ? 'opacity-40' : ''}`}>
-                        <div className="w-5 flex-shrink-0 text-right">
-                          <span className="text-[11px] text-zinc-600 font-mono">{player.rank}</span>
+                      <div
+                        className={`flex items-center px-5 py-2.5 border-b border-white/[0.05] ${isCut ? 'opacity-40' : ''}`}
+                        style={isEven ? { background: "rgba(255,255,255,0.015)" } : undefined}
+                      >
+                        <div className="w-6 flex-shrink-0 text-right">
+                          <span className="text-[11px] text-zinc-600 font-mono tabular-nums">{player.rank}</span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <span className="text-[13px] font-semibold text-white truncate block">{player.name}</span>
+                        <div className="flex-1 min-w-0 ml-3 mr-3">
+                          <span className="text-[13px] font-semibold text-white truncate block leading-tight">{player.name}</span>
+                          {player.country && (
+                            <span className="text-[10px] text-zinc-500 truncate block mt-0.5">{player.country}</span>
+                          )}
                         </div>
-                        <div className="w-10 text-right flex-shrink-0">
-                          <span className="text-[11px] tabular-nums" style={{ color: isCut ? '#52525b' : scoreColor(player.today) }}>
-                            {player.today || '–'}
-                          </span>
-                        </div>
-                        <div className="w-10 text-right flex-shrink-0">
-                          <span className="text-[14px] font-bold tabular-nums" style={{ color: isCut ? '#52525b' : scoreColor(player.score) }}>
-                            {player.score}
-                          </span>
-                        </div>
-                        <div className="w-8 text-right flex-shrink-0">
-                          <span className="text-[11px] text-zinc-500">{isCut ? 'CUT' : player.thru}</span>
+                        <div className="flex gap-4 flex-shrink-0">
+                          <div className="w-10 flex flex-col items-center gap-0.5">
+                            <span className="text-[11px] tabular-nums font-semibold" style={{ color: isCut ? '#52525b' : scoreColor(player.today) }}>
+                              {player.today || '–'}
+                            </span>
+                          </div>
+                          <div className="w-10 flex flex-col items-center gap-0.5">
+                            <span className="text-[14px] font-bold tabular-nums" style={{ color: isCut ? '#52525b' : scoreColor(player.score) }}>
+                              {player.score}
+                            </span>
+                          </div>
+                          <div className="w-10 flex flex-col items-center gap-0.5">
+                            <span className="text-[11px] text-zinc-400 tabular-nums">{isCut ? 'CUT' : (player.thru || '–')}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
