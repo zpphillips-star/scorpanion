@@ -87,30 +87,45 @@ function GolfDetailSheet({ tournament, label, accentColor, onClose }: {
           <div className="w-10 text-[10px] text-zinc-600 uppercase tracking-wider text-right">Thru</div>
         </div>
 
-        {/* Full leaderboard */}
+        {/* Full leaderboard — all players, cut players dimmed */}
         <div className="overflow-y-auto flex-1 px-5">
-          {tournament.leaders.map((player, i) => (
-            <div key={player.name} className="flex items-center py-3 border-b border-zinc-800/50">
-              <div className="w-8 text-[12px] text-zinc-500 font-mono text-right flex-shrink-0">{player.rank}</div>
-              <div className="flex-1 min-w-0 ml-3">
-                <div className="text-[14px] font-semibold text-white truncate">{player.name}</div>
-                {player.country && <div className="text-[11px] text-zinc-600">{player.country}</div>}
+          {tournament.leaders.map((player, i) => {
+            const isCut = player.status === 'cut'
+            const prevCut = i > 0 && tournament.leaders[i - 1].status !== 'cut'
+            const showCutLine = isCut && prevCut
+            return (
+              <div key={player.name + i}>
+                {showCutLine && (
+                  <div className="flex items-center gap-2 my-2">
+                    <div className="flex-1 h-px bg-zinc-700" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Cut</span>
+                    <div className="flex-1 h-px bg-zinc-700" />
+                  </div>
+                )}
+                <div className={`flex items-center py-3 border-b border-zinc-800/40 ${isCut ? 'opacity-40' : ''}`}>
+                  <div className="w-8 text-[12px] text-zinc-500 font-mono text-right flex-shrink-0">{player.rank}</div>
+                  <div className="flex-1 min-w-0 ml-3">
+                    <div className="text-[14px] font-semibold text-white truncate">{player.name}</div>
+                    {player.country && <div className="text-[11px] text-zinc-600">{player.country}</div>}
+                  </div>
+                  <div className="w-12 text-right flex-shrink-0">
+                    <span className="text-[13px] font-semibold tabular-nums" style={{ color: isCut ? '#52525b' : scoreColor(player.today) }}>
+                      {player.today || '–'}
+                    </span>
+                  </div>
+                  <div className="w-12 text-right flex-shrink-0">
+                    <span className="text-[16px] font-bold tabular-nums" style={{ color: isCut ? '#52525b' : scoreColor(player.score) }}>
+                      {player.score}
+                    </span>
+                  </div>
+                  <div className="w-10 text-right flex-shrink-0">
+                    <span className="text-[12px] text-zinc-400">{isCut ? 'CUT' : player.thru}</span>
+                  </div>
+                </div>
               </div>
-              <div className="w-12 text-right flex-shrink-0">
-                <span className="text-[13px] font-semibold tabular-nums" style={{ color: scoreColor(player.today) }}>
-                  {player.today || '–'}
-                </span>
-              </div>
-              <div className="w-12 text-right flex-shrink-0">
-                <span className="text-[16px] font-bold tabular-nums" style={{ color: scoreColor(player.score) }}>
-                  {player.score}
-                </span>
-              </div>
-              <div className="w-10 text-right flex-shrink-0">
-                <span className="text-[12px] text-zinc-400">{player.thru}</span>
-              </div>
-            </div>
-          ))}
+            )
+          })}
+          <div className="h-6" />
         </div>
       </div>
     </>
@@ -195,11 +210,11 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label }: G
                 ))}
               </div>
 
-              {/* "Tap to see full leaderboard" hint */}
+              {/* "Tap to see full field" hint */}
               {(tournament.leaders?.length ?? 0) > 3 && (
                 <div className="px-5 pt-1 pb-1">
                   <span className="text-[11px] text-zinc-600">
-                    +{tournament.leaders.length - 3} more · tap to open →
+                    Full field ({tournament.leaders.length} players) · tap to open →
                   </span>
                 </div>
               )}

@@ -47,8 +47,7 @@ async function fetchTour(slug: string): Promise<GolfTournament | null> {
     const round = comp.status?.period ?? 1
     const totalRounds = 4
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const leaders: GolfPlayer[] = (comp.competitors ?? []).slice(0, 10).map((c: any) => {
+    const leaders: GolfPlayer[] = (comp.competitors ?? []).map((c: any) => {
       const stats = c.statistics ?? []
       const scoreStat = stats.find((s: any) => s.name === 'scoreToPar' || s.abbreviation === 'STP')
       const todayStat = stats.find((s: any) => s.name === 'roundScore' || s.abbreviation === 'RS')
@@ -58,7 +57,6 @@ async function fetchTour(slug: string): Promise<GolfTournament | null> {
       const rawToday = todayStat?.displayValue ?? ''
       const rawThru  = thruStat?.displayValue ?? '–'
 
-      // ESPN sometimes gives numeric strings for round score
       const fmtScore = (v: string) => {
         if (!v || v === 'E' || v === '--') return v || 'E'
         const n = Number(v)
@@ -78,8 +76,7 @@ async function fetchTour(slug: string): Promise<GolfTournament | null> {
           : c.status?.type?.name === 'Cut' ? 'cut'
           : status === 'post' ? 'complete' : 'active',
       }
-    }).filter((p: GolfPlayer) => p.status !== 'cut' && p.status !== 'wd')
-      .slice(0, 10)
+    }).filter((p: GolfPlayer) => p.status !== 'wd') // keep cut players, remove WD only
 
     return {
       id: event.id,
