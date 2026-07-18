@@ -155,7 +155,7 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label, mod
         <div className="pb-2">
           {/* Section header */}
           <div className="flex items-center gap-3 px-5 mb-3">
-            <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">{label}</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>{label}</span>
             <div className="flex-1 h-px bg-zinc-800" />
             {tournament && (
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider">
