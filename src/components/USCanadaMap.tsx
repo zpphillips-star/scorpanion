@@ -148,7 +148,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
       >
         <ComposableMapVB
           projection="geoAlbersUsa"
-          projectionConfig={{ scale: 1000 }}
+          projectionConfig={{ scale: 680 }}
           viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
           style={{ width: '100%', height: '100%', display: 'block' }}
         >
