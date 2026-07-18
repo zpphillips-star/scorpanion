@@ -473,29 +473,23 @@ export default function HomeClient() {
       {/* ── FEATURED: Always-on Today section ───────────────────────────── */}
       {(() => {
         const hasLive = liveGames.length > 0
-        const hasGames = liveGames.length > 0 || todayGames.length > 0
+        // When live games exist, show only those; otherwise show all today's games
+        const displayGames = hasLive ? liveGames : todayGames
+        const hasGames = displayGames.length > 0
         const todayDate = new Date()
         const dateLabel = todayDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
 
         return (
           <div className="mt-8">
-            {/* Section header */}
+            {/* Section header — matches Recent / Upcoming style exactly */}
             <div className="flex items-center gap-3 px-4 mb-3">
-              {hasLive && (
-                <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
-                </span>
-              )}
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${hasLive ? "text-red-400" : "text-zinc-500"}`}>
-                {hasLive ? "Live Now" : "Today"}
-              </span>
+              <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Today</span>
               <div className="flex-1 h-px bg-zinc-800" />
-              <span className="text-[10px] text-zinc-600 uppercase tracking-wider">{dateLabel}</span>
+              <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{dateLabel}</span>
             </div>
 
             {hasGames ? (
-              todayGames.map(g => <TodayGameCard key={g.id} game={g} />)
+              displayGames.map(g => <TodayGameCard key={g.id} game={g} />)
             ) : (
               <div className="px-4 py-8 flex items-center justify-center">
                 <span className="text-[15px] text-zinc-600 font-medium">No games today</span>

@@ -17,23 +17,24 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
   const isLive = game.status === "live"
   const isFt   = game.status === "ft"
   const isUp   = game.status === "upcoming"
-  const hasScore = (isLive || isFt) && game.seattleScore !== undefined && game.opponentScore !== undefined
+  // For live games, default to 0-0 if score not yet available
+  const hasScore = isLive || isFt
+  const awayScore = game.isHome ? (game.opponentScore ?? (isLive ? 0 : undefined)) : (game.seattleScore ?? (isLive ? 0 : undefined))
+  const homeScore = game.isHome ? (game.seattleScore ?? (isLive ? 0 : undefined)) : (game.opponentScore ?? (isLive ? 0 : undefined))
   const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
 
   const awayLogo  = game.isHome ? game.opponent.logo  : seattleLogoUrl
   const awayEmoji = game.isHome ? "🏟️"               : game.seattleTeam.emoji
   const awayAbbr  = game.isHome ? game.opponent.abbr  : game.seattleTeam.abbr
   const awayName  = game.isHome ? (game.opponent.shortName || game.opponent.name) : game.seattleTeam.shortName
-  const awayScore = game.isHome ? game.opponentScore  : game.seattleScore
 
   const homeLogo  = game.isHome ? seattleLogoUrl      : game.opponent.logo
   const homeEmoji = game.isHome ? game.seattleTeam.emoji : "🏟️"
   const homeAbbr  = game.isHome ? game.seattleTeam.abbr  : game.opponent.abbr
   const homeName  = game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)
-  const homeScore = game.isHome ? game.seattleScore   : game.opponentScore
 
-  const awayWon = isFt && hasScore && (awayScore ?? 0) > (homeScore ?? 0)
-  const homeWon = isFt && hasScore && (homeScore ?? 0) > (awayScore ?? 0)
+  const awayWon = isFt && (awayScore ?? 0) > (homeScore ?? 0)
+  const homeWon = isFt && (homeScore ?? 0) > (awayScore ?? 0)
   const logoSize = featured ? 60 : 48
 
   return (
