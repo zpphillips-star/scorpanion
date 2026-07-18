@@ -4,6 +4,7 @@ import { Game } from "@/lib/types"
 import { getTeamLogoUrl } from "@/lib/teams"
 import TeamLogo from "./TeamLogo"
 import BoxScore from "./BoxScore"
+import CompactBaseballLineScore from "./CompactBaseballLineScore"
 import TeamDetailSheet from "./TeamDetailSheet"
 import UpcomingScheduleSection from "./UpcomingScheduleSection"
 
@@ -332,43 +333,55 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
         {/* Scrollable body */}
         <div className="overflow-y-auto flex-1 px-4 pt-4 pb-10">
-          {canShowBoxScore && (
+          {/* Baseball: always show the compact 9-inning line score (proven reliable) */}
+          {canShowBoxScore && game.sport === "baseball" && (
+            <div className="mb-4">
+              <CompactBaseballLineScore
+                gameId={game.id}
+                league={game.league}
+                seattleTeamId={game.seattleTeam.espnId || game.seattleTeam.id}
+                isLive={isLive}
+              />
+            </div>
+          )}
+          {/* Full box score (basketball, hockey, football, etc.) */}
+          {canShowBoxScore && game.sport !== "baseball" && (
             <BoxScore
               eventId={game.id.includes("|") ? game.id.split("|").at(-1)! : game.id}
               league={game.league}
               seattleTeamId={game.seattleTeam.espnId}
-              color={isLive ? "#ef4444" : (game.seattleTeam.primaryColor ?? "#00d4ff")}
+              color={isLive ? "#ef4444" : (game.seattleTeam.primaryColor ?? "#D95C17")}
             />
           )}
 
           {/* Season Records — always show for finished/live games */}
           {(isLive || isFt) && (
             <div className="mt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex-1 h-px bg-zinc-800" />
-                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Season Records</span>
-                <div className="flex-1 h-px bg-zinc-800" />
-              </div>
+              <SectionHeader label="Season Records" />
               <div className="flex gap-4 items-start">
                 {/* Away team record */}
                 <div className="flex-1 flex flex-col items-center gap-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <TeamLogo src={game.isHome ? game.opponent.logo : seattleLogoUrl} emoji={game.isHome ? "🏟️" : game.seattleTeam.emoji} abbr={game.isHome ? game.opponent.abbr : game.seattleTeam.abbr} size={18} />
-                    <span className="text-[12px] font-semibold text-white">{game.isHome ? (game.opponent.shortName || game.opponent.abbr) : game.seattleTeam.shortName}</span>
+                    <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={18} />
+                    <span className="text-[12px] font-semibold text-white">{awayName}</span>
                   </div>
                   <span className="text-[36px] font-black text-white tabular-nums leading-none">
-                    {(game.isHome ? game.opponentRecord : game.seattleRecord) ? `${(game.isHome ? game.opponentRecord : game.seattleRecord)!.wins}-${(game.isHome ? game.opponentRecord : game.seattleRecord)!.losses}` : "–"}
+                    {awayRecord
+                      ? `${awayRecord.wins}-${awayRecord.losses}`
+                      : (awayDetail?.wins !== undefined ? `${awayDetail.wins}-${awayDetail.losses}` : "–")}
                   </span>
                 </div>
                 <div className="w-px bg-zinc-800 self-stretch" />
                 {/* Home team record */}
                 <div className="flex-1 flex flex-col items-center gap-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <TeamLogo src={game.isHome ? seattleLogoUrl : game.opponent.logo} emoji={game.isHome ? game.seattleTeam.emoji : "🏟️"} abbr={game.isHome ? game.seattleTeam.abbr : game.opponent.abbr} size={18} />
-                    <span className="text-[12px] font-semibold text-white">{game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.abbr)}</span>
+                    <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={18} />
+                    <span className="text-[12px] font-semibold text-white">{homeName}</span>
                   </div>
                   <span className="text-[36px] font-black text-white tabular-nums leading-none">
-                    {(game.isHome ? game.seattleRecord : game.opponentRecord) ? `${(game.isHome ? game.seattleRecord : game.opponentRecord)!.wins}-${(game.isHome ? game.seattleRecord : game.opponentRecord)!.losses}` : "–"}
+                    {homeRecord
+                      ? `${homeRecord.wins}-${homeRecord.losses}`
+                      : (homeDetail?.wins !== undefined ? `${homeDetail.wins}-${homeDetail.losses}` : "–")}
                   </span>
                 </div>
               </div>

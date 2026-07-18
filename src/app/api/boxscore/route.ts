@@ -146,7 +146,8 @@ async function fetchPWHLBoxScore(gameId: string): Promise<Record<string, unknown
 // ── MLB official boxscore via statsapi.mlb.com ───────────────────────────────
 async function fetchMLBBoxScore(gamePk: string): Promise<Record<string, unknown> | null> {
   const url = `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`
-  const res = await fetch(url, { next: { revalidate: 30 } })
+  // Always fetch fresh — stale cache causes blank scoreboard on live games
+  const res = await fetch(url, { cache: 'no-store' })
   if (!res.ok) return null
   const feed = await res.json()
 
