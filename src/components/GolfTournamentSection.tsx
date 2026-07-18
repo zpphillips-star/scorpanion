@@ -53,13 +53,13 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label }: G
   }
 
   return (
-    <div className="px-4 pb-2">
-      {/* Section header — matches Today/Recent/Upcoming style */}
-      <div className="flex items-center gap-3 mb-3">
-        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{label}</span>
+    <div className="pb-2">
+      {/* Section header — matches Today/Recent/Upcoming exactly */}
+      <div className="flex items-center gap-3 px-4 mb-3">
+        <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">{label}</span>
         <div className="flex-1 h-px bg-zinc-800" />
         {tournament && (
-          <span className="text-[10px] text-zinc-600 uppercase tracking-wider">
+          <span className="text-[10px] text-zinc-500 uppercase tracking-wider">
             {tournament.status === 'in' ? `Round ${tournament.round}` : tournament.status === 'post' ? 'Final' : 'Upcoming'}
           </span>
         )}
@@ -70,24 +70,24 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label }: G
           <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accentColor, borderTopColor: 'transparent' }} />
         </div>
       ) : !tournament ? (
-        <div className="py-6 text-center">
+        <div className="px-4 py-6 text-center">
           <span className="text-[13px] text-zinc-600">No active tournament</span>
         </div>
       ) : (
         <>
-          {/* Tournament name + course */}
-          <div className="mb-3">
-            <div className="text-[12px] font-semibold text-zinc-300 leading-tight uppercase tracking-wide">{tournament.name}</div>
+          {/* Tournament name — secondary subtitle, not a title */}
+          <div className="px-4 mb-3">
+            <span className="text-[12px] text-zinc-400 leading-tight">{tournament.name}</span>
             {tournament.course && (
-              <div className="text-[11px] text-zinc-500 mt-0.5">{tournament.course}{tournament.location ? ` · ${tournament.location}` : ''}</div>
+              <span className="text-[11px] text-zinc-600 ml-2">· {tournament.course}{tournament.location ? `, ${tournament.location}` : ''}</span>
             )}
           </div>
 
           {/* Leaderboard rows */}
-          <div>
+          <div className="px-4">
             {visiblePlayers?.map((player, i) => (
               <div key={player.name}>
-                {i > 0 && <div className="h-px bg-zinc-800/60 mx-0" />}
+                {i > 0 && <div className="h-px bg-zinc-800/60" />}
                 <div className="flex items-center gap-3 py-2.5">
                   {/* Rank */}
                   <div className="w-6 flex-shrink-0 text-right">
@@ -128,7 +128,7 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label }: G
           {(tournament.leaders?.length ?? 0) > 5 && (
             <button
               onClick={() => setExpanded(e => !e)}
-              className="mt-1 w-full py-2 text-[12px] font-semibold uppercase tracking-wider transition-opacity active:opacity-70"
+              className="mt-1 w-full px-4 py-2 text-[12px] font-semibold uppercase tracking-wider transition-opacity active:opacity-70"
               style={{ color: accentColor }}
             >
               {expanded ? '▲ Show Less' : `▼ Full Leaderboard (${tournament.leaders.length})`}
