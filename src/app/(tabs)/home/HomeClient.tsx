@@ -572,34 +572,31 @@ export default function HomeClient() {
                 return (
                   <div
                     key={g.id}
-                    className="flex justify-center items-center px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer"
+                    className="flex items-center pl-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer"
                     onClick={() => setSelectedRecentGame(g)}
                   >
-                    {/* Centered matchup cluster: [AwayName AwayLogo] [time] [HomeLogo HomeName] */}
-                    <div className="flex items-center">
-                      {/* Away team — name then logo (logo touches time) */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-[13px] font-semibold text-white whitespace-nowrap leading-tight">
-                          {awayName}
-                        </span>
-                        <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={24} className="flex-shrink-0" />
-                      </div>
-                      {/* Time — sits between the two team blocks */}
-                      <div className="flex flex-col items-center mx-3">
-                        <span className="text-[12px] text-zinc-400 font-normal tabular-nums whitespace-nowrap leading-tight">
-                          {fmtTime(g.kickoff)}
-                        </span>
-                        {g.broadcast && (
-                          <span className="text-[9px] text-zinc-600 whitespace-nowrap">{g.broadcast}</span>
-                        )}
-                      </div>
-                      {/* Home team — logo then name (logo touches time) */}
-                      <div className="flex items-center gap-2">
-                        <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={24} className="flex-shrink-0" />
-                        <span className="text-[13px] font-semibold text-white whitespace-nowrap leading-tight">
-                          {homeName}
-                        </span>
-                      </div>
+                    {/* Away team — name + logo, right-justified so logo is flush to center */}
+                    <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
+                      <span className="text-[13px] font-semibold text-white truncate text-right leading-tight">
+                        {awayName}
+                      </span>
+                      <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={28} className="flex-shrink-0" />
+                    </div>
+                    {/* Home team — logo + name, left-justified so logo is flush to center */}
+                    <div className="flex-1 flex items-center justify-start gap-2 min-w-0">
+                      <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={28} className="flex-shrink-0" />
+                      <span className="text-[13px] font-semibold text-white truncate leading-tight">
+                        {homeName}
+                      </span>
+                    </div>
+                    {/* Time — fixed width, right-aligned with right margin */}
+                    <div className="w-[72px] flex-shrink-0 flex flex-col items-end pr-4 gap-0.5">
+                      <span className="text-[12px] font-normal text-zinc-400 tabular-nums whitespace-nowrap leading-tight">
+                        {fmtTime(g.kickoff)}
+                      </span>
+                      {g.broadcast && (
+                        <span className="text-[9px] text-zinc-600 truncate max-w-full">{g.broadcast}</span>
+                      )}
                     </div>
                   </div>
                 )
