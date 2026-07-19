@@ -113,24 +113,41 @@ function mlbLogoUrl(fileCode: string): string {
  * against the local calendar date the user expects.
  */
 function normalizeMLBDate(gameDate: string, officialDate?: string): string {
-  // Try fast ISO detection first (already valid)
-  if (gameDate.includes('T') || gameDate.startsWith('20')) return gameDate
-  // Parse "MM/DD/YYYY HH:MM:SS" as UTC
-  const [, timePart = '00:00:00'] = gameDate.split(' ')
-  // Prefer officialDate (YYYY-MM-DD) as the date portion — this preserves the
-  // local calendar date for late games that roll over in UTC (e.g. 1 AM UTC =
-  // 6 PM PT the previous evening), preventing cross-midnight deduplication bugs.
-  if (officialDate && /^\d{4}-\d{2}-\d{2}$/.test(officialDate)) {
+  // MLB Stats API now returns gameDate in ISO 8601 UTC (e.g. "2026-07-19T20:10:00Z").
+  // Keep it as-is for most games. The officialDate (local calendar date, e.g. "2026-07-19")
+  // is ONLY used for the date portion when the UTC date rolls over past midnight relative
+  // to the game's local timezone — i.e. when the UTC date ≠ officialDate.
+  // This keeps the game time correct (UTC anchor) while anchoring the calendar date
+  // to the local schedule date so sort/filter logic uses the right day.
+
+  let isoDate: string
+  let timePart: string
+
+  if (gameDate.includes('T')) {
+    // Already ISO: "2026-07-19T20:10:00Z"
+    isoDate = gameDate.slice(0, 10)
+    timePart = gameDate.split('T')[1]?.replace('Z', '') ?? '00:00:00'
+  } else {
+    // Legacy format: "07/19/2026 20:10:00"
+    const [datePart, tp = '00:00:00'] = gameDate.split(' ')
+    timePart = tp
+    const parts = datePart.split('/')
+    if (parts.length === 3) {
+      const [mm, dd, yyyy] = parts
+      isoDate = `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`
+    } else {
+      return gameDate // last resort
+    }
+  }
+
+  // If officialDate is provided AND differs from the UTC date, use officialDate.
+  // This corrects cross-midnight UTC games (e.g. 7 PM PT game starts at 2 AM UTC
+  // the next day, so UTC date = schedule_date + 1, but officialDate = schedule_date).
+  if (officialDate && /^\d{4}-\d{2}-\d{2}$/.test(officialDate) && officialDate !== isoDate) {
     return `${officialDate}T${timePart}Z`
   }
-  // Fallback: parse MM/DD/YYYY from gameDate
-  const [datePart] = gameDate.split(' ')
-  const parts = datePart.split('/')
-  if (parts.length === 3) {
-    const [mm, dd, yyyy] = parts
-    return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}T${timePart}Z`
-  }
-  return gameDate // fallback: return as-is
+
+  return `${isoDate}T${timePart}Z`
 }
 
 // ── Fetch Mariners schedule from statsapi.mlb.com ────────────────────────────
@@ -426,11 +443,16 @@ export async function GET(request: NextRequest) {
     // Key 1: raw event ID (strips team prefix) — catches same-system duplicates
     const eventKey = game.id.includes('|') ? game.id.split('|').slice(1).join('|') : game.id
     if (seenEventKeys.has(eventKey)) return
-    // Key 2: date + sport + sorted team abbrs — catches cross-system duplicates
+    // Key 2: date + time + sport + sorted team abbrs — catches cross-system duplicates
     // (e.g. MLB Stats API gamePk vs ESPN event ID for the same Mariners/Giants game)
+    // Including HH:MM in the key prevents false deduplication of doubleheaders and
+    // consecutive series games that happen to fall on the same UTC calendar date
+    // (e.g. a 17:10 PT game ends after midnight UTC so the next day's Preview game
+    // shares the same UTC date even though they are clearly different games).
     const dateKey = game.kickoff.slice(0, 10) // YYYY-MM-DD
+    const timeKey = game.kickoff.length >= 16 ? game.kickoff.slice(11, 16) : '00:00' // HH:MM
     const abbrs = [game.seattleTeam.abbr, game.opponent.abbr].map(s => s.toUpperCase()).sort()
-    const matchupKey = `${dateKey}|${game.sport}|${abbrs.join('-')}`
+    const matchupKey = `${dateKey}|${timeKey}|${game.sport}|${abbrs.join('-')}`
     if (seenMatchupKeys.has(matchupKey)) return
     seenIds.add(game.id)
     seenEventKeys.add(eventKey)
