@@ -4,7 +4,9 @@ import { SEATTLE_TEAMS } from '@/lib/teams'
 import { ALL_PRO_TEAMS } from '@/lib/allProTeams'
 import { Game, SeattleTeam, TeamRecord } from '@/lib/types'
 
-export const runtime = 'edge'
+// Use Node.js runtime (not edge) so this route is never bundled into the shared
+// Vercel edge middleware artifact, which can be incorrectly cached across deploys.
+export const dynamic = 'force-dynamic'
 
 // ── MLB Mariners official team ID ─────────────────────────────────────────────
 const MLB_MARINERS_TEAM_ID = 136
