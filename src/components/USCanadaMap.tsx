@@ -29,11 +29,11 @@ const CANADA_PROVINCES = [
   { abbr: 'PE', label: 'PE' }, { abbr: 'NL', label: 'NL' },
 ]
 
-// geoAlbersUsa at scale 680 leaves ~50px of dead space above the continental US
-// within the 800×450 SVG canvas.  Start at y=50 and crop to h=370 so the map
-// fills the container without a large void at the top (Alaska/Hawaii still fit
-// comfortably; their insets end around y=400 → 400–50=350 < 370 ✓).
-const FULL_VB = { x: 0, y: 50, w: 800, h: 370 }
+// geoAlbersUsa at scale 680 places the continental US content starting ~y=70
+// within the 800×450 SVG canvas.  Start at y=70 and crop to h=340 so the map
+// fills the container without a large void at the top.  Alaska/Hawaii insets
+// end around y=405 → 405–70=335 < 340 ✓, so they still fit comfortably.
+const FULL_VB = { x: 0, y: 70, w: 800, h: 340 }
 const MIN_W = 80; const MAX_W = 800
 
 type VB = { x: number; y: number; w: number; h: number }
@@ -145,7 +145,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
       {/* Map container — full aspect ratio, no maxHeight cap */}
       <div
         ref={containerRef}
-        style={{ width: '100%', position: 'relative', aspectRatio: '800/370', overflow: 'hidden', touchAction: 'none', cursor: isZoomed ? 'grab' : 'default' }}
+        style={{ width: '100%', position: 'relative', aspectRatio: '800/340', overflow: 'hidden', touchAction: 'none', cursor: isZoomed ? 'grab' : 'default' }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
