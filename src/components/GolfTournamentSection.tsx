@@ -136,17 +136,17 @@ function GolfDetailSheet({ tournament, label, accentColor, onClose }: {
                   {/* Stat values — no per-row labels, header row covers labeling */}
                   <div className="flex gap-4 flex-shrink-0">
                     <div className="w-10 flex items-center justify-center">
-                      <span className="text-[14px] font-bold tabular-nums leading-none" style={{ color: isCut ? '#52525b' : scoreColor(player.today) }}>
+                      <span className="text-[14px] font-semibold tabular-nums leading-none" style={{ color: isCut ? '#52525b' : scoreColor(player.today) }}>
                         {player.today || '–'}
                       </span>
                     </div>
                     <div className="w-10 flex items-center justify-center">
-                      <span className="text-[16px] font-bold tabular-nums leading-none" style={{ color: isCut ? '#52525b' : scoreColor(player.score) }}>
+                      <span className="text-[14px] font-semibold tabular-nums leading-none" style={{ color: isCut ? '#52525b' : scoreColor(player.score) }}>
                         {player.score}
                       </span>
                     </div>
                     <div className="w-10 flex items-center justify-center">
-                      <span className="text-[13px] font-semibold tabular-nums leading-none text-zinc-300">
+                      <span className="text-[14px] font-semibold tabular-nums leading-none text-zinc-300">
                         {isCut ? 'CUT' : (player.thru || '–')}
                       </span>
                     </div>
@@ -266,17 +266,17 @@ export function GolfTournamentSection({ tourId, accentColor, logoUrl, label, mod
                         </div>
                         <div className="flex gap-4 flex-shrink-0">
                           <div className="w-10 flex flex-col items-center gap-0.5">
-                            <span className="text-[11px] tabular-nums font-semibold" style={{ color: isCut ? '#52525b' : scoreColor(player.today) }}>
+                            <span className="text-[12px] tabular-nums font-semibold" style={{ color: isCut ? '#52525b' : scoreColor(player.today) }}>
                               {player.today || '–'}
                             </span>
                           </div>
                           <div className="w-10 flex flex-col items-center gap-0.5">
-                            <span className="text-[14px] font-bold tabular-nums" style={{ color: isCut ? '#52525b' : scoreColor(player.score) }}>
+                            <span className="text-[12px] font-semibold tabular-nums" style={{ color: isCut ? '#52525b' : scoreColor(player.score) }}>
                               {player.score}
                             </span>
                           </div>
                           <div className="w-10 flex flex-col items-center gap-0.5">
-                            <span className="text-[11px] text-zinc-400 tabular-nums">{isCut ? 'CUT' : (player.thru || '–')}</span>
+                            <span className="text-[12px] font-semibold text-zinc-400 tabular-nums">{isCut ? 'CUT' : (player.thru || '–')}</span>
                           </div>
                         </div>
                       </div>

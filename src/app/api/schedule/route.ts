@@ -122,7 +122,7 @@ function normalizeMLBDate(gameDate: string): string {
 async function fetchMLBSchedule(team: SeattleTeam): Promise<Game[]> {
   const year = new Date().getFullYear()
   const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&teamId=${MLB_MARINERS_TEAM_ID}&season=${year}&hydrate=linescore,team`
-  const res = await fetch(url, { next: { revalidate: 60 } })
+  const res = await fetch(url, { cache: 'no-store' })
   if (!res.ok) return []
   const data = await res.json()
 
