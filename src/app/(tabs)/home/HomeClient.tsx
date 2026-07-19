@@ -576,7 +576,7 @@ export default function HomeClient() {
                     onClick={() => setSelectedRecentGame(g)}
                   >
                     {/* Time — left-aligned, small, dim */}
-                    <div className="pl-4 mb-1.5 flex items-center gap-2">
+                    <div className="pl-6 mb-1.5 flex items-center gap-2">
                       <span className="text-[11px] text-zinc-500 font-normal uppercase tracking-wide tabular-nums">
                         {fmtTime(g.kickoff)}
                       </span>
