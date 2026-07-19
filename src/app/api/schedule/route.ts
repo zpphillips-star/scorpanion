@@ -104,12 +104,25 @@ function mlbLogoUrl(fileCode: string): string {
  * MLB statsapi.mlb.com returns gameDate as "MM/DD/YYYY HH:MM:SS" (UTC).
  * This format is non-standard and causes Invalid Date in Safari/WebKit.
  * Convert to a proper ISO 8601 string so new Date(kickoff) always works.
+ *
+ * officialDate (e.g. "2026-07-18") is the LOCAL calendar date of the game.
+ * We use it as the date portion of the ISO string so that late-night games
+ * whose UTC date rolls over to the next day still sort and filter correctly
+ * against the local calendar date the user expects.
  */
-function normalizeMLBDate(gameDate: string): string {
+function normalizeMLBDate(gameDate: string, officialDate?: string): string {
   // Try fast ISO detection first (already valid)
   if (gameDate.includes('T') || gameDate.startsWith('20')) return gameDate
   // Parse "MM/DD/YYYY HH:MM:SS" as UTC
-  const [datePart, timePart = '00:00:00'] = gameDate.split(' ')
+  const [, timePart = '00:00:00'] = gameDate.split(' ')
+  // Prefer officialDate (YYYY-MM-DD) as the date portion — this preserves the
+  // local calendar date for late games that roll over in UTC (e.g. 1 AM UTC =
+  // 6 PM PT the previous evening), preventing cross-midnight deduplication bugs.
+  if (officialDate && /^\d{4}-\d{2}-\d{2}$/.test(officialDate)) {
+    return `${officialDate}T${timePart}Z`
+  }
+  // Fallback: parse MM/DD/YYYY from gameDate
+  const [datePart] = gameDate.split(' ')
   const parts = datePart.split('/')
   if (parts.length === 3) {
     const [mm, dd, yyyy] = parts
@@ -168,7 +181,7 @@ async function fetchMLBSchedule(team: SeattleTeam): Promise<Game[]> {
           logo: mlbLogoUrl(opp.team.fileCode ?? opp.team.abbreviation),
           record: { wins: oW, losses: oL, summary: `${oW}-${oL}` } satisfies TeamRecord,
         },
-        kickoff: normalizeMLBDate(game.gameDate),
+        kickoff: normalizeMLBDate(game.gameDate, game.officialDate),
         venue: {
           name: game.venue?.name ?? '',
           city: homeData.team.locationName ?? '',
