@@ -100,6 +100,24 @@ function mlbLogoUrl(fileCode: string): string {
   return `https://a.espncdn.com/i/teamlogos/mlb/500/${fileCode.toLowerCase()}.png`
 }
 
+/**
+ * MLB statsapi.mlb.com returns gameDate as "MM/DD/YYYY HH:MM:SS" (UTC).
+ * This format is non-standard and causes Invalid Date in Safari/WebKit.
+ * Convert to a proper ISO 8601 string so new Date(kickoff) always works.
+ */
+function normalizeMLBDate(gameDate: string): string {
+  // Try fast ISO detection first (already valid)
+  if (gameDate.includes('T') || gameDate.startsWith('20')) return gameDate
+  // Parse "MM/DD/YYYY HH:MM:SS" as UTC
+  const [datePart, timePart = '00:00:00'] = gameDate.split(' ')
+  const parts = datePart.split('/')
+  if (parts.length === 3) {
+    const [mm, dd, yyyy] = parts
+    return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}T${timePart}Z`
+  }
+  return gameDate // fallback: return as-is
+}
+
 // ── Fetch Mariners schedule from statsapi.mlb.com ────────────────────────────
 async function fetchMLBSchedule(team: SeattleTeam): Promise<Game[]> {
   const year = new Date().getFullYear()
@@ -150,7 +168,7 @@ async function fetchMLBSchedule(team: SeattleTeam): Promise<Game[]> {
           logo: mlbLogoUrl(opp.team.fileCode ?? opp.team.abbreviation),
           record: { wins: oW, losses: oL, summary: `${oW}-${oL}` } satisfies TeamRecord,
         },
-        kickoff: game.gameDate,
+        kickoff: normalizeMLBDate(game.gameDate),
         venue: {
           name: game.venue?.name ?? '',
           city: homeData.team.locationName ?? '',
