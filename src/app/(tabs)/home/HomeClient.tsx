@@ -476,6 +476,11 @@ export default function HomeClient() {
         const todayDate = new Date()
         const dateLabel = todayDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
 
+        // Golf tours that are visible under the current filter
+        const pgaVisible = selectedTeamIds.includes('pga') && (activeFilter === 'all' || activeFilter === 'pga')
+        const lpgaVisible = selectedTeamIds.includes('lpga') && (activeFilter === 'all' || activeFilter === 'lpga')
+        const hasGolf = pgaVisible || lpgaVisible
+
         return (
           <div className="mt-14">
             {/* Section header — matches Recent / Upcoming style exactly */}
@@ -485,9 +490,31 @@ export default function HomeClient() {
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{dateLabel}</span>
             </div>
 
-            {hasGames ? (
-              todayGames.map(g => <TodayGameCard key={g.id} game={g} />)
-            ) : (
+            {/* Team sport game cards */}
+            {todayGames.map(g => <TodayGameCard key={g.id} game={g} />)}
+
+            {/* Golf tournaments — rendered inline in the Today block */}
+            {pgaVisible && (
+              <GolfTournamentSection
+                tourId="pga"
+                accentColor="#003087"
+                logoUrl="https://a.espncdn.com/i/teamlogos/leagues/500-dark/pga.png"
+                label="PGA Tour"
+                mode="preview"
+              />
+            )}
+            {lpgaVisible && (
+              <GolfTournamentSection
+                tourId="lpga"
+                accentColor="#b5006e"
+                logoUrl="https://a.espncdn.com/i/teamlogos/leagues/500-dark/lpga.png"
+                label="LPGA"
+                mode="preview"
+              />
+            )}
+
+            {/* Empty state — only if no games AND no golf tours followed */}
+            {!hasGames && !hasGolf && (
               <div className="px-4 py-8 flex items-center justify-center">
                 <span className="text-[15px] text-zinc-600 font-medium">No games today</span>
               </div>
@@ -505,30 +532,6 @@ export default function HomeClient() {
           </div>
           <OffSeasonCards teams={teamsWithNoGames.length > 0 ? teamsWithNoGames : followedTeams} nextGames={nextGameByTeam} />
         </>
-      )}
-
-      {/* ── Golf: PGA / LPGA — only show when filter is "all" or that specific tour ── */}
-      {selectedTeamIds.includes('pga') && (activeFilter === 'all' || activeFilter === 'pga') && (
-        <div className="mt-14">
-          <GolfTournamentSection
-            tourId="pga"
-            accentColor="#003087"
-            logoUrl="https://a.espncdn.com/i/teamlogos/leagues/500-dark/pga.png"
-            label="PGA Tour"
-            mode="preview"
-          />
-        </div>
-      )}
-      {selectedTeamIds.includes('lpga') && (activeFilter === 'all' || activeFilter === 'lpga') && (
-        <div className="mt-14">
-          <GolfTournamentSection
-            tourId="lpga"
-            accentColor="#b5006e"
-            logoUrl="https://a.espncdn.com/i/teamlogos/leagues/500-dark/lpga.png"
-            label="LPGA"
-            mode="preview"
-          />
-        </div>
       )}
 
       {/* ── Upcoming — WC compact rows ───────────────────────────────────── */}
