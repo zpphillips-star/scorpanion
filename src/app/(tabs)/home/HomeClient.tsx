@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Game } from "@/lib/types"
 import { SEATTLE_TEAMS, getTeamLogoUrl } from "@/lib/teams"
 import { ALL_PRO_TEAMS } from "@/lib/allProTeams"
@@ -10,7 +10,8 @@ import PageHeader from "@/components/PageHeader"
 import { TodayGameCard } from "@/components/TodayGameCard"
 import GameDetailSheet from "@/components/GameDetailSheet"
 import { OFFSEASON_DISPLAY } from "@/lib/seasonDates"
-import { GolfTournamentSection } from "@/components/GolfTournamentSection"
+import { TournamentCard } from "@/components/PGATournamentCard"
+import type { PGATournament } from "@/app/api/pga/route"
 
 // Use explicit timezone for all date comparisons (matches phone's local time)
 function getTimezone(): string {
@@ -110,8 +111,153 @@ function OffSeasonCards({ teams, nextGames }: {
   )
 }
 
+// ── Golf tournament data hook ─────────────────────────────────────────────────
+// Fetches PGA or LPGA tournament list and refreshes on an interval.
+function useGolfTournaments(tourId: 'pga' | 'lpga', enabled: boolean) {
+  const [tournaments, setTournaments] = useState<PGATournament[]>([])
+  const [loaded, setLoaded] = useState(false)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  const doFetch = useCallback(async () => {
+    try {
+      const r = await fetch(`/api/${tourId}`)
+      if (!r.ok) return
+      const data: PGATournament[] = await r.json()
+      setTournaments(data)
+      setLoaded(true)
+      // Faster polling when live, slower otherwise
+      const isLive = data.some(t => t.status === 'live')
+      const nextMs = isLive ? 60_000 : 5 * 60_000
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      intervalRef.current = setInterval(doFetch, nextMs)
+    } catch {
+      setLoaded(true)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tourId])
 
+  useEffect(() => {
+    if (!enabled) { setTournaments([]); setLoaded(true); return }
+    doFetch()
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [enabled, doFetch])
+
+  return { tournaments, loaded }
+}
+
+// ── Golf recent card ──────────────────────────────────────────────────────────
+// Matches the RecentCard style: compact horizontal scroll card
+function GolfRecentCard({ tournament, label, accentColor }: {
+  tournament: PGATournament
+  label: string
+  accentColor: string
+}) {
+  const [showDetail, setShowDetail] = useState(false)
+  const winner = tournament.leaders[0]
+  const fmtDate = (iso: string) => {
+    if (!iso) return ''
+    try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) } catch { return '' }
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setShowDetail(true)}
+        className="flex-shrink-0 w-[148px] text-left active:opacity-70 transition-opacity last:border-r-0 pr-7 mr-7 last:pr-0 last:mr-0"
+        style={{ borderRight: '1px solid rgba(255,255,255,0.07)' }}
+      >
+        {/* Date + label */}
+        <div className="flex items-center justify-between mb-4 px-1">
+          <span className="text-[10px] text-zinc-600">{fmtDate(tournament.endDate)}</span>
+          <span className="text-[10px] text-zinc-700 uppercase tracking-wide">{label}</span>
+        </div>
+        {/* Tournament name */}
+        <div className="px-1 mb-2">
+          <span className="text-[12px] font-semibold text-white leading-tight block truncate">
+            {tournament.shortName || tournament.name}
+          </span>
+          <span className="text-[10px] text-zinc-600 uppercase tracking-wide mt-0.5 block">Final</span>
+        </div>
+        {/* Winner row */}
+        {winner && (
+          <div className="px-1">
+            <div className="flex items-baseline justify-between gap-1">
+              <span className="text-[12px] text-zinc-300 truncate flex-1">{winner.shortName || winner.name}</span>
+              <span className="text-[14px] font-bold tabular-nums flex-shrink-0"
+                    style={{ color: winner.totalScore.startsWith('-') ? '#4ade80' : winner.totalScore.startsWith('+') ? '#f87171' : '#e4e4e7' }}>
+                {winner.totalScore}
+              </span>
+            </div>
+          </div>
+        )}
+      </button>
+
+      {showDetail && (
+        <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'rgba(0,0,0,0.75)' }} onClick={() => setShowDetail(false)}>
+          <div className="flex-1" />
+          <div className="rounded-t-2xl overflow-hidden flex flex-col" style={{ background: '#0c1b31', maxHeight: '85vh' }} onClick={e => e.stopPropagation()}>
+            <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+              <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
+            </div>
+            <div className="px-5 pb-4 flex-shrink-0">
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: accentColor }}>{label} · Final</div>
+              <div className="text-[20px] font-bold text-white leading-tight">{tournament.name}</div>
+              {tournament.course && <div className="text-[12px] text-zinc-500 mt-0.5">{tournament.course}{tournament.location ? ` · ${tournament.location}` : ''}</div>}
+            </div>
+            <div className="overflow-y-auto flex-1 pb-8">
+              <div className="grid px-5 py-2 sticky top-0" style={{ gridTemplateColumns: '32px 1fr 48px 44px', background: '#0c1b31', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                <span /><span className="text-[9px] tracking-widest uppercase font-semibold text-zinc-600">Player</span>
+                <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">Total</span>
+                <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">Rd</span>
+              </div>
+              {tournament.leaders.map((p, i) => (
+                <div key={`${p.name}-${i}`} className="grid items-center px-5 py-2.5" style={{ gridTemplateColumns: '32px 1fr 48px 44px', borderBottom: i < tournament.leaders.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                  <span className="text-[11px] font-semibold tabular-nums text-zinc-500">{p.position}</span>
+                  <span className="text-[13px] font-semibold text-white truncate pr-2">{p.shortName || p.name}</span>
+                  <span className="text-right text-[13px] font-bold tabular-nums" style={{ color: p.totalScore.startsWith('-') ? '#4ade80' : p.totalScore.startsWith('+') ? '#f87171' : '#e4e4e7' }}>{p.totalScore}</span>
+                  <span className="text-right text-[12px] text-zinc-600 tabular-nums">{p.todayScore}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+// ── Golf upcoming row ─────────────────────────────────────────────────────────
+// Matches the upcoming game row style: name left, date right, inside a date group
+function GolfUpcomingRow({ tournament, label, accentColor }: {
+  tournament: PGATournament
+  label: string
+  accentColor: string
+}) {
+  const fmtDate = (iso: string) => {
+    if (!iso) return ''
+    try { return new Date(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) } catch { return '' }
+  }
+  return (
+    <div className="py-3 border-b border-white/5">
+      <div className="pl-6 mb-1.5 flex items-center gap-2">
+        <span className="text-[11px] uppercase tracking-wide tabular-nums font-semibold" style={{ color: accentColor }}>
+          {label}
+        </span>
+        {tournament.course && (
+          <span className="text-[10px] text-zinc-600">{tournament.course}</span>
+        )}
+      </div>
+      <div className="px-4 flex items-center justify-between gap-2">
+        <span className="text-[14px] font-semibold text-white truncate flex-1 leading-tight">
+          {tournament.shortName || tournament.name}
+        </span>
+        <span className="text-[12px] text-zinc-500 flex-shrink-0">
+          {fmtDate(tournament.startDate)}
+        </span>
+      </div>
+    </div>
+  )
+}
 
 
 
@@ -225,6 +371,27 @@ export default function HomeClient() {
   const [activeFilter, setActiveFilter] = useState<string>("all")
   const [collegePicker, setCollegePicker] = useState<string | null>(null) // groupKey "uw" | "wsu"
   const [selectedRecentGame, setSelectedRecentGame] = useState<Game | null>(null)
+
+  // Golf visibility — respects both follow state and active filter
+  const pgaVisible = selectedTeamIds.includes('pga') && (activeFilter === 'all' || activeFilter === 'pga')
+  const lpgaVisible = selectedTeamIds.includes('lpga') && (activeFilter === 'all' || activeFilter === 'lpga')
+
+  // Fetch golf data at the HomeClient level so we can classify into Today/Upcoming/Recent
+  const { tournaments: pgaTournaments } = useGolfTournaments('pga', pgaVisible)
+  const { tournaments: lpgaTournaments } = useGolfTournaments('lpga', lpgaVisible)
+
+  // Classify PGA tournaments by section
+  const pgaToday = pgaTournaments.filter(t => t.status === 'live')
+  const pgaUpcoming = pgaTournaments.filter(t => t.status === 'upcoming')
+  const pgaRecent = pgaTournaments.filter(t => t.status === 'completed').slice(0, 1)
+
+  // Classify LPGA tournaments by section
+  const lpgaToday = lpgaTournaments.filter(t => t.status === 'live')
+  const lpgaUpcoming = lpgaTournaments.filter(t => t.status === 'upcoming')
+  const lpgaRecent = lpgaTournaments.filter(t => t.status === 'completed').slice(0, 1)
+
+  // Any golf happening today?
+  const hasGolfToday = pgaToday.length > 0 || lpgaToday.length > 0
 
   // Build filter items — one per unique logo, sorted by aggregated click count
   // College schools get click counts summed across all their sport variants
@@ -453,7 +620,7 @@ export default function HomeClient() {
       </PageHeader>
 
       {/* ── Recent results (horizontal scroll, tappable) ─────────────────── */}
-      {recent.length > 0 && (
+      {(recent.length > 0 || pgaRecent.length > 0 || lpgaRecent.length > 0) && (
         <div className="mt-8">
           <div className="flex items-center gap-3 px-4 mb-4">
             <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Recent</span>
@@ -465,6 +632,12 @@ export default function HomeClient() {
               {recent.map(g => (
                 <RecentCard key={g.id} game={g} onClick={() => setSelectedRecentGame(g)} />
               ))}
+              {pgaRecent.map(t => (
+                <GolfRecentCard key={`pga-${t.id}`} tournament={t} label="PGA Tour" accentColor="#CBA135" />
+              ))}
+              {lpgaRecent.map(t => (
+                <GolfRecentCard key={`lpga-${t.id}`} tournament={t} label="LPGA" accentColor="#C084FC" />
+              ))}
             </div>
           </div>
         </div>
@@ -475,11 +648,6 @@ export default function HomeClient() {
         const hasGames = todayGames.length > 0
         const todayDate = new Date()
         const dateLabel = todayDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
-
-        // Golf tours that are visible under the current filter
-        const pgaVisible = selectedTeamIds.includes('pga') && (activeFilter === 'all' || activeFilter === 'pga')
-        const lpgaVisible = selectedTeamIds.includes('lpga') && (activeFilter === 'all' || activeFilter === 'lpga')
-        const hasGolf = pgaVisible || lpgaVisible
 
         return (
           <div className="mt-14">
@@ -493,28 +661,20 @@ export default function HomeClient() {
             {/* Team sport game cards */}
             {todayGames.map(g => <TodayGameCard key={g.id} game={g} />)}
 
-            {/* Golf tournaments — rendered inline in the Today block */}
-            {pgaVisible && (
-              <GolfTournamentSection
-                tourId="pga"
-                accentColor="#003087"
-                logoUrl="https://a.espncdn.com/i/teamlogos/leagues/500-dark/pga.png"
-                label="PGA Tour"
-                mode="preview"
-              />
-            )}
-            {lpgaVisible && (
-              <GolfTournamentSection
-                tourId="lpga"
-                accentColor="#b5006e"
-                logoUrl="https://a.espncdn.com/i/teamlogos/leagues/500-dark/lpga.png"
-                label="LPGA"
-                mode="preview"
-              />
-            )}
+            {/* Golf — only when live (active tournament today) */}
+            {pgaToday.map(t => (
+              <div key={`pga-today-${t.id}`} className="mb-3">
+                <TournamentCard tournament={t} />
+              </div>
+            ))}
+            {lpgaToday.map(t => (
+              <div key={`lpga-today-${t.id}`} className="mb-3">
+                <TournamentCard tournament={t} />
+              </div>
+            ))}
 
-            {/* Empty state — only if no games AND no golf tours followed */}
-            {!hasGames && !hasGolf && (
+            {/* Empty state — only if no games AND no live golf */}
+            {!hasGames && !hasGolfToday && (
               <div className="px-4 py-8 flex items-center justify-center">
                 <span className="text-[15px] text-zinc-600 font-medium">No games today</span>
               </div>
@@ -535,7 +695,7 @@ export default function HomeClient() {
       )}
 
       {/* ── Upcoming — WC compact rows ───────────────────────────────────── */}
-      {upcomingDates.length > 0 && (
+      {(upcomingDates.length > 0 || pgaUpcoming.length > 0 || lpgaUpcoming.length > 0) && (
         <div className="mt-14">
           <div className="px-4 mb-4 flex items-center gap-3">
             <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Upcoming</span>
@@ -613,6 +773,19 @@ export default function HomeClient() {
               })}
             </div>
           ))}
+
+          {/* Golf upcoming rows — appended after team games, no date grouping needed */}
+          {(pgaUpcoming.length > 0 || lpgaUpcoming.length > 0) && (
+            <>
+              {upcomingDates.length > 0 && <div className="h-3" />}
+              {pgaUpcoming.map(t => (
+                <GolfUpcomingRow key={`pga-up-${t.id}`} tournament={t} label="PGA Tour" accentColor="#CBA135" />
+              ))}
+              {lpgaUpcoming.map(t => (
+                <GolfUpcomingRow key={`lpga-up-${t.id}`} tournament={t} label="LPGA" accentColor="#C084FC" />
+              ))}
+            </>
+          )}
         </div>
       )}
 

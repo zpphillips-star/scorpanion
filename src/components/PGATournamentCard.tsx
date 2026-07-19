@@ -116,7 +116,7 @@ function TournamentDetailSheet({ tournament, onClose }: { tournament: PGATournam
 }
 
 // ── Collapsed tournament card ────────────────────────────────────────────────
-function TournamentCard({ tournament }: { tournament: PGATournament }) {
+export function TournamentCard({ tournament }: { tournament: PGATournament }) {
   const [showDetail, setShowDetail] = useState(false)
   const isLive = tournament.status === "live"
   const isCompleted = tournament.status === "completed"
