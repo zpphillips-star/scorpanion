@@ -4,6 +4,7 @@ import { Game } from "@/lib/types"
 import { getTeamLogoUrl } from "@/lib/teams"
 import TeamLogo from "./TeamLogo"
 import CompactBaseballLineScore from "./CompactBaseballLineScore"
+import CompactLineScore from "./CompactLineScore"
 import GameDetailSheet from "@/components/GameDetailSheet"
 
 function formatTime(iso: string) {
@@ -139,11 +140,19 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
             </div>
           </div>
 
-          {/* Inline MLB line score */}
-          {(isLive || isFt) && game.sport === "baseball" && game.id && (
+          {/* Inline MLB line score — live only; final games show breakdown only in the detail sheet */}
+          {isLive && game.sport === "baseball" && game.id && (
             <div className="pr-4 pb-3 -mt-1">
               <CompactBaseballLineScore gameId={game.id} league={game.league}
                 seattleTeamId={game.seattleTeam.espnId} isLive={isLive} />
+            </div>
+          )}
+
+          {/* Inline period/quarter line score for live non-baseball games */}
+          {isLive && game.sport !== "baseball" && game.sport !== "soccer" && game.id && (
+            <div className="pr-4 pb-3 -mt-1">
+              <CompactLineScore gameId={game.id} league={game.league}
+                seattleTeamId={game.seattleTeam.espnId} />
             </div>
           )}
 
