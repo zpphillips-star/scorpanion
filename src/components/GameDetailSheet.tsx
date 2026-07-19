@@ -15,8 +15,20 @@ function formatRecord(r?: { wins: number; losses: number; ties?: number }): stri
   return r.ties ? `${r.wins}-${r.losses}-${r.ties}` : `${r.wins}-${r.losses}`
 }
 
+function parseKickoff(kickoff: string): Date {
+  if (!kickoff) return new Date(NaN)
+  if (kickoff.includes("T") || kickoff.startsWith("20")) return new Date(kickoff)
+  const [datePart = "", timePart = "00:00:00"] = kickoff.split(" ")
+  const parts = datePart.split("/")
+  if (parts.length === 3) {
+    const [mm, dd, yyyy] = parts
+    return new Date(`${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}T${timePart}Z`)
+  }
+  return new Date(kickoff)
+}
+
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+  return parseKickoff(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
 }
 
 function getLiveDetail(game: Game): string {
@@ -394,7 +406,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                   <span className="font-display text-[28px] font-black text-zinc-700 leading-none">vs</span>
                   <div className="flex flex-col items-center gap-0.5 mt-1">
                     <span className="font-display text-[15px] font-bold text-zinc-200 tabular-nums">
-                      {new Date(game.kickoff).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                      {parseKickoff(game.kickoff).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
                     </span>
                     <span className="font-display text-[10px] uppercase tracking-wider text-zinc-600">
                       {fmtDate(game.kickoff)}

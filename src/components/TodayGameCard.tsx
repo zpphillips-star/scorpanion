@@ -7,8 +7,20 @@ import CompactBaseballLineScore from "./CompactBaseballLineScore"
 import CompactLineScore from "./CompactLineScore"
 import GameDetailSheet from "@/components/GameDetailSheet"
 
+function parseKickoff(kickoff: string): Date {
+  if (!kickoff) return new Date(NaN)
+  if (kickoff.includes("T") || kickoff.startsWith("20")) return new Date(kickoff)
+  const [datePart = "", timePart = "00:00:00"] = kickoff.split(" ")
+  const parts = datePart.split("/")
+  if (parts.length === 3) {
+    const [mm, dd, yyyy] = parts
+    return new Date(`${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}T${timePart}Z`)
+  }
+  return new Date(kickoff)
+}
+
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+  return parseKickoff(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
 }
 
 /** Full-width WC-style featured card for today games */

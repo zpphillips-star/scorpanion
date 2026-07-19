@@ -111,14 +111,16 @@ function mlbLogoUrl(fileCode: string): string {
  * We use it as the date portion of the ISO string so that late-night games
  * whose UTC date rolls over to the next day still sort and filter correctly
  * against the local calendar date the user expects.
+ *
+ * NOTE: The MLB API oscillates between ISO and legacy format — this function
+ * handles BOTH formats defensively. Do not add a fast-path that skips conversion
+ * for "already ISO" strings without also checking for legacy format first.
  */
 function normalizeMLBDate(gameDate: string, officialDate?: string): string {
-  // MLB Stats API now returns gameDate in ISO 8601 UTC (e.g. "2026-07-19T20:10:00Z").
-  // Keep it as-is for most games. The officialDate (local calendar date, e.g. "2026-07-19")
-  // is ONLY used for the date portion when the UTC date rolls over past midnight relative
-  // to the game's local timezone — i.e. when the UTC date ≠ officialDate.
-  // This keeps the game time correct (UTC anchor) while anchoring the calendar date
-  // to the local schedule date so sort/filter logic uses the right day.
+  // MLB Stats API may return gameDate as either:
+  //   ISO 8601: "2026-07-19T20:10:00Z"
+  //   Legacy:   "07/19/2026 20:10:00"   ← MM/DD/YYYY HH:MM:SS (UTC, no zone marker)
+  // We must always convert to ISO so Safari/WebKit handles new Date(kickoff) correctly.
 
   let isoDate: string
   let timePart: string
@@ -136,7 +138,8 @@ function normalizeMLBDate(gameDate: string, officialDate?: string): string {
       const [mm, dd, yyyy] = parts
       isoDate = `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`
     } else {
-      return gameDate // last resort
+      // Unknown format — return as-is; HomeClient parseKickoff will attempt to handle it
+      return gameDate
     }
   }
 

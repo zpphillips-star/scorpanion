@@ -70,11 +70,23 @@ function OffseasonBanner({ leagues }: { leagues: string[] }) {
   )
 }
 
+function parseKickoff(kickoff: string): Date {
+  if (!kickoff) return new Date(NaN)
+  if (kickoff.includes('T') || kickoff.startsWith('20')) return new Date(kickoff)
+  const [datePart = '', timePart = '00:00:00'] = kickoff.split(' ')
+  const parts = datePart.split('/')
+  if (parts.length === 3) {
+    const [mm, dd, yyyy] = parts
+    return new Date(`${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}T${timePart}Z`)
+  }
+  return new Date(kickoff)
+}
+
 function groupGamesByDate(games: Game[]): Map<string, Game[]> {
   const groups = new Map<string, Game[]>()
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
   for (const game of games) {
-    const key = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date(game.kickoff))
+    const key = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(parseKickoff(game.kickoff))
     if (!groups.has(key)) groups.set(key, [])
     groups.get(key)!.push(game)
   }

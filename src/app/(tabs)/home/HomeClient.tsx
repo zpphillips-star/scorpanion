@@ -23,6 +23,27 @@ function todayStr(tz?: string) {
 function dateStr(d: Date, tz?: string) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: tz ?? getTimezone() }).format(d)
 }
+
+/**
+ * Safely parse a game kickoff string to a Date, handling both:
+ *   • ISO 8601: "2026-07-19T20:10:00Z"  (works in all browsers)
+ *   • Legacy MLB format: "07/19/2026 20:10:00"  (Safari rejects this → Invalid Date)
+ * Converts legacy format to ISO before constructing the Date so Safari/WebKit
+ * works correctly. The time component is treated as UTC to match the server.
+ */
+function parseKickoff(kickoff: string): Date {
+  if (!kickoff) return new Date(NaN)
+  // Already ISO 8601 — fast path (most games)
+  if (kickoff.includes("T") || kickoff.startsWith("20")) return new Date(kickoff)
+  // Legacy "MM/DD/YYYY HH:MM:SS" — convert to "YYYY-MM-DDTHH:MM:SSZ"
+  const [datePart = "", timePart = "00:00:00"] = kickoff.split(" ")
+  const parts = datePart.split("/")
+  if (parts.length === 3) {
+    const [mm, dd, yyyy] = parts
+    return new Date(`${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}T${timePart}Z`)
+  }
+  return new Date(kickoff) // last-resort fallback
+}
 function daysAgo(n: number, tz?: string) {
   const d = new Date(); d.setDate(d.getDate() - n); return dateStr(d, tz)
 }
@@ -30,10 +51,10 @@ function daysFromNow(n: number, tz?: string) {
   const d = new Date(); d.setDate(d.getDate() + n); return dateStr(d, tz)
 }
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+  return parseKickoff(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
 }
 function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).replace(/\s?(am|pm)/i, m => m.toUpperCase().trim()).replace(/^(\d)/, h => h)
+  return parseKickoff(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).replace(/\s?(am|pm)/i, m => m.toUpperCase().trim()).replace(/^(\d)/, h => h)
 }
 function fmtDayHeader(ds: string) {
   const [y, m, day] = ds.split("-").map(Number)
@@ -83,7 +104,7 @@ function OffSeasonCards({ teams, nextGames }: {
 
               {next ? (
                 <div className="text-[11px] text-zinc-500 mt-0.5 truncate">
-                  Next: {new Date(next.kickoff).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                  Next: {parseKickoff(next.kickoff).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                   <span className="mx-1">·</span>
                   {next.isHome ? "vs" : "@"} {next.opponent.shortName || next.opponent.abbr}
                 </div>
@@ -96,7 +117,7 @@ function OffSeasonCards({ teams, nextGames }: {
 
             {/* Days until */}
             {next && (() => {
-              const days = Math.ceil((new Date(next.kickoff).getTime() - Date.now()) / 86400000)
+              const days = Math.ceil((parseKickoff(next.kickoff).getTime() - Date.now()) / 86400000)
               return days >= 0 ? (
                 <div className="flex-shrink-0 text-right">
                   <div className="text-[18px] font-bold text-zinc-300 tabular-nums leading-none">{days}</div>
@@ -458,22 +479,22 @@ export default function HomeClient() {
   const cutoff14 = daysFromNow(14)
 
   const recent = filtered.filter(g => {
-    const d = dateStr(new Date(g.kickoff))
+    const d = dateStr(parseKickoff(g.kickoff))
     // Exclude today — those show in the featured section; show last 7 days
     return g.status === "ft" && d >= cutoff7 && d < today
-  }).sort((a, b) => new Date(b.kickoff).getTime() - new Date(a.kickoff).getTime()).slice(0, 12)
+  }).sort((a, b) => parseKickoff(b.kickoff).getTime() - parseKickoff(a.kickoff).getTime()).slice(0, 12)
 
-  const todayGames = filtered.filter(g => dateStr(new Date(g.kickoff)) === today)
+  const todayGames = filtered.filter(g => dateStr(parseKickoff(g.kickoff)) === today)
   const liveGames = filtered.filter(g => g.status === "live")
   const upcoming = filtered.filter(g => {
-    const d = dateStr(new Date(g.kickoff))
+    const d = dateStr(parseKickoff(g.kickoff))
     return g.status === "upcoming" && d > today && d <= cutoff14
   })
 
   // If no upcoming in 14 days, grab the next N games regardless of date
   const upcomingFallback = upcoming.length === 0
-    ? filtered.filter(g => g.status === "upcoming" && dateStr(new Date(g.kickoff)) > today)
-        .sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime())
+    ? filtered.filter(g => g.status === "upcoming" && dateStr(parseKickoff(g.kickoff)) > today)
+        .sort((a, b) => parseKickoff(a.kickoff).getTime() - parseKickoff(b.kickoff).getTime())
         .slice(0, 6)
     : []
 
@@ -485,7 +506,7 @@ export default function HomeClient() {
   for (const team of followedTeams) {
     nextGameByTeam[team.id] = allGames
       .filter(g => g.seattleTeamId === team.id && g.status === "upcoming")
-      .sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime())[0]
+      .sort((a, b) => parseKickoff(a.kickoff).getTime() - parseKickoff(b.kickoff).getTime())[0]
   }
 
   // Teams that have NO upcoming games at all in the current filtered view
@@ -501,7 +522,7 @@ export default function HomeClient() {
 
   const upcomingByDate: Record<string, Game[]> = {}
   for (const g of allUpcoming) {
-    const d = dateStr(new Date(g.kickoff)); if (!upcomingByDate[d]) upcomingByDate[d] = []
+    const d = dateStr(parseKickoff(g.kickoff)); if (!upcomingByDate[d]) upcomingByDate[d] = []
     upcomingByDate[d].push(g)
   }
   const upcomingDates = Object.keys(upcomingByDate).sort()
