@@ -584,17 +584,26 @@ export default function HomeClient() {
                         <span className="text-[10px] text-zinc-600">{g.broadcast}</span>
                       )}
                     </div>
-                    {/* Teams row — centered: [AwayLogo] Away Name · Home Name [HomeLogo] */}
-                    <div className="flex items-center justify-center gap-2.5 px-5">
-                      <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={28} className="flex-shrink-0" />
-                      <span className="text-[14px] font-semibold text-white whitespace-nowrap leading-tight">
-                        {awayName}
-                      </span>
-                      <span className="text-zinc-600 text-[13px] font-normal select-none">·</span>
-                      <span className="text-[14px] font-semibold text-white whitespace-nowrap leading-tight">
-                        {homeName}
-                      </span>
-                      <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={28} className="flex-shrink-0" />
+                    {/* Teams row — 3-col grid so the dot always lands at the same horizontal pixel */}
+                    <div className="grid items-center px-4" style={{ gridTemplateColumns: "1fr 2rem 1fr" }}>
+                      {/* Left: Away Name + Logo — right-aligned */}
+                      <div className="flex items-center justify-end gap-2 min-w-0">
+                        <span className="text-[14px] font-semibold text-white whitespace-nowrap leading-tight truncate">
+                          {awayName}
+                        </span>
+                        <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={28} className="flex-shrink-0" />
+                      </div>
+                      {/* Center: dot, always perfectly centered */}
+                      <div className="flex items-center justify-center">
+                        <span className="text-zinc-600 text-[13px] font-normal select-none">·</span>
+                      </div>
+                      {/* Right: Logo + Home Name — left-aligned */}
+                      <div className="flex items-center justify-start gap-2 min-w-0">
+                        <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={28} className="flex-shrink-0" />
+                        <span className="text-[14px] font-semibold text-white whitespace-nowrap leading-tight truncate">
+                          {homeName}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )
