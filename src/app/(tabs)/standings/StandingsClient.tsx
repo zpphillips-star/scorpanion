@@ -188,80 +188,91 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
 
   const activeIdx = chevrons.findIndex(c => c.key === activePhase)
 
-  // ── Chevron geometry ────────────────────────────────────────────────────────
-  const A = 16  // arrow tip depth in px
+  // ── Color palette — uniform across all leagues ───────────────────────────────
+  const ACTIVE_BG = '#D95C17'  // orange — current phase
+  const PAST_BG   = '#1e3a5f'  // medium navy — completed phases
+  const FUTURE_BG = '#0d1e30'  // dark navy — upcoming phases
 
-  const clipFirst  = `polygon(0 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, 0 100%)`
-  const clipMiddle = `polygon(${A}px 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, 0 100%, ${A}px 50%)`
-  const clipLast   = `polygon(${A}px 0, 100% 0, 100% 100%, 0 100%, ${A}px 50%)`
-
-  // ── Uniform color palette ───────────────────────────────────────────────────
-  // Orange = active. Past = mid-navy. Future = dark navy. All text = white.
-  const ACTIVE_BG  = '#D95C17'   // orange
-  const PAST_BG    = '#1e3a5f'   // medium navy
-  const FUTURE_BG  = '#112133'   // dark navy
+  // ── Fixed height for the border-triangle technique ──────────────────────────
+  // CSS border triangles need a fixed height so the half-heights can be specified.
+  const H  = 60   // total height px
+  const HH = H / 2  // half height
+  const A  = 18   // arrow width px — how far the tip extends right
 
   return (
     <div className="mt-3">
-      <div className="flex w-full">
+      {/* overflow:visible so right-arrow tips extend into adjacent segments */}
+      <div className="flex w-full" style={{ height: H }}>
         {chevrons.map((chev, idx) => {
           const isActive = idx === activeIdx
           const isPast   = idx < activeIdx
           const isFirst  = idx === 0
           const isLast   = idx === chevrons.length - 1
-          const clip     = isFirst ? clipFirst : isLast ? clipLast : clipMiddle
-          // Left items on top so their arrow tip renders over the next segment
-          const zIdx = isActive ? chevrons.length + 2 : chevrons.length - idx
+          const bg       = isActive ? ACTIVE_BG : isPast ? PAST_BG : FUTURE_BG
+          // Leftmost segments have highest z-index so their arrow sits on top
+          const z        = chevrons.length + 2 - idx
 
-          const bg = isActive ? ACTIVE_BG : isPast ? PAST_BG : FUTURE_BG
-
-          // Horizontal padding accounts for the arrow cutout
-          const pl = isFirst ? 12 : A + 8
-          const pr = isLast  ? 12 : A + 8
+          // Content padding: left side accounts for previous arrow tip covering it
+          const pl = isFirst ? 10 : A + 6
+          const pr = isLast  ? 10 : A + 6
 
           return (
             <div
               key={chev.key}
-              className="flex-1 flex flex-col items-center justify-center"
+              className="relative flex-1 flex flex-col items-center justify-center"
               style={{
-                clipPath:      clip,
-                background:    bg,
-                marginLeft:    isFirst ? 0 : -A,
-                zIndex:        zIdx,
-                minHeight:     '62px',
-                paddingTop:    '10px',
-                paddingBottom: '10px',
+                background: bg,
+                zIndex: z,
+                height: H,
+                // Rounded corners on outer edges only
+                borderRadius: isFirst ? '3px 0 0 3px' : isLast ? '0 3px 3px 0' : '0',
               }}
             >
-              {/* Phase label — large, white, bold */}
-              <span
-                className="font-display font-800 uppercase tracking-wide leading-none text-center block"
-                style={{
-                  color:        'white',
-                  fontSize:     '10px',
-                  paddingLeft:  pl,
-                  paddingRight: pr,
-                  opacity:      isActive ? 1 : isPast ? 0.7 : 0.35,
-                }}
-              >
-                {chev.label}
-              </span>
-
-              {/* Date range — small white below label */}
-              {chev.dates && (
+              {/* ── Right arrow tip — CSS border triangle ── */}
+              {/* Extends A px BEYOND this segment into the next one.
+                  Since this segment has higher z-index, it renders on top. */}
+              {!isLast && (
                 <span
-                  className="leading-tight text-center block mt-1"
                   style={{
-                    color:        'white',
-                    fontSize:     '7px',
-                    paddingLeft:  pl,
-                    paddingRight: pr,
-                    opacity:      isActive ? 0.75 : isPast ? 0.35 : 0.2,
+                    position:     'absolute',
+                    right:        -A,        // tip extends A px into next segment
+                    top:          0,
+                    width:        0,
+                    height:       0,
+                    borderTop:    `${HH}px solid transparent`,
+                    borderBottom: `${HH}px solid transparent`,
+                    borderLeft:   `${A}px solid ${bg}`,
+                    zIndex:       z + 1,
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+
+              {/* ── Text content ── */}
+              <div className="text-center" style={{ paddingLeft: pl, paddingRight: pr }}>
+                <span
+                  className="font-display font-800 uppercase tracking-wide leading-none block"
+                  style={{
+                    color:    'white',
+                    fontSize: '9.5px',
+                    opacity:  isActive ? 1 : isPast ? 0.65 : 0.3,
                   }}
                 >
-                  {chev.dates}
+                  {chev.label}
                 </span>
-              )}
+                {chev.dates && (
+                  <span
+                    className="leading-tight text-center block mt-1"
+                    style={{
+                      color:    'white',
+                      fontSize: '7px',
+                      opacity:  isActive ? 0.8 : isPast ? 0.35 : 0.18,
+                    }}
+                  >
+                    {chev.dates}
+                  </span>
+                )}
+              </div>
             </div>
           )
         })}
