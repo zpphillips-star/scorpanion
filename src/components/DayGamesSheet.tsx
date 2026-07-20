@@ -141,12 +141,12 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
       >
         {/* ── Top bar: broadcast + status ── */}
         <div
-          className="flex items-center justify-between px-3 pt-2.5 pb-1"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+          className="flex items-center justify-between px-4 pt-3.5 pb-2"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
         >
           {/* Broadcast network */}
           <span
-            className="text-[10px] font-bold uppercase tracking-widest"
+            className="text-[11px] font-bold uppercase tracking-widest"
             style={{ color: "var(--text-faint)" }}
           >
             {game.broadcast || (game.isHome ? "Home" : "Away")}
@@ -155,30 +155,30 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
           {/* Status badge */}
           {isLive ? (
             <div className="flex items-center gap-1.5">
-              <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+              <span className="relative flex h-2 w-2 flex-shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
                       style={{ backgroundColor: "#FFB400" }} />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5"
+                <span className="relative inline-flex rounded-full h-2 w-2"
                       style={{ backgroundColor: "#FFB400" }} />
               </span>
-              <span className="text-[11px] font-bold uppercase tracking-wider"
+              <span className="text-[12px] font-bold uppercase tracking-wider"
                     style={{ color: "#FFB400" }}>
                 Live
               </span>
               {liveDetail && (
-                <span className="text-[10px] font-semibold tabular-nums"
+                <span className="text-[11px] font-semibold tabular-nums"
                       style={{ color: "rgba(255,180,0,0.55)" }}>
                   · {liveDetail}
                 </span>
               )}
             </div>
           ) : isFt ? (
-            <span className="text-[10px] font-bold uppercase tracking-widest"
+            <span className="text-[11px] font-bold uppercase tracking-widest"
                   style={{ color: "var(--text-faint)" }}>
               Final
             </span>
           ) : (
-            <span className="text-[12px] font-semibold tabular-nums"
+            <span className="text-[14px] font-bold tabular-nums"
                   style={{ color: "var(--text)" }}>
               {formatTime(game.kickoff)}
             </span>
@@ -186,25 +186,25 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
         </div>
 
         {/* ── Main matchup row ── */}
-        <div className="flex items-center px-3 py-3 gap-2">
+        <div className="flex items-center px-4 py-5 gap-3">
           {/* Away team */}
-          <div className="flex-1 flex items-center gap-2.5 min-w-0">
+          <div className="flex-1 flex items-center gap-3 min-w-0">
             <TeamLogo
               src={awayLogo}
               emoji={awayEmoji}
               abbr={awayAbbr}
-              size={38}
-              className={`flex-shrink-0 transition-opacity${isFt && homeWon ? " opacity-25" : ""}`}
+              size={54}
+              className={`flex-shrink-0 transition-opacity${isFt && homeWon ? " opacity-20" : ""}`}
             />
             <div className="min-w-0">
               <div
-                className="text-[14px] font-bold leading-tight truncate"
+                className="text-[16px] font-bold leading-tight truncate"
                 style={{ color: isFt && homeWon ? "rgba(242,230,207,0.25)" : "var(--text)" }}
               >
                 {awayName}
               </div>
               {awayRecord && (
-                <div className="text-[10px] tabular-nums leading-tight mt-0.5"
+                <div className="text-[11px] tabular-nums leading-tight mt-1"
                      style={{ color: "var(--text-faint)" }}>
                   {formatRecord(awayRecord)}
                 </div>
@@ -213,31 +213,31 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
           </div>
 
           {/* Score / VS center */}
-          <div className="flex-shrink-0 flex items-center gap-1 mx-1">
+          <div className="flex-shrink-0 flex items-center gap-1.5 mx-1">
             {hasScore ? (
               <>
                 <span
-                  className="font-display text-[24px] font-800 tabular-nums leading-none w-8 text-right"
-                  style={{ color: awayWon ? "var(--text)" : isFt ? "rgba(242,230,207,0.28)" : "var(--text)" }}
+                  className="font-display text-[34px] font-800 tabular-nums leading-none w-10 text-right"
+                  style={{ color: awayWon ? "var(--text)" : isFt ? "rgba(242,230,207,0.22)" : "var(--text)" }}
                 >
                   {awayScore}
                 </span>
                 <span
-                  className="font-display text-[14px] font-600 leading-none px-0.5"
+                  className="font-display text-[18px] font-600 leading-none px-0.5"
                   style={{ color: "var(--border-strong)" }}
                 >
                   –
                 </span>
                 <span
-                  className="font-display text-[24px] font-800 tabular-nums leading-none w-8 text-left"
-                  style={{ color: homeWon ? "var(--text)" : isFt ? "rgba(242,230,207,0.28)" : "var(--text)" }}
+                  className="font-display text-[34px] font-800 tabular-nums leading-none w-10 text-left"
+                  style={{ color: homeWon ? "var(--text)" : isFt ? "rgba(242,230,207,0.22)" : "var(--text)" }}
                 >
                   {homeScore}
                 </span>
               </>
             ) : (
               <span
-                className="font-display text-[15px] font-700 uppercase tracking-wider px-1"
+                className="font-display text-[17px] font-700 uppercase tracking-wider px-2"
                 style={{ color: "var(--border-strong)" }}
               >
                 vs
@@ -246,16 +246,16 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
           </div>
 
           {/* Home team */}
-          <div className="flex-1 flex items-center justify-end gap-2.5 min-w-0">
+          <div className="flex-1 flex items-center justify-end gap-3 min-w-0">
             <div className="min-w-0 text-right">
               <div
-                className="text-[14px] font-bold leading-tight truncate"
+                className="text-[16px] font-bold leading-tight truncate"
                 style={{ color: isFt && awayWon ? "rgba(242,230,207,0.25)" : "var(--text)" }}
               >
                 {homeName}
               </div>
               {homeRecord && (
-                <div className="text-[10px] tabular-nums leading-tight mt-0.5"
+                <div className="text-[11px] tabular-nums leading-tight mt-1"
                      style={{ color: "var(--text-faint)" }}>
                   {formatRecord(homeRecord)}
                 </div>
@@ -265,8 +265,8 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
               src={homeLogo}
               emoji={homeEmoji}
               abbr={homeAbbr}
-              size={38}
-              className={`flex-shrink-0 transition-opacity${isFt && awayWon ? " opacity-25" : ""}`}
+              size={54}
+              className={`flex-shrink-0 transition-opacity${isFt && awayWon ? " opacity-20" : ""}`}
             />
           </div>
         </div>
@@ -274,21 +274,21 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
         {/* ── Venue footer ── */}
         {game.venue?.name && (
           <div
-            className="flex items-center justify-between px-3 pb-2.5"
-            style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
+            className="flex items-center justify-between px-4 pb-3.5"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
           >
-            <span className="text-[10px] truncate" style={{ color: "var(--text-faint)" }}>
+            <span className="text-[11px] truncate" style={{ color: "var(--text-faint)" }}>
               📍 {game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}
             </span>
-            <svg className="w-3 h-3 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24"
+            <svg className="w-3.5 h-3.5 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24"
                  stroke="currentColor" style={{ color: "var(--border-strong)" }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
           </div>
         )}
         {!game.venue?.name && (
-          <div className="flex justify-end px-3 pb-2">
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24"
+          <div className="flex justify-end px-4 pb-3">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
                  stroke="currentColor" style={{ color: "var(--border-strong)" }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
@@ -375,7 +375,8 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
         style={{
           background: "linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 40%, #0a1525 100%)",
           borderRadius: "24px 24px 0 0",
-          maxHeight: "90dvh",
+          minHeight: "82dvh",
+          maxHeight: "96dvh",
           paddingBottom: "env(safe-area-inset-bottom)",
           boxShadow: "0 -12px 60px rgba(0,0,0,0.75), 0 -1px 0 rgba(255,255,255,0.07), inset 0 1px 0 rgba(255,255,255,0.05)",
         }}
@@ -480,12 +481,12 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
               </div>
             </div>
           ) : (
-            <div className="px-4 pt-1 pb-2">
+            <div className="px-4 pt-2 pb-4">
               {grouped.map(({ label, games: groupGames }) => (
                 <div key={label}>
                   {grouped.length > 1 && <LeagueSectionHeader label={label} />}
-                  {grouped.length === 1 && <div className="pt-3" />}
-                  <div className="flex flex-col gap-2.5">
+                  {grouped.length === 1 && <div className="pt-4" />}
+                  <div className="flex flex-col gap-4">
                     {groupGames.map(g => (
                       <DayGameCard
                         key={g.id}
@@ -500,7 +501,7 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
           )}
 
           {/* Bottom breathing room */}
-          <div className="h-8" />
+          <div className="h-16" />
         </div>
       </div>
 
