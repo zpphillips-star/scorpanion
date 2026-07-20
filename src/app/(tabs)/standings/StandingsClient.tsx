@@ -245,7 +245,7 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
             }}
           >
             {/* Sheet header */}
-            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-white/[0.07]">
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-white/[0.11]">
               <div>
                 <h3 className="font-display text-[18px] font-800 text-white uppercase tracking-wide">
                   {leagueId.toUpperCase()} Season
@@ -271,7 +271,7 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
                       background: isActive
                         ? 'rgba(217,92,23,0.15)'
                         : isPast ? 'rgba(30,58,95,0.35)' : 'rgba(13,30,48,0.5)',
-                      border: `1px solid ${isActive ? 'rgba(217,92,23,0.35)' : 'rgba(255,255,255,0.06)'}`,
+                      border: `1px solid ${isActive ? 'rgba(217,92,23,0.35)' : 'rgba(255,255,255,0.11)'}`,
                     }}
                   >
                     {/* Dot indicator */}
@@ -348,7 +348,7 @@ function ScopePicker({
             className="flex-1 rounded-lg px-3 py-2.5 text-center transition-all"
             style={{
               background: active ? "var(--accent)" : "var(--surface-2)",
-              border: `1px solid ${active ? "var(--accent)" : "rgba(255,255,255,0.08)"}`,
+              border: `1px solid ${active ? "var(--accent)" : "rgba(255,255,255,0.12)"}`,
               boxShadow: active ? "0 0 12px rgba(0,212,255,0.25)" : "none",
             }}
           >
@@ -553,7 +553,7 @@ function CollegeStandingsPicker({
         className="absolute left-0 z-50 mt-1 rounded-2xl overflow-hidden shadow-2xl animate-slide-down"
         style={{ background: "var(--surface)", border: "1px solid var(--border)", top: "100%", minWidth: "180px" }}
       >
-        <div className="px-3 py-2.5 border-b border-white/[0.09] flex items-center gap-2">
+        <div className="px-3 py-2.5 border-b border-white/[0.11] flex items-center gap-2">
           {rep && <TeamLogo src={getTeamLogoUrl(rep)} emoji={rep.emoji} abbr={rep.abbr} size={20} />}
           <span className="font-display text-[12px] font-800 text-white uppercase">{school}</span>
         </div>
@@ -566,7 +566,7 @@ function CollegeStandingsPicker({
               style={{
                 background: activeCollegeSport === team.id ? team.primaryColor + "30" : "var(--surface-2)",
                 color: activeCollegeSport === team.id ? "#fff" : "#9ca3af",
-                border: `1px solid ${activeCollegeSport === team.id ? team.primaryColor : "rgba(255,255,255,0.08)"}`,
+                border: `1px solid ${activeCollegeSport === team.id ? team.primaryColor : "rgba(255,255,255,0.12)"}`,
               }}
             >
               <span className="text-sm">{team.emoji}</span>

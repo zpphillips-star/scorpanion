@@ -140,7 +140,7 @@ export function HamburgerMenu() {
         </div>
 
         {/* Divider */}
-        <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "12px 0" }} />
+        <div style={{ height: 1, background: "rgba(255,255,255,0.11)", margin: "12px 0" }} />
 
         {/* Menu items */}
         <nav className="flex flex-col">

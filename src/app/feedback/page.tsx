@@ -165,10 +165,10 @@ export default function FeedbackPage() {
 
       {/* Header — height driven by invisible 90px spacer to match PageHeader */}
       <div className="sticky top-0 z-20 relative flex items-center px-4 pt-2 pb-3"
-        style={{ background: 'rgba(12,27,49,0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.10)' }}>
+        style={{ background: 'rgba(12,27,49,0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
         {/* Back button — vertically centered by flex items-center */}
         <Link href="/home" className="flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0"
-          style={{ color: '#a1a1aa', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          style={{ color: '#a1a1aa', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)' }}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -219,7 +219,7 @@ export default function FeedbackPage() {
         {/* Collapsible submit form */}
         {showForm && (
           <div className="mb-6 rounded-2xl p-5"
-            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.12)' }}>
             <h2 className="font-display text-[15px] font-700 uppercase tracking-widest mb-4" style={{ color: '#F2E6CF' }}>
               Suggest a Feature
             </h2>
@@ -308,7 +308,7 @@ export default function FeedbackPage() {
                     ) : (
                       stageItems.map(item => (
                         <div key={item.id} className="rounded-xl p-3.5 mt-2.5"
-                          style={{ background: 'rgba(12,27,49,0.6)', border: '1px solid rgba(255,255,255,0.10)' }}>
+                          style={{ background: 'rgba(12,27,49,0.6)', border: '1px solid rgba(255,255,255,0.12)' }}>
                           <div className="flex items-start justify-between gap-2 mb-1">
                             <p className="font-semibold text-[14px] leading-snug text-white flex-1">{item.title}</p>
                             <span className="text-[10px] flex-shrink-0 mt-0.5" style={{ color: '#334155' }}>
@@ -322,10 +322,10 @@ export default function FeedbackPage() {
                             <p className="text-[11px] mt-1.5" style={{ color: '#334155' }}>— {item.name}</p>
                           )}
                           {user && (
-                            <div className="mt-2.5 pt-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.09)' }}>
+                            <div className="mt-2.5 pt-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.11)' }}>
                               <select value={item.status} onChange={e => handleStatusChange(item.id, e.target.value as FeedbackStatus)}
                                 className="text-[12px] rounded-lg outline-none w-full"
-                                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: '#a1a1aa', padding: '6px 10px', cursor: 'pointer' }}>
+                                style={{ background: 'rgba(255,255,255,0.11)', border: '1px solid rgba(255,255,255,0.1)', color: '#a1a1aa', padding: '6px 10px', cursor: 'pointer' }}>
                                 {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                               </select>
                             </div>

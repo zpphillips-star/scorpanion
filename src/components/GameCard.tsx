@@ -81,7 +81,7 @@ export default function GameCard({ game }: GameCardProps) {
       {/* ── Compact flat row ─────────────────────────────────────────────── */}
       <button className="w-full text-left group" onClick={() => setOpen(true)}>
         <div
-          className="flex items-center px-4 py-3 border-b border-zinc-700/40 hover:bg-white/[0.02] active:bg-white/[0.03] transition-colors"
+          className="flex items-center px-4 py-3 border-b border-zinc-600/50 hover:bg-white/[0.02] active:bg-white/[0.03] transition-colors"
           style={cardStyle}
         >
           {/* Left: status/time — fixed 64px */}
@@ -255,7 +255,7 @@ export default function GameCard({ game }: GameCardProps) {
 
               {/* ── SECTION 2: TEAM RECORDS — always shown for live/final ─── */}
               {(isLive || isFt) && (
-                <div className="px-4 py-4 border-t border-white/[0.09]">
+                <div className="px-4 py-4 border-t border-white/[0.11]">
                   <div className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-600 mb-3">Season Records</div>
                   <div className="grid grid-cols-2 gap-3">
                     {/* Seattle record */}
@@ -298,7 +298,7 @@ export default function GameCard({ game }: GameCardProps) {
 
               {/* ── SECTION 3: DIVISION STANDINGS ─────────────────────────── */}
               {seattleDivision && (
-                <div className="px-4 pb-6 border-t border-white/[0.09]">
+                <div className="px-4 pb-6 border-t border-white/[0.11]">
                   <div className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-600 mt-4 mb-3">{seattleDivision.name} Standings</div>
                   <div className="space-y-1">
                     {seattleDivision.entries.map((e, i) => (
@@ -328,7 +328,7 @@ export default function GameCard({ game }: GameCardProps) {
 
               {/* Venue footer */}
               {game.venue?.name && (
-                <div className="px-5 pb-5 pt-1 border-t border-white/[0.09]">
+                <div className="px-5 pb-5 pt-1 border-t border-white/[0.11]">
                   <div className="flex items-center gap-2 text-zinc-600 text-[12px]">
                     <span>📍</span>
                     <span>{game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}{game.venue.state ? `, ${game.venue.state}` : ""}</span>

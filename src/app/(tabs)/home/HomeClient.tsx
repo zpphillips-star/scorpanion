@@ -94,7 +94,7 @@ function OffSeasonCards({ teams, nextGames }: {
         return (
           <div
             key={team.id}
-            className="flex items-center gap-3 px-4 py-3.5 border-b border-zinc-700/40"
+            className="flex items-center gap-3 px-4 py-3.5 border-b border-zinc-600/50"
           >
             {/* Team logo */}
             <TeamLogo src={logoUrl} emoji={team.emoji} abbr={team.abbr} size={32} />
@@ -352,7 +352,7 @@ function GolfUpcomingRow({ tournament, label, accentColor }: {
     try { return new Date(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) } catch { return '' }
   }
   return (
-    <div className="py-3 border-b border-white/[0.06]">
+    <div className="py-3 border-b border-white/[0.11]">
       <div className="pl-6 mb-1.5 flex items-center gap-2">
         <span className="text-[11px] uppercase tracking-wide tabular-nums font-semibold" style={{ color: "#ffffff" }}>
           {label}
@@ -437,7 +437,7 @@ function CollegeSportPicker({
         className="absolute left-0 right-0 z-50 mx-3 mt-1 rounded-2xl overflow-hidden shadow-2xl animate-slide-down"
         style={{ background: "var(--surface)", border: "1px solid var(--border)", top: "100%" }}
       >
-        <div className="px-4 py-3 border-b border-white/[0.06] flex items-center gap-2.5">
+        <div className="px-4 py-3 border-b border-white/[0.11] flex items-center gap-2.5">
           {representative && (
             <TeamLogo src={getTeamLogoUrl(representative)} emoji={representative.emoji} abbr={representative.abbr} size={24} />
           )}
@@ -828,9 +828,9 @@ export default function HomeClient() {
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{dateLabel}</span>
             </div>
 
-            {/* Team sport game cards + golf — wrapped in divide-y so only between-card dividers show */}
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-              <div className="divide-y" style={{ '--tw-divide-opacity': 1, borderColor: 'rgba(255,255,255,0.06)' } as React.CSSProperties}>
+            {/* Team sport game cards + golf — divide-y between cards only, no trailing border */}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.09)' }}>
+              <div className="divide-y divide-white/[0.09]">
                 {todayGames.map(g => <TodayGameCard key={g.id} game={g} />)}
                 {pgaToday.map(t => (
                   <GolfTodayCard key={`pga-today-${t.id}`} tournament={t} label="PGA Tour" accentColor="#CBA135" />
@@ -898,7 +898,7 @@ export default function HomeClient() {
                 return (
                   <div
                     key={g.id}
-                    className="flex items-center py-3 px-4 border-b border-white/[0.06] hover:bg-white/[0.03] active:bg-white/[0.06] transition-colors cursor-pointer gap-3"
+                    className="flex items-center py-3 px-4 border-b border-white/[0.11] hover:bg-white/[0.03] active:bg-white/[0.06] transition-colors cursor-pointer gap-3"
                     onClick={() => setSelectedRecentGame(g)}
                   >
                     {/* Left: time + league */}
@@ -936,7 +936,7 @@ export default function HomeClient() {
                 return (
                   <button
                     key={`golf-${t.id}-${ds}`}
-                    className="w-full text-left flex items-center py-3 px-4 border-b border-white/[0.06] active:opacity-70 transition-opacity gap-3"
+                    className="w-full text-left flex items-center py-3 px-4 border-b border-white/[0.11] active:opacity-70 transition-opacity gap-3"
                     onClick={() => setSelectedGolfUpcoming({ tournament: t, label, accentColor })}
                   >
                     {/* Left: date range */}

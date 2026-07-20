@@ -265,7 +265,7 @@ export default function TeamsClient() {
         className="relative flex flex-col items-center gap-2 p-3 rounded-lg transition-all active:scale-95"
         style={{
           background: selected ? 'rgba(217,92,23,0.15)' : 'rgba(255,255,255,0.04)',
-          border: `2px solid ${selected ? '#D95C17' : 'rgba(255,255,255,0.08)'}`,
+          border: `2px solid ${selected ? '#D95C17' : 'rgba(255,255,255,0.12)'}`,
           boxShadow: selected ? '0 0 12px rgba(217,92,23,0.35)' : 'none',
         }}
       >
@@ -298,7 +298,7 @@ export default function TeamsClient() {
               ? '#D95C17'
               : isStateMatch
               ? 'rgba(251,191,36,0.45)'
-              : 'rgba(255,255,255,0.07)'
+              : 'rgba(255,255,255,0.11)'
           }`,
           boxShadow: isFollowed
             ? '0 0 12px rgba(217,92,23,0.35)'
@@ -381,7 +381,7 @@ export default function TeamsClient() {
                   className="relative flex flex-col items-center gap-1 p-2.5 rounded-lg transition-all active:scale-95 shrink-0"
                   style={{
                     width: 76,
-                    background: isFollowed ? 'rgba(217,92,23,0.15)' : 'rgba(255,255,255,0.07)',
+                    background: isFollowed ? 'rgba(217,92,23,0.15)' : 'rgba(255,255,255,0.11)',
                     border: `2px solid ${isFollowed ? '#D95C17' : 'rgba(255,255,255,0.1)'}`,
                     boxShadow: isFollowed ? '0 0 10px rgba(217,92,23,0.3)' : 'none',
                   }}
@@ -407,8 +407,8 @@ export default function TeamsClient() {
         onClick={() => setDrillDown(config)}
         className="w-full flex items-center gap-4 p-4 rounded-lg border transition-all text-left"
         style={{
-          borderColor: followedCount > 0 ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)',
-          backgroundColor: followedCount > 0 ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
+          borderColor: followedCount > 0 ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.12)',
+          backgroundColor: followedCount > 0 ? 'rgba(255,255,255,0.11)' : 'rgba(255,255,255,0.03)',
         }}
       >
         <div className="w-14 h-14 rounded-full overflow-hidden bg-white/10 flex items-center justify-center shrink-0">
@@ -566,7 +566,7 @@ export default function TeamsClient() {
                 style={{
                   background: active ? '#D95C17' : 'var(--surface-2)',
                   color: active ? '#ffffff' : '#9ca3af',
-                  border: `1.5px solid ${active ? '#D95C17' : 'rgba(255,255,255,0.08)'}`,
+                  border: `1.5px solid ${active ? '#D95C17' : 'rgba(255,255,255,0.12)'}`,
                   boxShadow: active ? '0 0 16px rgba(217,92,23,0.4)' : 'none',
                   minWidth: '56px',
                 }}
@@ -603,7 +603,7 @@ export default function TeamsClient() {
                     {league !== '★ Following' && (
                       <div
                         className="flex-1 h-px"
-                        style={{ background: 'rgba(255,255,255,0.08)' }}
+                        style={{ background: 'rgba(255,255,255,0.12)' }}
                       />
                     )}
                     <span className="text-[10px] text-zinc-600">{teams.length}</span>
@@ -644,7 +644,7 @@ export default function TeamsClient() {
           {activeTab === 'ALL' && (
             <div className="flex items-center gap-2 mb-2">
               <span className="font-display text-[11px] font-800 uppercase tracking-widest text-white">Golf</span>
-              <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
+              <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.12)' }} />
               <span className="text-[10px] text-zinc-600">2</span>
             </div>
           )}
@@ -658,7 +658,7 @@ export default function TeamsClient() {
                   className="relative flex flex-col items-center gap-1.5 p-2.5 rounded-lg transition-all active:scale-95"
                   style={{
                     background: isSelected ? 'rgba(217,92,23,0.15)' : 'rgba(255,255,255,0.03)',
-                    border: `2px solid ${isSelected ? '#D95C17' : 'rgba(255,255,255,0.07)'}`,
+                    border: `2px solid ${isSelected ? '#D95C17' : 'rgba(255,255,255,0.11)'}`,
                     boxShadow: isSelected ? '0 0 12px rgba(217,92,23,0.35)' : 'none',
                   }}
                 >

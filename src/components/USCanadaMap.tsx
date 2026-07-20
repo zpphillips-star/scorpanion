@@ -184,7 +184,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
                         transition: 'fill 0.1s',
                       },
                       hover: {
-                        fill: isSelected ? 'rgba(217,92,23,0.45)' : (teamsPerState[abbr] || 0) > 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.09)',
+                        fill: isSelected ? 'rgba(217,92,23,0.45)' : (teamsPerState[abbr] || 0) > 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.11)',
                         stroke: isSelected ? '#D95C17' : 'rgba(255,255,255,0.3)',
                         strokeWidth: isSelected ? 1.5 : 0.7,
                         outline: 'none',

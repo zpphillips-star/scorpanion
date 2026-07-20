@@ -37,7 +37,7 @@ function OffseasonEmptyState({ leagues }: { leagues: string[] }) {
             <div className="font-display text-[16px] font-700 text-zinc-300 uppercase tracking-wide mb-1">{name} Offseason</div>
             <p className="text-zinc-500 text-sm">The season has concluded.</p>
             {next && (
-              <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+              <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.11)" }}>
                 <span className="text-[12px]">📅</span>
                 <span className="text-[12px] text-zinc-400">Next season begins <span className="text-white font-semibold">{next}</span></span>
               </div>
@@ -59,7 +59,7 @@ function OffseasonBanner({ leagues }: { leagues: string[] }) {
         const emoji = display?.emoji ?? '🏟️'
         const next = getApproxNextSeason(league)
         return (
-          <div key={league} className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <div key={league} className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)" }}>
             <span className="text-xl">{emoji}</span>
             <div className="min-w-0 flex-1">
               <div className="font-display text-[12px] font-700 text-zinc-300 uppercase tracking-widest">{name} — Season Complete</div>
@@ -143,7 +143,7 @@ function DateStrip({
   }, [])
 
   return (
-    <div ref={stripRef} className="overflow-x-auto no-scrollbar px-3 pb-2 pt-0.5 border-t border-zinc-700/50">
+    <div ref={stripRef} className="overflow-x-auto no-scrollbar px-3 pb-2 pt-0.5 border-t border-zinc-600/55">
       <div className="flex gap-0.5 min-w-max">
         {stripDates.map(dateStr => {
           const isToday = dateStr === todayStr
@@ -266,7 +266,7 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
 
   return (
     <div
-      className="flex items-center px-4 py-3 border-b border-zinc-700/40 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer select-none"
+      className="flex items-center px-4 py-3 border-b border-zinc-600/50 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer select-none"
       style={isLive ? { background: "rgba(239,68,68,0.05)" } : undefined}
       onClick={onTap}
     >
@@ -682,7 +682,7 @@ export default function ScheduleClient() {
                   return (
                     <div
                       key={`golf-${tournament.id}`}
-                      className="flex items-center px-4 py-3 border-b border-zinc-700/30 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer select-none gap-3"
+                      className="flex items-center px-4 py-3 border-b border-zinc-600/40 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer select-none gap-3"
                       style={isLive ? { background: 'rgba(255,180,0,0.04)' } : undefined}
                       onClick={() => setSelectedGolf({ tournament, label, accentColor })}
                     >

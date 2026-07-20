@@ -142,7 +142,7 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
         {/* ── Top bar: broadcast + status ── */}
         <div
           className="flex items-center justify-between px-4 pt-3.5 pb-2"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.10)" }}
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.12)" }}
         >
           {/* Broadcast network */}
           <span
@@ -275,7 +275,7 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
         {game.venue?.name && (
           <div
             className="flex items-center justify-between px-4 pb-3.5"
-            style={{ borderTop: "1px solid rgba(255,255,255,0.10)" }}
+            style={{ borderTop: "1px solid rgba(255,255,255,0.12)" }}
           >
             <span className="text-[11px] truncate" style={{ color: "var(--text-faint)" }}>
               📍 {game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}
@@ -333,7 +333,7 @@ function GolfDayCard({ tournament, label, accentColor, onTap }: {
         }}
       >
         {/* Top bar */}
-        <div className="flex items-center justify-between px-4 pt-3.5 pb-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.10)" }}>
+        <div className="flex items-center justify-between px-4 pt-3.5 pb-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
           <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>{label}</span>
           {isLive ? (
             <div className="flex items-center gap-1.5">
@@ -442,7 +442,7 @@ export default function DayGamesSheet({ date, games, golfTournaments = [], onClo
           minHeight: "82dvh",
           maxHeight: "96dvh",
           paddingBottom: "env(safe-area-inset-bottom)",
-          boxShadow: "0 -12px 60px rgba(0,0,0,0.75), 0 -1px 0 rgba(255,255,255,0.07)",
+          boxShadow: "0 -12px 60px rgba(0,0,0,0.75), 0 -1px 0 rgba(255,255,255,0.11)",
         }}
         onClick={e => e.stopPropagation()}
         onTouchStart={handleSheetTouchStart}

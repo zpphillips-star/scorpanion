@@ -122,7 +122,7 @@ export default function CompactBaseballLineScore({ gameId, league, seattleTeamId
   }
 
   return (
-    <div className="rounded-md p-2 mt-2 overflow-x-auto no-scrollbar" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
+    <div className="rounded-md p-2 mt-2 overflow-x-auto no-scrollbar" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)" }}>
       <table className="text-xs w-full" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
         <thead>
           <tr>

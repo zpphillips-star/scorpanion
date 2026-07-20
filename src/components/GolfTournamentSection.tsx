@@ -89,7 +89,7 @@ function GolfDetailSheet({ tournament, label, accentColor, onClose }: {
               {tournament.course}{tournament.location ? ` · ${tournament.location}` : ''}
             </div>
           )}
-          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.07)" }}>
+          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.11)" }}>
             {tournament.status === 'in' && (
               <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: accentColor }} />
@@ -99,7 +99,7 @@ function GolfDetailSheet({ tournament, label, accentColor, onClose }: {
             <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300">{statusLabel}</span>
           </div>
         </div>
-        <div className="flex-shrink-0 flex items-center px-5 py-2 border-b border-white/[0.06]" style={{ background: "#0d1520" }}>
+        <div className="flex-shrink-0 flex items-center px-5 py-2 border-b border-white/[0.11]" style={{ background: "#0d1520" }}>
           <div className="flex-1 text-[9px] font-bold uppercase tracking-widest text-zinc-600">Player</div>
           <div className="flex gap-4 flex-shrink-0">
             <div className="w-10 text-center text-[9px] font-bold uppercase tracking-widest text-zinc-600">Today</div>
@@ -117,9 +117,9 @@ function GolfDetailSheet({ tournament, label, accentColor, onClose }: {
               <div key={player.name + i}>
                 {showCutLine && (
                   <div className="flex items-center gap-3 px-5 my-1">
-                    <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
+                    <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.12)" }} />
                     <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Cut</span>
-                    <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
+                    <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.12)" }} />
                   </div>
                 )}
                 <div
@@ -260,7 +260,7 @@ function RankingsTab({ rankings, accentColor, loading }: {
   return (
     <div>
       {/* Column headers */}
-      <div className="flex items-center px-4 py-1.5 border-b border-white/[0.06]">
+      <div className="flex items-center px-4 py-1.5 border-b border-white/[0.11]">
         <div className="w-7 flex-shrink-0 text-[9px] font-bold uppercase tracking-widest text-zinc-600 text-center">#</div>
         <div className="flex-1 text-[9px] font-bold uppercase tracking-widest text-zinc-600 ml-3">Player</div>
         <div className="text-right text-[9px] font-bold uppercase tracking-widest text-zinc-600 mr-1">Points</div>
@@ -357,7 +357,7 @@ export function GolfTournamentSection({ tourId, accentColor, label }: GolfTourna
 
         {/* Season dates header */}
         {seasonData && (
-          <div className="mx-4 mb-3 px-3 py-2.5 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <div className="mx-4 mb-3 px-3 py-2.5 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)" }}>
             <div className="font-display text-[11px] text-zinc-400">
               Regular season{' '}
               <span className="text-zinc-200">{fmtD(seasonData.regularStart)} – {fmtD(seasonData.regularEnd)}</span>
@@ -385,7 +385,7 @@ export function GolfTournamentSection({ tourId, accentColor, label }: GolfTourna
                 style={{
                   background: active ? `${accentColor}20` : "var(--surface-2)",
                   color: active ? accentColor : "#71717a",
-                  border: `1px solid ${active ? accentColor + '40' : 'rgba(255,255,255,0.07)'}`,
+                  border: `1px solid ${active ? accentColor + '40' : 'rgba(255,255,255,0.11)'}`,
                 }}
               >
                 {tab === 'schedule' ? 'Schedule' : 'Rankings'}

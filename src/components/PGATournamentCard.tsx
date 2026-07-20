@@ -18,7 +18,7 @@ function PlayerRow({ player, isLast, showRounds }: { player: PGAPlayer; isLast: 
       className="grid items-center px-4 py-2.5"
       style={{
         gridTemplateColumns: "32px 1fr 48px 44px 36px",
-        borderBottom: isLast ? "none" : "1px solid rgba(255,255,255,0.09)",
+        borderBottom: isLast ? "none" : "1px solid rgba(255,255,255,0.11)",
       }}
     >
       <span className="text-[11px] font-semibold tabular-nums" style={{ color: isTied ? "#6b7280" : "#f0f0f8" }}>
@@ -61,7 +61,7 @@ function TournamentDetailSheet({ tournament, onClose }: { tournament: PGATournam
         </div>
 
         {/* Header */}
-        <div className="px-4 pb-4 flex-shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="px-4 pb-4 flex-shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
           <div className="flex items-center gap-2 mb-1.5">
             {isLive ? (
               <>
@@ -138,12 +138,12 @@ export function TournamentCard({ tournament }: { tournament: PGATournament }) {
           className="mx-4 rounded-2xl overflow-hidden"
           style={{
             background: "#0c1b31",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderLeft: isLive ? "3px solid #22c55e" : "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.12)",
+            borderLeft: isLive ? "3px solid #22c55e" : "1px solid rgba(255,255,255,0.12)",
           }}
         >
           {/* Header */}
-          <div className="px-4 pt-4 pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.10)" }}>
+          <div className="px-4 pt-4 pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
                 {isLive ? (
@@ -181,7 +181,7 @@ export function TournamentCard({ tournament }: { tournament: PGATournament }) {
             <>
               <div className="grid px-4 py-2" style={{
                 gridTemplateColumns: "32px 1fr 48px 44px 36px",
-                borderBottom: "1px solid rgba(255,255,255,0.09)"
+                borderBottom: "1px solid rgba(255,255,255,0.11)"
               }}>
                 <span />
                 <span className="text-[9px] tracking-widest uppercase font-semibold" style={{ color: "#2d4a6b" }}>Player</span>
@@ -193,7 +193,7 @@ export function TournamentCard({ tournament }: { tournament: PGATournament }) {
                 <PlayerRow key={`${p.name}-${i}`} player={p} isLast={i === previewPlayers.length - 1} />
               ))}
               {tournament.leaders.length > 5 && (
-                <div className="px-4 py-2.5 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.09)" }}>
+                <div className="px-4 py-2.5 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.11)" }}>
                   <span className="text-[11px] font-semibold" style={{ color: "#3a5070" }}>
                     +{tournament.leaders.length - 5} more · tap to view full leaderboard
                   </span>
@@ -240,7 +240,7 @@ export default function PGASection({ tourId = "pga" }: { tourId?: "pga" | "lpga"
   if (loading) {
     return (
       <div className="mx-4 rounded-2xl flex items-center justify-center py-8"
-           style={{ background: "#0c1b31", border: "1px solid rgba(255,255,255,0.08)" }}>
+           style={{ background: "#0c1b31", border: "1px solid rgba(255,255,255,0.12)" }}>
         <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
              style={{ borderColor: tourId === "lpga" ? "#C084FC" : "#CBA135", borderTopColor: "transparent" }} />
       </div>
@@ -250,7 +250,7 @@ export default function PGASection({ tourId = "pga" }: { tourId?: "pga" | "lpga"
   if (tournaments.length === 0) {
     return (
       <div className="mx-4 rounded-2xl flex items-center justify-center py-6"
-           style={{ background: "#0c1b31", border: "1px solid rgba(255,255,255,0.08)" }}>
+           style={{ background: "#0c1b31", border: "1px solid rgba(255,255,255,0.12)" }}>
         <span className="text-[12px]" style={{ color: "#2d4a6b" }}>No active {tourId.toUpperCase()} tournaments</span>
       </div>
     )
