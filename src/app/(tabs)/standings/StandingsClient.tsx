@@ -93,50 +93,69 @@ function TeamLogoImg({ src, abbr }: { src: string; abbr: string }) {
 }
 
 /**
- * SeasonProgressChevrons — full-width connected chevron pipeline
- * showing Off Season → Preseason → Regular Season → Playoffs → Championship
- * with date ranges and the current phase highlighted.
+ * SeasonProgressChevrons — full-width connected chevron pipeline.
+ * Uses LEAGUE_SEASON dates directly (not the API status) for accurate phase detection.
+ * Active phase = orange (#D95C17). Past = medium navy. Future = dark navy.
+ * All text is white. Matches the reference arrow-chain design.
  */
-function SeasonProgressChevrons({ season, leagueId }: { season: SeasonInfo; leagueId: string }) {
-  const info = LEAGUE_INFO[leagueId]
-  const accentColor = info?.color || "#00d4ff"
+function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
   const s = LEAGUE_SEASON[leagueId]
-  const currentYear = new Date().getFullYear()
 
   const fmtD = (iso: string): string => {
     const year = parseInt(iso.split('-')[0], 10)
-    return year !== currentYear ? `${fmtShort(iso)} '${String(year).slice(-2)}` : fmtShort(iso)
+    return year !== new Date().getFullYear() ? `${fmtShort(iso)} '${String(year).slice(-2)}` : fmtShort(iso)
   }
 
-  type Phase = 'offseason' | 'preseason' | 'regular' | 'playoffs' | 'championship'
+  type PhaseKey = 'offseason' | 'preseason' | 'regular' | 'playoffs' | 'championship'
 
-  // Determine the active phase — treat 'playoffs' as either playoffs or championship
-  // depending on today's date vs championshipStart
+  // ── Date-based phase detection ─────────────────────────────────────────────
+  // Always use LEAGUE_SEASON dates so the UI is accurate regardless of what
+  // the ESPN API reports for season type.
   const today = new Date().toISOString().split('T')[0]
-  let activePhase: Phase = season.status === 'offseason' ? 'offseason'
-    : season.status === 'preseason' ? 'preseason'
-    : season.status === 'regular'   ? 'regular'
-    : season.status === 'playoffs'  ?
-        (s && today >= s.championshipStart ? 'championship' : 'playoffs')
-    : 'offseason'
 
-  interface Chevron {
-    key:   Phase
-    label: string
-    dates: string
-    tbd?:  boolean
+  let activePhase: PhaseKey = 'offseason'
+  if (s) {
+    if (today >= s.championshipStart && today <= s.playoffEnd) {
+      activePhase = 'championship'
+    } else if (today >= s.playoffStart && today < s.championshipStart) {
+      activePhase = 'playoffs'
+    } else if (today >= s.regularStart && today <= s.regularEnd) {
+      activePhase = 'regular'
+    } else if (s.preseasonStart && s.preseasonEnd && today >= s.preseasonStart && today <= s.preseasonEnd) {
+      activePhase = 'preseason'
+    } else {
+      activePhase = 'offseason'
+    }
   }
 
+  // ── Short championship label ────────────────────────────────────────────────
+  // Long names (e.g. "Stanley Cup Finals") need to fit inside a narrow chevron.
+  const shortChamp = (name: string): string => {
+    const map: Record<string, string> = {
+      'Super Bowl LXI':               'Super Bowl',
+      'NBA Finals':                   'NBA Finals',
+      'Stanley Cup Finals':           'Stanley Cup',
+      'World Series':                 'World Series',
+      'MLS Cup':                      'MLS Cup',
+      'WNBA Finals':                  'WNBA Finals',
+      'NWSL Championship':            'NWSL Final',
+      'Ed Chynoweth Cup':             'WHL Final',
+      'PWHL Championship':            'PWHL Final',
+      'FedEx Cup':                    'FedEx Cup',
+      'CME Group Tour Championship':  'CME Final',
+    }
+    return map[name] ?? name
+  }
+
+  interface Chevron { key: PhaseKey; label: string; dates: string }
   const chevrons: Chevron[] = []
 
-  // 1. Off Season
   chevrons.push({
     key:   'offseason',
     label: 'Off Season',
     dates: s?.preseasonStart ? `Until ${fmtD(s.preseasonStart)}` : '',
   })
 
-  // 2. Preseason (only if dates exist)
   if (s?.preseasonStart && s.preseasonEnd) {
     chevrons.push({
       key:   'preseason',
@@ -145,49 +164,45 @@ function SeasonProgressChevrons({ season, leagueId }: { season: SeasonInfo; leag
     })
   }
 
-  // 3. Regular Season
   if (s) {
     chevrons.push({
       key:   'regular',
-      label: 'Regular Season',
+      label: 'Regular',
       dates: `${fmtD(s.regularStart)} – ${fmtD(s.regularEnd)}`,
     })
-
-    // 4. Playoffs (up to championship start)
     chevrons.push({
       key:   'playoffs',
       label: 'Playoffs',
-      dates: `${fmtD(s.playoffStart)} – ${fmtD(s.championshipStart)}`,
-      tbd:   s.tbd,
+      dates: `${fmtD(s.playoffStart)} – ${fmtD(s.championshipStart)}${s.tbd ? '*' : ''}`,
     })
-
-    // 5. Championship
     chevrons.push({
       key:   'championship',
-      label: s.championship,
-      dates: `${fmtD(s.championshipStart)} – ${fmtD(s.playoffEnd)}`,
-      tbd:   s.tbd,
+      label: shortChamp(s.championship),
+      dates: `${fmtD(s.championshipStart)} – ${fmtD(s.playoffEnd)}${s.tbd ? '*' : ''}`,
     })
   } else {
-    // Fallback for leagues without LEAGUE_SEASON entry
-    chevrons.push({ key: 'regular',      label: 'Regular Season', dates: '' })
-    chevrons.push({ key: 'playoffs',     label: 'Playoffs',       dates: '' })
-    chevrons.push({ key: 'championship', label: 'Championship',   dates: '' })
+    chevrons.push({ key: 'regular',      label: 'Regular',      dates: '' })
+    chevrons.push({ key: 'playoffs',     label: 'Playoffs',     dates: '' })
+    chevrons.push({ key: 'championship', label: 'Championship', dates: '' })
   }
 
   const activeIdx = chevrons.findIndex(c => c.key === activePhase)
 
-  // Arrow size — how deep the notch/tip cuts in pixels
-  const A = 14
+  // ── Chevron geometry ────────────────────────────────────────────────────────
+  const A = 16  // arrow tip depth in px
 
-  // clip-path shapes
   const clipFirst  = `polygon(0 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, 0 100%)`
   const clipMiddle = `polygon(${A}px 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, 0 100%, ${A}px 50%)`
   const clipLast   = `polygon(${A}px 0, 100% 0, 100% 100%, 0 100%, ${A}px 50%)`
 
+  // ── Uniform color palette ───────────────────────────────────────────────────
+  // Orange = active. Past = mid-navy. Future = dark navy. All text = white.
+  const ACTIVE_BG  = '#D95C17'   // orange
+  const PAST_BG    = '#1e3a5f'   // medium navy
+  const FUTURE_BG  = '#112133'   // dark navy
+
   return (
-    <div className="mt-3 px-0">
-      {/* Full-width chevron pipeline — no gap, overlap via negative marginLeft */}
+    <div className="mt-3">
       <div className="flex w-full">
         {chevrons.map((chev, idx) => {
           const isActive = idx === activeIdx
@@ -195,58 +210,56 @@ function SeasonProgressChevrons({ season, leagueId }: { season: SeasonInfo; leag
           const isFirst  = idx === 0
           const isLast   = idx === chevrons.length - 1
           const clip     = isFirst ? clipFirst : isLast ? clipLast : clipMiddle
+          // Left items on top so their arrow tip renders over the next segment
+          const zIdx = isActive ? chevrons.length + 2 : chevrons.length - idx
 
-          // Left arrow items sit on top of right ones so the arrow tip is visible
-          const zIdx = isActive ? chevrons.length + 1 : chevrons.length - idx
+          const bg = isActive ? ACTIVE_BG : isPast ? PAST_BG : FUTURE_BG
 
-          // Background
-          const bg = isActive
-            ? accentColor
-            : isPast
-              ? 'rgba(255,255,255,0.09)'
-              : 'rgba(255,255,255,0.03)'
-
-          const labelColor = isActive
-            ? '#08080f'
-            : isPast  ? 'rgba(255,255,255,0.5)'
-                      : 'rgba(255,255,255,0.22)'
-
-          const dateColor = isActive
-            ? 'rgba(0,0,0,0.5)'
-            : isPast  ? 'rgba(255,255,255,0.28)'
-                      : 'rgba(255,255,255,0.13)'
-
-          // Inner padding: account for the arrow cutout on each side
-          const pl = isFirst ? 10 : A + 6
-          const pr = isLast  ? 10 : A + 6
+          // Horizontal padding accounts for the arrow cutout
+          const pl = isFirst ? 12 : A + 8
+          const pr = isLast  ? 12 : A + 8
 
           return (
             <div
               key={chev.key}
               className="flex-1 flex flex-col items-center justify-center"
               style={{
-                clipPath:    clip,
-                background:  bg,
-                // Overlap each segment by A px so arrow tip slots into the next notch
-                marginLeft:  isFirst ? 0 : -A,
-                zIndex:      zIdx,
-                minHeight:   '58px',
-                paddingTop:  '8px',
-                paddingBottom: '8px',
+                clipPath:      clip,
+                background:    bg,
+                marginLeft:    isFirst ? 0 : -A,
+                zIndex:        zIdx,
+                minHeight:     '62px',
+                paddingTop:    '10px',
+                paddingBottom: '10px',
               }}
             >
+              {/* Phase label — large, white, bold */}
               <span
-                className="font-display font-800 uppercase tracking-widest leading-tight text-center block"
-                style={{ color: labelColor, fontSize: '8.5px', paddingLeft: pl, paddingRight: pr }}
+                className="font-display font-800 uppercase tracking-wide leading-none text-center block"
+                style={{
+                  color:        'white',
+                  fontSize:     '10px',
+                  paddingLeft:  pl,
+                  paddingRight: pr,
+                  opacity:      isActive ? 1 : isPast ? 0.7 : 0.35,
+                }}
               >
                 {chev.label}
               </span>
+
+              {/* Date range — small white below label */}
               {chev.dates && (
                 <span
-                  className="leading-tight text-center block mt-0.5"
-                  style={{ color: dateColor, fontSize: '7.5px', paddingLeft: pl, paddingRight: pr }}
+                  className="leading-tight text-center block mt-1"
+                  style={{
+                    color:        'white',
+                    fontSize:     '7px',
+                    paddingLeft:  pl,
+                    paddingRight: pr,
+                    opacity:      isActive ? 0.75 : isPast ? 0.35 : 0.2,
+                  }}
                 >
-                  {chev.dates}{chev.tbd ? ' *' : ''}
+                  {chev.dates}
                 </span>
               )}
             </div>
@@ -254,14 +267,16 @@ function SeasonProgressChevrons({ season, leagueId }: { season: SeasonInfo; leag
         })}
       </div>
       {s?.tbd && (
-        <p className="text-[9px] text-zinc-700 mt-1 text-right px-2">* Dates subject to change</p>
+        <p className="text-[9px] mt-1 text-right px-2" style={{ color: '#1e3a5f' }}>* Dates TBD</p>
       )}
     </div>
   )
 }
 
-// Keep the old name as alias so the call-sites don't need to change
-const SeasonBanner = SeasonProgressChevrons
+// Alias — call sites unchanged
+const SeasonBanner = ({ leagueId }: { season: SeasonInfo; leagueId: string }) =>
+  <SeasonProgressChevrons leagueId={leagueId} />
+
 
 
 function ScopePicker({
