@@ -8,6 +8,7 @@ import TeamLogo from '@/components/TeamLogo'
 import { SeattleTeam } from '@/lib/types'
 import USCanadaMap from '@/components/USCanadaMap'
 import { ALL_PRO_TEAMS, ProTeam, getTeamsByState } from '@/lib/allProTeams'
+import { HamburgerMenu } from '@/components/PageHeader'
 
 // ── Bridge: ALL_PRO_TEAMS IDs → SEATTLE_TEAMS IDs ────────────────────────────
 // Seattle teams appear in both datasets under different ID conventions.
@@ -471,13 +472,14 @@ export default function TeamsClient() {
       {drillDown && <DrillDownPanel config={drillDown} />}
 
       {/* ── Header ── */}
-      <div className="sticky top-0 z-30 glass-header px-4 py-3">
+      <div className="sticky top-0 z-30 glass-header px-4 py-3" style={{ position: 'relative' }}>
         <h1 className="font-display text-[26px] font-800 text-white leading-none tracking-tight uppercase">Teams</h1>
         <p className="text-zinc-500 text-sm mt-0.5">
           {totalFollowed > 0
             ? `Following ${totalFollowed} team${totalFollowed !== 1 ? 's' : ''}`
             : 'Tap a state or team to explore'}
         </p>
+        <HamburgerMenu />
       </div>
 
       {/* ── Map — pinned at the top, always visible ── */}

@@ -37,7 +37,7 @@ function MenuItem({
 }
 
 // ── Hamburger + slide-in panel ─────────────────────────────────────────────────
-function HamburgerMenu() {
+export function HamburgerMenu() {
   const [open, setOpen] = useState(false)
   const [user, setUser] = useState<{ email?: string } | null>(null)
   const [checked, setChecked] = useState(false)

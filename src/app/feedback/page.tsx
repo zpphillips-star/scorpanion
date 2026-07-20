@@ -172,12 +172,14 @@ export default function FeedbackPage() {
             <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </Link>
-        {/* Logo — absolutely centered in the header */}
+        {/* Logo — absolutely centered in the header, matching site-wide size */}
         <div style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/scorpanion-logo-new.png" alt="Scorpanion"
-            style={{ height: 44, width: 'auto', objectFit: 'contain' }}
-            onError={(e) => { (e.target as HTMLImageElement).src = '/scorpanion-full.png' }}/>
+          <div style={{ overflow: 'hidden', height: 90, display: 'flex', alignItems: 'center' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/scorpanion-logo-new.png" alt="Scorpanion"
+              style={{ height: 128, width: 'auto', marginTop: -19, marginBottom: -19, objectFit: 'contain' }}
+              onError={(e) => { (e.target as HTMLImageElement).src = '/scorpanion-full.png' }}/>
+          </div>
         </div>
         <div style={{ flex: 1 }} />
         <button onClick={() => setShowForm(v => !v)}
