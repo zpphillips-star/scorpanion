@@ -642,10 +642,36 @@ export default function TeamsClient() {
             <p className="text-zinc-500 text-[13px] mb-4">Follow a tour to see live leaderboards on the Home tab.</p>
           )}
           {activeTab === 'ALL' && (
-            <p className="font-display text-[10px] font-700 text-zinc-500 uppercase tracking-widest mb-2">Golf</p>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="font-display text-[11px] font-800 uppercase tracking-widest text-white">Golf</span>
+              <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
+              <span className="text-[10px] text-zinc-600">2</span>
+            </div>
           )}
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-            {byIds(['pga', 'lpga']).map(team => <SeattleTeamCard key={team.id} team={team} />)}
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2.5">
+            {byIds(['pga', 'lpga']).map(team => {
+              const isSelected = selectedTeamIds.includes(team.id)
+              return (
+                <button
+                  key={team.id}
+                  onClick={() => toggleTeam(team.id)}
+                  className="relative flex flex-col items-center gap-1.5 p-2.5 rounded-lg transition-all active:scale-95"
+                  style={{
+                    background: isSelected ? 'rgba(217,92,23,0.15)' : 'rgba(255,255,255,0.03)',
+                    border: `2px solid ${isSelected ? '#D95C17' : 'rgba(255,255,255,0.07)'}`,
+                    boxShadow: isSelected ? '0 0 12px rgba(217,92,23,0.35)' : 'none',
+                  }}
+                >
+                  <div className="w-11 h-11 flex items-center justify-center mt-0.5">
+                    <TeamLogo src={getTeamLogoUrl(team)} emoji={team.emoji} abbr={team.abbr} size={40} />
+                  </div>
+                  <div className="w-full text-center px-0.5">
+                    <div className="text-white text-[11px] font-semibold leading-tight line-clamp-2">{team.shortName}</div>
+                    <div className="text-[9px] font-700 uppercase tracking-wider mt-0.5 text-zinc-600">Golf</div>
+                  </div>
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
