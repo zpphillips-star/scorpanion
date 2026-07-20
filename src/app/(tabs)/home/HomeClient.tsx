@@ -166,6 +166,106 @@ function useGolfTournaments(tourId: 'pga' | 'lpga', enabled: boolean) {
   return { tournaments, loaded }
 }
 
+// ── Golf today card ───────────────────────────────────────────────────────────
+// Matches TodayGameCard exactly — same layout, left border, header, body.
+// Shows top 5 leaderboard rows instead of a head-to-head score.
+function GolfTodayCard({ tournament, label, accentColor }: {
+  tournament: PGATournament
+  label: string
+  accentColor: string
+}) {
+  const [showDetail, setShowDetail] = useState(false)
+  const isLive = tournament.status === 'live'
+  const isFt   = tournament.status === 'completed'
+
+  function scoreColor(s: string) {
+    if (s.startsWith('-')) return '#4ade80'
+    if (s.startsWith('+')) return '#f87171'
+    return '#e4e4e7'
+  }
+
+  return (
+    <>
+      <button className="w-full text-left active:opacity-70 transition-opacity" onClick={() => setShowDetail(true)}>
+        <div style={{
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          borderLeft: isLive ? "3px solid #ef4444" : "none",
+          paddingLeft: isLive ? "13px" : "16px",
+          opacity: isFt ? 0.82 : 1,
+        }}>
+          {/* Header — identical to TodayGameCard header */}
+          <div className="flex items-center justify-between pr-4 pt-4 pb-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
+              {label}
+            </span>
+            {isLive ? (
+              <div className="flex items-center gap-1.5">
+                <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
+                </span>
+                <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider">{tournament.roundLabel}</span>
+              </div>
+            ) : (
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">{tournament.roundLabel}</span>
+            )}
+          </div>
+
+          {/* Tournament name */}
+          <div className="pt-1 pb-2 pr-4">
+            <div className="text-[15px] font-bold text-white leading-tight">{tournament.shortName || tournament.name}</div>
+            {tournament.course && <div className="text-[11px] text-zinc-600 mt-0.5">{tournament.course}</div>}
+          </div>
+
+          {/* Top 5 leaderboard */}
+          <div className="pb-3 pr-4">
+            {tournament.leaders.slice(0, 5).map((p, i) => (
+              <div key={i} className="flex items-center gap-3 py-1.5 border-t border-white/5">
+                <span className="w-5 text-[11px] tabular-nums text-zinc-500 text-center flex-shrink-0">{p.position}</span>
+                <span className="flex-1 text-[13px] font-semibold text-white truncate">{p.shortName || p.name}</span>
+                <span className="text-[13px] font-bold tabular-nums flex-shrink-0" style={{ color: scoreColor(p.totalScore) }}>{p.totalScore}</span>
+                <span className="text-[11px] text-zinc-600 tabular-nums w-7 text-right flex-shrink-0">{p.thru}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </button>
+
+      {/* Full leaderboard detail sheet */}
+      {showDetail && (
+        <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'rgba(0,0,0,0.75)' }} onClick={() => setShowDetail(false)}>
+          <div className="flex-1" />
+          <div className="rounded-t-2xl overflow-hidden flex flex-col" style={{ background: 'var(--bg)', maxHeight: '85vh' }} onClick={e => e.stopPropagation()}>
+            <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+              <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
+            </div>
+            <div className="px-5 pb-4 flex-shrink-0">
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: accentColor }}>{label} · {tournament.roundLabel}</div>
+              <div className="text-[20px] font-bold text-white leading-tight">{tournament.name}</div>
+              {tournament.course && <div className="text-[12px] text-zinc-500 mt-0.5">{tournament.course}{tournament.location ? ` · ${tournament.location}` : ''}</div>}
+            </div>
+            <div className="overflow-y-auto flex-1 pb-8">
+              <div className="grid px-5 py-2 sticky top-0" style={{ gridTemplateColumns: '32px 1fr 48px 44px', background: 'var(--bg)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                <span /><span className="text-[9px] tracking-widest uppercase font-semibold text-zinc-600">Player</span>
+                <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">Total</span>
+                <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">Rd</span>
+              </div>
+              {tournament.leaders.map((p, i) => (
+                <div key={`${p.name}-${i}`} className="grid items-center px-5 py-2.5" style={{ gridTemplateColumns: '32px 1fr 48px 44px', borderBottom: i < tournament.leaders.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                  <span className="text-[11px] tabular-nums text-zinc-500">{p.position}</span>
+                  <span className="text-[13px] font-semibold text-white truncate pr-2">{p.shortName || p.name}</span>
+                  <span className="text-right text-[13px] font-bold tabular-nums" style={{ color: scoreColor(p.totalScore) }}>{p.totalScore}</span>
+                  <span className="text-right text-[12px] text-zinc-600 tabular-nums">{p.todayScore}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 // ── Golf recent card ──────────────────────────────────────────────────────────
 // Matches the RecentCard style: compact horizontal scroll card
 function GolfRecentCard({ tournament, label, accentColor }: {
@@ -549,7 +649,22 @@ export default function HomeClient() {
     const d = dateStr(parseKickoff(g.kickoff)); if (!upcomingByDate[d]) upcomingByDate[d] = []
     upcomingByDate[d].push(g)
   }
-  const upcomingDates = Object.keys(upcomingByDate).sort()
+
+  // Integrate golf upcoming into the same date buckets by tournament startDate
+  type GolfUpcomingItem = { tournament: PGATournament; label: string; accentColor: string }
+  const golfUpcomingByDate: Record<string, GolfUpcomingItem[]> = {}
+  const addGolfToDate = (t: PGATournament, label: string, accentColor: string) => {
+    if (!t.startDate) return
+    const ds = t.startDate.split('T')[0]
+    if (!golfUpcomingByDate[ds]) golfUpcomingByDate[ds] = []
+    golfUpcomingByDate[ds].push({ tournament: t, label, accentColor })
+  }
+  pgaUpcoming.forEach(t => addGolfToDate(t, 'PGA Tour', '#CBA135'))
+  lpgaUpcoming.forEach(t => addGolfToDate(t, 'LPGA', '#C084FC'))
+
+  // All upcoming dates — team games + golf, sorted
+  const allUpcomingDates = [...new Set([...Object.keys(upcomingByDate), ...Object.keys(golfUpcomingByDate)])].sort()
+  const upcomingDates = allUpcomingDates
 
   const hasAnyLive = liveGames.length > 0
   const liveCount = liveGames.length
@@ -706,16 +821,12 @@ export default function HomeClient() {
             {/* Team sport game cards */}
             {todayGames.map(g => <TodayGameCard key={g.id} game={g} />)}
 
-            {/* Golf — live OR completed today */}
+            {/* Golf — live OR completed today — same card style as team games */}
             {pgaToday.map(t => (
-              <div key={`pga-today-${t.id}`} className="mb-3">
-                <TournamentCard tournament={t} />
-              </div>
+              <GolfTodayCard key={`pga-today-${t.id}`} tournament={t} label="PGA Tour" accentColor="#CBA135" />
             ))}
             {lpgaToday.map(t => (
-              <div key={`lpga-today-${t.id}`} className="mb-3">
-                <TournamentCard tournament={t} />
-              </div>
+              <GolfTodayCard key={`lpga-today-${t.id}`} tournament={t} label="LPGA" accentColor="#C084FC" />
             ))}
 
             {/* Empty state — only if no games AND no live golf */}
@@ -740,7 +851,7 @@ export default function HomeClient() {
       )}
 
       {/* ── Upcoming — WC compact rows ───────────────────────────────────── */}
-      {(upcomingDates.length > 0 || pgaUpcoming.length > 0 || lpgaUpcoming.length > 0) && (
+      {upcomingDates.length > 0 && (
         <div className="mt-14">
           <div className="px-4 mb-4 flex items-center gap-3">
             <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Upcoming</span>
@@ -761,76 +872,62 @@ export default function HomeClient() {
                 <span className="text-[11px] uppercase tracking-wider font-normal text-zinc-500">{fmtDayHeader(ds)}</span>
                 <div className="flex-1 h-px bg-zinc-800" />
               </div>
-              {/* ── Upcoming game rows ── */}
-              {upcomingByDate[ds].map(g => {
+              {/* ── Team game rows ── */}
+              {(upcomingByDate[ds] ?? []).map(g => {
                 const seattleLogoUrl = getTeamLogoUrl(g.seattleTeam)
-                // Always: left = away, right = home
                 const awayLogo  = g.isHome ? g.opponent.logo     : seattleLogoUrl
                 const awayEmoji = g.isHome ? "🏟️"               : g.seattleTeam.emoji
                 const awayAbbr  = g.isHome ? g.opponent.abbr     : g.seattleTeam.abbr
-                const awayName  = g.isHome
-                  ? (g.opponent.shortName || g.opponent.name)
-                  : g.seattleTeam.shortName
+                const awayName  = g.isHome ? (g.opponent.shortName || g.opponent.name) : g.seattleTeam.shortName
                 const homeLogo  = g.isHome ? seattleLogoUrl      : g.opponent.logo
                 const homeEmoji = g.isHome ? g.seattleTeam.emoji : "🏟️"
                 const homeAbbr  = g.isHome ? g.seattleTeam.abbr  : g.opponent.abbr
-                const homeName  = g.isHome
-                  ? g.seattleTeam.shortName
-                  : (g.opponent.shortName || g.opponent.name)
+                const homeName  = g.isHome ? g.seattleTeam.shortName : (g.opponent.shortName || g.opponent.name)
                 return (
                   <div
                     key={g.id}
                     className="py-3 border-b border-white/5 hover:bg-white/[0.03] active:bg-white/[0.06] transition-colors cursor-pointer"
                     onClick={() => setSelectedRecentGame(g)}
                   >
-                    {/* Time — left-aligned, small, dim */}
                     <div className="pl-6 mb-1.5 flex items-center gap-2">
-                      <span className="text-[11px] text-zinc-500 font-normal uppercase tracking-wide tabular-nums">
-                        {fmtTime(g.kickoff)}
-                      </span>
-                      {g.broadcast && (
-                        <span className="text-[10px] text-zinc-600">{g.broadcast}</span>
-                      )}
+                      <span className="text-[11px] text-zinc-500 font-normal uppercase tracking-wide tabular-nums">{fmtTime(g.kickoff)}</span>
+                      {g.broadcast && <span className="text-[10px] text-zinc-600">{g.broadcast}</span>}
                     </div>
-                    {/* Teams row — 3-col grid so the dot always lands at the same horizontal pixel */}
                     <div className="grid items-center px-4" style={{ gridTemplateColumns: "1fr 2rem 1fr" }}>
-                      {/* Left: Away Name + Logo — right-aligned */}
                       <div className="flex items-center justify-end gap-2 min-w-0">
-                        <span className="text-[14px] font-semibold text-white whitespace-nowrap leading-tight truncate">
-                          {awayName}
-                        </span>
+                        <span className="text-[14px] font-semibold text-white whitespace-nowrap leading-tight truncate">{awayName}</span>
                         <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={28} className="flex-shrink-0" />
                       </div>
-                      {/* Center: dot, always perfectly centered */}
                       <div className="flex items-center justify-center">
                         <span className="text-zinc-600 text-[13px] font-normal select-none">·</span>
                       </div>
-                      {/* Right: Logo + Home Name — left-aligned */}
                       <div className="flex items-center justify-start gap-2 min-w-0">
                         <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={28} className="flex-shrink-0" />
-                        <span className="text-[14px] font-semibold text-white whitespace-nowrap leading-tight truncate">
-                          {homeName}
-                        </span>
+                        <span className="text-[14px] font-semibold text-white whitespace-nowrap leading-tight truncate">{homeName}</span>
                       </div>
                     </div>
                   </div>
                 )
               })}
+              {/* ── Golf tournament rows in this date bucket ── */}
+              {(golfUpcomingByDate[ds] ?? []).map(({ tournament: t, label, accentColor }) => (
+                <div key={`golf-${t.id}`} className="py-3 border-b border-white/5">
+                  <div className="pl-6 mb-1.5 flex items-center gap-2">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: accentColor }}>{label}</span>
+                    {t.course && <span className="text-[10px] text-zinc-600">{t.course}</span>}
+                  </div>
+                  <div className="px-4 flex items-center justify-between gap-2">
+                    <span className="text-[14px] font-semibold text-white truncate flex-1 leading-tight">{t.shortName || t.name}</span>
+                    {t.endDate && t.endDate !== t.startDate && (
+                      <span className="text-[12px] text-zinc-500 flex-shrink-0">
+                        – {new Date(t.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           ))}
-
-          {/* Golf upcoming rows — appended after team games, no date grouping needed */}
-          {(pgaUpcoming.length > 0 || lpgaUpcoming.length > 0) && (
-            <>
-              {upcomingDates.length > 0 && <div className="h-3" />}
-              {pgaUpcoming.map(t => (
-                <GolfUpcomingRow key={`pga-up-${t.id}`} tournament={t} label="PGA Tour" accentColor="#CBA135" />
-              ))}
-              {lpgaUpcoming.map(t => (
-                <GolfUpcomingRow key={`lpga-up-${t.id}`} tournament={t} label="LPGA" accentColor="#C084FC" />
-              ))}
-            </>
-          )}
         </div>
       )}
 
