@@ -304,10 +304,10 @@ function DivisionTable({ division, followedTeamColors, accentColor, leagueId }: 
                 : null
               const rowBg = teamColor
                 ? `color-mix(in srgb, ${teamColor} 18%, transparent)`
-                : idx % 2 === 1 ? 'rgba(255,255,255,0.02)' : 'transparent'
+                : 'transparent'
               const stickyBg = teamColor
                 ? `color-mix(in srgb, ${teamColor} 14%, ${bgBase})`
-                : idx % 2 === 1 ? 'color-mix(in srgb, white 2%, var(--bg))' : bgBase
+                : bgBase
               return (
                 <tr key={entry.teamId} style={{ borderTop: '1px solid var(--border)' }}>
                   {/* Sticky team cell */}
