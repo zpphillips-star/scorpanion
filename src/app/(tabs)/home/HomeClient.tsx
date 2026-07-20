@@ -828,17 +828,15 @@ export default function HomeClient() {
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{dateLabel}</span>
             </div>
 
-            {/* Team sport game cards + golf — divide-y between cards only, no trailing border */}
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.09)' }}>
-              <div className="divide-y divide-white/[0.09]">
-                {todayGames.map(g => <TodayGameCard key={g.id} game={g} />)}
-                {pgaToday.map(t => (
-                  <GolfTodayCard key={`pga-today-${t.id}`} tournament={t} label="PGA Tour" accentColor="#CBA135" />
-                ))}
-                {lpgaToday.map(t => (
-                  <GolfTodayCard key={`lpga-today-${t.id}`} tournament={t} label="LPGA" accentColor="#C084FC" />
-                ))}
-              </div>
+            {/* Team sport game cards + golf — divide-y between cards only, no top or trailing border */}
+            <div className="divide-y divide-white/[0.09]">
+              {todayGames.map(g => <TodayGameCard key={g.id} game={g} />)}
+              {pgaToday.map(t => (
+                <GolfTodayCard key={`pga-today-${t.id}`} tournament={t} label="PGA Tour" accentColor="#CBA135" />
+              ))}
+              {lpgaToday.map(t => (
+                <GolfTodayCard key={`lpga-today-${t.id}`} tournament={t} label="LPGA" accentColor="#C084FC" />
+              ))}
             </div>
 
             {/* Empty state — only if no games AND no live golf */}
@@ -885,8 +883,9 @@ export default function HomeClient() {
                 <div className="flex-1 h-px bg-zinc-700/50" />
               </div>
               {/* ── Team game rows ── */}
-              {(upcomingByDate[ds] ?? []).map(g => {
-                const seattleLogoUrl = getTeamLogoUrl(g.seattleTeam)
+              <div className="divide-y divide-white/[0.09]">
+                {(upcomingByDate[ds] ?? []).map(g => {
+                  const seattleLogoUrl = getTeamLogoUrl(g.seattleTeam)
                 const awayLogo  = g.isHome ? g.opponent.logo     : seattleLogoUrl
                 const awayEmoji = g.isHome ? "🏟️"               : g.seattleTeam.emoji
                 const awayAbbr  = g.isHome ? g.opponent.abbr     : g.seattleTeam.abbr
@@ -898,7 +897,7 @@ export default function HomeClient() {
                 return (
                   <div
                     key={g.id}
-                    className="flex items-center py-3 px-4 border-b border-white/[0.11] hover:bg-white/[0.03] active:bg-white/[0.06] transition-colors cursor-pointer gap-3"
+                    className="flex items-center py-3 px-4 hover:bg-white/[0.03] active:bg-white/[0.06] transition-colors cursor-pointer gap-3"
                     onClick={() => setSelectedRecentGame(g)}
                   >
                     {/* Left: time + league */}
@@ -922,44 +921,44 @@ export default function HomeClient() {
                     </div>
                   </div>
                 )
-              })}
-              {/* ── Golf tournament rows in this date bucket ── */}
-              {(golfUpcomingByDate[ds] ?? []).map(({ tournament: t, label, accentColor }) => {
-                const golfLogoUrl = label === 'LPGA'
-                  ? 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/lpga.png'
-                  : 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/pgatour.png'
-                const dateRange = (() => {
-                  const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                  if (t.endDate && t.endDate !== t.startDate) return `${fmt(t.startDate)} – ${fmt(t.endDate)}`
-                  return fmt(t.startDate)
-                })()
-                return (
-                  <button
-                    key={`golf-${t.id}-${ds}`}
-                    className="w-full text-left flex items-center py-3 px-4 border-b border-white/[0.11] active:opacity-70 transition-opacity gap-3"
-                    onClick={() => setSelectedGolfUpcoming({ tournament: t, label, accentColor })}
-                  >
-                    {/* Left: date range */}
-                    <div className="w-16 flex-shrink-0 flex flex-col gap-0.5">
-                      <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{dateRange}</span>
-                      {t.course && <span className="text-[10px] text-zinc-600 truncate">{t.course}</span>}
-                    </div>
-                    {/* Matchup: label · logo · tournament name */}
-                    <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr 2rem 1fr" }}>
-                      <div className="flex items-center justify-end">
-                        <span className="text-[14px] font-semibold truncate leading-tight" style={{ color: "#ffffff" }}>{label}</span>
+                })}
+                {/* ── Golf tournament rows — no location, tap for details ── */}
+                {(golfUpcomingByDate[ds] ?? []).map(({ tournament: t, label, accentColor }) => {
+                  const golfLogoUrl = label === 'LPGA'
+                    ? 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/lpga.png'
+                    : 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/pgatour.png'
+                  const dateRange = (() => {
+                    const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                    if (t.endDate && t.endDate !== t.startDate) return `${fmt(t.startDate)} – ${fmt(t.endDate)}`
+                    return fmt(t.startDate)
+                  })()
+                  return (
+                    <button
+                      key={`golf-${t.id}-${ds}`}
+                      className="w-full text-left flex items-center py-3 px-4 active:opacity-70 transition-opacity gap-3"
+                      onClick={() => setSelectedGolfUpcoming({ tournament: t, label, accentColor })}
+                    >
+                      {/* Left: date range only — no course */}
+                      <div className="w-16 flex-shrink-0">
+                        <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{dateRange}</span>
                       </div>
-                      <div className="flex items-center justify-center">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={golfLogoUrl} alt={label} width={28} height={28} className="object-contain" />
+                      {/* Matchup: label · logo · tournament name */}
+                      <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr 2rem 1fr" }}>
+                        <div className="flex items-center justify-end">
+                          <span className="text-[14px] font-semibold truncate leading-tight" style={{ color: "#ffffff" }}>{label}</span>
+                        </div>
+                        <div className="flex items-center justify-center">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={golfLogoUrl} alt={label} width={28} height={28} className="object-contain" />
+                        </div>
+                        <div className="flex items-center justify-start">
+                          <span className="text-[14px] font-semibold text-white truncate leading-tight">{t.shortName || t.name}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-start">
-                        <span className="text-[14px] font-semibold text-white truncate leading-tight">{t.shortName || t.name}</span>
-                      </div>
-                    </div>
-                  </button>
-                )
-              })}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           ))}
         </div>
