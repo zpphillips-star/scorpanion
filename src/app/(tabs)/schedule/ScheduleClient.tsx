@@ -679,49 +679,49 @@ export default function ScheduleClient() {
                     : 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/pgatour.png'
                   const isLive = tournament.status === 'live'
                   const isCompleted = tournament.status === 'completed'
-                  const dateRange = (() => {
-                    const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                    if (tournament.endDate && tournament.endDate !== tournament.startDate) return `${fmt(tournament.startDate)} – ${fmt(tournament.endDate)}`
-                    return fmt(tournament.startDate)
-                  })()
                   return (
                     <div
                       key={`golf-${tournament.id}`}
-                      className="flex items-center px-4 py-3 border-b border-zinc-700/40 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer select-none"
+                      className="flex items-center px-4 py-3 border-b border-zinc-700/30 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer select-none gap-3"
                       style={isLive ? { background: 'rgba(255,180,0,0.04)' } : undefined}
                       onClick={() => setSelectedGolf({ tournament, label, accentColor })}
                     >
-                      {/* Left: status */}
-                      <div className="w-[72px] flex-shrink-0 flex flex-col justify-center gap-0.5 pl-2">
+                      {/* Left: status — matches team game row width */}
+                      <div className="w-16 flex-shrink-0 flex flex-col gap-0.5">
                         {isLive ? (
                           <div className="flex items-center gap-1">
                             <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75" />
                               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-yellow-400" />
                             </span>
-                            <span className="text-[11px] font-bold text-yellow-400 uppercase leading-tight">Live</span>
+                            <span className="text-[11px] font-bold text-yellow-400 uppercase">Live</span>
                           </div>
                         ) : isCompleted ? (
                           <span className="text-[11px] text-zinc-500 uppercase tracking-wide">Final</span>
                         ) : (
-                          <span className="text-[11px] text-zinc-400 whitespace-nowrap">{dateRange}</span>
+                          <span className="text-[11px] font-medium text-zinc-400">Upcoming</span>
                         )}
+                        <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">{label === 'PGA Tour' ? 'PGA' : label}</span>
                       </div>
-                      {/* Center: logo + name */}
-                      <div className="flex-1 flex items-center gap-3 min-w-0">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={golfLogoUrl} alt={label} width={28} height={28} style={{ objectFit: 'contain', flexShrink: 0 }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                        <div className="min-w-0">
-                          <div className="text-[13px] font-semibold text-white truncate">{tournament.name}</div>
-                          {(tournament.course || tournament.location) && (
-                            <div className="text-[11px] text-zinc-500 truncate">📍 {[tournament.course, tournament.location].filter(Boolean).join(', ')}</div>
-                          )}
+
+                      {/* Center: label · logo · name */}
+                      <div className="flex-1 grid items-center" style={{ gridTemplateColumns: '1fr 36px 1fr' }}>
+                        <div className="flex items-center justify-end pr-2">
+                          <span className="text-[13px] font-semibold text-white truncate">{label}</span>
+                        </div>
+                        <div className="flex items-center justify-center">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={golfLogoUrl} alt={label} width={28} height={28} style={{ objectFit: 'contain' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                        </div>
+                        <div className="flex items-center pl-2 min-w-0">
+                          <span className="text-[13px] font-semibold text-white truncate">{tournament.shortName || tournament.name}</span>
                         </div>
                       </div>
-                      {/* Right: label */}
-                      <div className="w-14 flex-shrink-0 text-center">
-                        <span className="text-[11px] font-semibold text-zinc-500">{label === 'PGA Tour' ? 'PGA' : label}</span>
-                      </div>
+
+                      {/* Right: chevron */}
+                      <svg className="w-3 h-3 text-zinc-700 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </div>
                   )
                 })}
