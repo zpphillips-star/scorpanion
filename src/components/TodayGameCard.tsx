@@ -62,40 +62,46 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
       >
         <div
           style={{
-            borderBottom: "1px solid rgba(255,255,255,0.10)",
             borderLeft: isLive ? "3px solid #ef4444" : "none",
             paddingLeft: isLive ? "13px" : "16px",
             opacity: isFt ? 0.82 : 1,
           }}
         >
-          {/* Header row */}
-          <div className="flex items-center justify-between pr-4 pt-4 pb-1">
+          {/* Header row — league left · status/time centered · broadcast right */}
+          <div className="grid items-center pr-4 pt-4 pb-1" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
+            {/* Left: league badge */}
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
                 {game.league}
               </span>
-              {game.broadcast && (
-                <span className="text-[10px]" style={{ color: "#2d4a6b" }}>· {game.broadcast}</span>
+            </div>
+            {/* Center: time / live status / final */}
+            <div className="flex items-center justify-center gap-1.5">
+              {isLive ? (
+                <>
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
+                  </span>
+                  <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider">Live</span>
+                  {(game.clock || game.period) && (
+                    <span className="text-[11px] font-semibold tabular-nums" style={{ color: "var(--text-faint)" }}>
+                      {game.period ? `${game.period}${game.clock ? ` · ${game.clock}` : ""}` : game.clock}
+                    </span>
+                  )}
+                </>
+              ) : isFt ? (
+                <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>Final</span>
+              ) : (
+                <span className="text-[12px] font-semibold" style={{ color: "#f0f0f8" }}>{formatTime(game.kickoff)}</span>
               )}
             </div>
-            {isLive ? (
-              <div className="flex items-center gap-1.5">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
-                </span>
-                <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider">Live</span>
-                {(game.clock || game.period) && (
-                  <span className="text-[11px] font-semibold tabular-nums" style={{ color: "var(--text-faint)" }}>
-                    {game.period ? `${game.period}${game.clock ? ` · ${game.clock}` : ""}` : game.clock}
-                  </span>
-                )}
-              </div>
-            ) : isFt ? (
-              <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>Final</span>
-            ) : (
-              <span className="text-[12px] font-semibold" style={{ color: "#f0f0f8" }}>{formatTime(game.kickoff)}</span>
-            )}
+            {/* Right: broadcast */}
+            <div className="flex justify-end">
+              {game.broadcast && (
+                <span className="text-[10px]" style={{ color: "#2d4a6b" }}>{game.broadcast}</span>
+              )}
+            </div>
           </div>
 
           {/* Main: away | score | home */}
