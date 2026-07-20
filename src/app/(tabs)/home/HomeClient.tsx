@@ -647,14 +647,19 @@ export default function HomeClient() {
     upcomingByDate[d].push(g)
   }
 
-  // Integrate golf upcoming into the same date buckets by tournament startDate
+  // Integrate golf upcoming into the same date buckets — spans all tournament days
   type GolfUpcomingItem = { tournament: PGATournament; label: string; accentColor: string }
   const golfUpcomingByDate: Record<string, GolfUpcomingItem[]> = {}
   const addGolfToDate = (t: PGATournament, label: string, accentColor: string) => {
     if (!t.startDate) return
-    const ds = t.startDate.split('T')[0]
-    if (!golfUpcomingByDate[ds]) golfUpcomingByDate[ds] = []
-    golfUpcomingByDate[ds].push({ tournament: t, label, accentColor })
+    const start = new Date(t.startDate)
+    const end   = t.endDate ? new Date(t.endDate) : start
+    // Iterate every day the tournament runs (Thu → Sun for a 4-day event)
+    for (let dt = new Date(start); dt <= end; dt.setUTCDate(dt.getUTCDate() + 1)) {
+      const ds = dt.toISOString().split('T')[0]
+      if (!golfUpcomingByDate[ds]) golfUpcomingByDate[ds] = []
+      golfUpcomingByDate[ds].push({ tournament: t, label, accentColor })
+    }
   }
   pgaUpcoming.forEach(t => addGolfToDate(t, 'PGA Tour', '#CBA135'))
   lpgaUpcoming.forEach(t => addGolfToDate(t, 'LPGA', '#C084FC'))
@@ -929,7 +934,7 @@ export default function HomeClient() {
                 })()
                 return (
                   <button
-                    key={`golf-${t.id}`}
+                    key={`golf-${t.id}-${ds}`}
                     className="w-full text-left py-3 border-b border-white/5 active:opacity-70 transition-opacity"
                     onClick={() => setSelectedGolfUpcoming({ tournament: t, label, accentColor })}
                   >
