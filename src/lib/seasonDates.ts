@@ -19,144 +19,156 @@
 import { SEASON_START_MONTH } from './seasonStatus'
 
 export interface LeagueSeason {
-  regularStart:    string
-  regularEnd:      string
-  playoffStart:    string
-  playoffEnd:      string
-  playoffLabel:    string
-  championship:    string
-  tbd?:            boolean
-  preseasonStart?: string   // YYYY-MM-DD
-  preseasonEnd?:   string   // YYYY-MM-DD
+  regularStart:      string
+  regularEnd:        string
+  playoffStart:      string
+  championshipStart: string   // when the championship round begins
+  playoffEnd:        string
+  playoffLabel:      string
+  championship:      string
+  tbd?:              boolean
+  preseasonStart?:   string
+  preseasonEnd?:     string
 }
 
 export const LEAGUE_SEASON: Record<string, LeagueSeason> = {
   // ── MLB 2026 ──────────────────────────────────────────────────────────────
   mlb: {
-    preseasonStart: '2026-02-12',  // Spring Training opens
-    preseasonEnd:   '2026-03-25',
-    regularStart:  '2026-03-26',
-    regularEnd:    '2026-09-28',
-    playoffStart:  '2026-10-01',   // Wild Card
-    playoffEnd:    '2026-11-04',   // World Series ends ~early Nov
-    playoffLabel:  'Wild Card Round',
-    championship:  'World Series',
+    preseasonStart:    '2026-02-12',  // Spring Training opens
+    preseasonEnd:      '2026-03-25',
+    regularStart:      '2026-03-26',
+    regularEnd:        '2026-09-28',
+    playoffStart:      '2026-10-01',  // Wild Card
+    championshipStart: '2026-10-24',  // World Series begins
+    playoffEnd:        '2026-11-04',  // World Series ends ~early Nov
+    playoffLabel:      'Wild Card Round',
+    championship:      'World Series',
   },
 
   // ── NFL 2026-27 ───────────────────────────────────────────────────────────
   nfl: {
-    preseasonStart: '2026-07-22',  // Training camp opens
-    preseasonEnd:   '2026-09-08',
-    regularStart:  '2026-09-10',
-    regularEnd:    '2027-01-04',   // end of Week 18
-    playoffStart:  '2027-01-10',   // Wild Card Weekend
-    playoffEnd:    '2027-02-08',   // Super Bowl LXI (approx first Sunday Feb)
-    playoffLabel:  'Wild Card Weekend',
-    championship:  'Super Bowl LXI',
+    preseasonStart:    '2026-07-22',  // Training camp opens
+    preseasonEnd:      '2026-09-08',
+    regularStart:      '2026-09-10',
+    regularEnd:        '2027-01-04',  // end of Week 18
+    playoffStart:      '2027-01-10',  // Wild Card Weekend
+    championshipStart: '2027-02-08',  // Super Bowl LXI
+    playoffEnd:        '2027-02-08',
+    playoffLabel:      'Wild Card Weekend',
+    championship:      'Super Bowl LXI',
   },
 
   // ── NBA 2026-27 ───────────────────────────────────────────────────────────
   nba: {
-    preseasonStart: '2026-09-29',  // Training camp opens
-    preseasonEnd:   '2026-10-21',
-    regularStart:  '2026-10-22',
-    regularEnd:    '2027-04-13',   // approx — TBD
-    playoffStart:  '2027-04-19',   // approx — TBD
-    playoffEnd:    '2027-06-22',   // NBA Finals ends ~late June
-    playoffLabel:  'NBA Playoffs',
-    championship:  'NBA Finals',
-    tbd:           true,
+    preseasonStart:    '2026-09-29',  // Training camp opens
+    preseasonEnd:      '2026-10-21',
+    regularStart:      '2026-10-22',
+    regularEnd:        '2027-04-13',
+    playoffStart:      '2027-04-19',
+    championshipStart: '2027-06-05',  // NBA Finals begin ~early June
+    playoffEnd:        '2027-06-22',
+    playoffLabel:      'NBA Playoffs',
+    championship:      'NBA Finals',
+    tbd:               true,
   },
 
   // ── NHL 2026-27 ───────────────────────────────────────────────────────────
   nhl: {
-    preseasonStart: '2026-09-18',  // Training camp opens
-    preseasonEnd:   '2026-10-07',
-    regularStart:  '2026-10-08',
-    regularEnd:    '2027-04-18',   // approx — TBD
-    playoffStart:  '2027-04-19',   // approx — TBD
-    playoffEnd:    '2027-06-20',   // Stanley Cup Finals ends ~mid June
-    playoffLabel:  'NHL Playoffs',
-    championship:  'Stanley Cup Finals',
-    tbd:           true,
+    preseasonStart:    '2026-09-18',  // Training camp opens
+    preseasonEnd:      '2026-10-07',
+    regularStart:      '2026-10-08',
+    regularEnd:        '2027-04-18',
+    playoffStart:      '2027-04-19',
+    championshipStart: '2027-06-02',  // Stanley Cup Finals begin ~early June
+    playoffEnd:        '2027-06-20',
+    playoffLabel:      'NHL Playoffs',
+    championship:      'Stanley Cup Finals',
+    tbd:               true,
   },
 
   // ── MLS 2026 ──────────────────────────────────────────────────────────────
   'usa.1': {
-    preseasonStart: '2026-02-01',
-    preseasonEnd:   '2026-02-27',
-    regularStart:  '2026-02-28',
-    regularEnd:    '2026-10-18',
-    playoffStart:  '2026-11-01',
-    playoffEnd:    '2026-12-07',   // MLS Cup typically first weekend of Dec
-    playoffLabel:  'MLS Cup Playoffs',
-    championship:  'MLS Cup',
+    preseasonStart:    '2026-02-01',
+    preseasonEnd:      '2026-02-27',
+    regularStart:      '2026-02-28',
+    regularEnd:        '2026-10-18',
+    playoffStart:      '2026-11-01',
+    championshipStart: '2026-12-05',  // MLS Cup final weekend
+    playoffEnd:        '2026-12-07',
+    playoffLabel:      'MLS Cup Playoffs',
+    championship:      'MLS Cup',
   },
 
   // ── WNBA 2026 ─────────────────────────────────────────────────────────────
   wnba: {
-    preseasonStart: '2026-05-01',
-    preseasonEnd:   '2026-05-15',
-    regularStart:  '2026-05-16',
-    regularEnd:    '2026-09-14',
-    playoffStart:  '2026-09-17',
-    playoffEnd:    '2026-10-20',   // WNBA Finals ends ~mid-late Oct
-    playoffLabel:  'WNBA Playoffs',
-    championship:  'WNBA Finals',
+    preseasonStart:    '2026-05-01',
+    preseasonEnd:      '2026-05-15',
+    regularStart:      '2026-05-16',
+    regularEnd:        '2026-09-14',
+    playoffStart:      '2026-09-17',
+    championshipStart: '2026-10-10',  // WNBA Finals begin ~mid Oct
+    playoffEnd:        '2026-10-20',
+    playoffLabel:      'WNBA Playoffs',
+    championship:      'WNBA Finals',
   },
 
   // ── NWSL 2026 ─────────────────────────────────────────────────────────────
   'usa.nwsl': {
-    preseasonStart: '2026-02-15',
-    preseasonEnd:   '2026-03-13',
-    regularStart:  '2026-03-14',
-    regularEnd:    '2026-10-25',
-    playoffStart:  '2026-11-07',
-    playoffEnd:    '2026-11-22',   // NWSL Championship
-    playoffLabel:  'NWSL Playoffs',
-    championship:  'NWSL Championship',
+    preseasonStart:    '2026-02-15',
+    preseasonEnd:      '2026-03-13',
+    regularStart:      '2026-03-14',
+    regularEnd:        '2026-10-25',
+    playoffStart:      '2026-11-07',
+    championshipStart: '2026-11-22',  // NWSL Championship
+    playoffEnd:        '2026-11-22',
+    playoffLabel:      'NWSL Playoffs',
+    championship:      'NWSL Championship',
   },
 
   // ── WHL 2026-27 ───────────────────────────────────────────────────────────
   whl: {
-    regularStart:  '2026-09-19',
-    regularEnd:    '2027-03-21',   // approx
-    playoffStart:  '2027-03-25',   // approx
-    playoffEnd:    '2027-05-18',   // WHL Championship Series ends ~mid May
-    playoffLabel:  'WHL Playoffs',
-    championship:  'Ed Chynoweth Cup',
-    tbd:           true,
+    regularStart:      '2026-09-19',
+    regularEnd:        '2027-03-21',
+    playoffStart:      '2027-03-25',
+    championshipStart: '2027-05-10',  // Ed Chynoweth Cup finals
+    playoffEnd:        '2027-05-18',
+    playoffLabel:      'WHL Playoffs',
+    championship:      'Ed Chynoweth Cup',
+    tbd:               true,
   },
 
   // ── PWHL 2026-27 ──────────────────────────────────────────────────────────
   pwhl: {
-    regularStart:  '2027-01-08',
-    regularEnd:    '2027-03-30',   // approx
-    playoffStart:  '2027-04-05',   // approx
-    playoffEnd:    '2027-05-10',   // PWHL Finals ends ~early May
-    playoffLabel:  'PWHL Playoffs',
-    championship:  'PWHL Championship',
-    tbd:           true,
+    regularStart:      '2027-01-08',
+    regularEnd:        '2027-03-30',
+    playoffStart:      '2027-04-05',
+    championshipStart: '2027-05-01',  // PWHL Championship finals
+    playoffEnd:        '2027-05-10',
+    playoffLabel:      'PWHL Playoffs',
+    championship:      'PWHL Championship',
+    tbd:               true,
   },
 
   // ── PGA Tour 2025-26 ──────────────────────────────────────────────────────
   pga: {
-    regularStart:  '2025-09-04',   // PGA Tour season starts early Sep
-    regularEnd:    '2026-08-16',   // Regular season ends at Tour Championship
-    playoffStart:  '2026-08-20',   // FedEx Cup Playoffs
-    playoffEnd:    '2026-09-07',   // Tour Championship ends
-    playoffLabel:  'FedEx Cup Playoffs',
-    championship:  'FedEx Cup',
+    regularStart:      '2025-09-04',   // PGA Tour season starts early Sep
+    regularEnd:        '2026-08-16',   // Regular season ends at Tour Championship
+    playoffStart:      '2026-08-20',   // FedEx Cup Playoffs
+    championshipStart: '2026-09-04',   // Tour Championship (final event)
+    playoffEnd:        '2026-09-07',
+    playoffLabel:      'FedEx Cup Playoffs',
+    championship:      'FedEx Cup',
   },
 
   // ── LPGA Tour 2026 ────────────────────────────────────────────────────────
   lpga: {
-    regularStart:  '2026-01-22',
-    regularEnd:    '2026-10-25',
-    playoffStart:  '2026-10-22',   // CME Group Tour Championship
-    playoffEnd:    '2026-11-22',
-    playoffLabel:  'Race to CME Globe',
-    championship:  'CME Group Tour Championship',
+    regularStart:      '2026-01-22',
+    regularEnd:        '2026-10-25',
+    playoffStart:      '2026-10-22',   // CME Group Tour Championship
+    championshipStart: '2026-11-18',   // CME final tournament
+    playoffEnd:        '2026-11-22',
+    playoffLabel:      'Race to CME Globe',
+    championship:      'CME Group Tour Championship',
   },
 }
 

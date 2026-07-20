@@ -92,133 +92,171 @@ function TeamLogoImg({ src, abbr }: { src: string; abbr: string }) {
   return <Image src={src} alt={abbr} width={28} height={28} className="object-contain w-7 h-7" onError={() => setErr(true)} unoptimized />
 }
 
-function SeasonBanner({ season, leagueId }: { season: SeasonInfo; leagueId: string }) {
+/**
+ * SeasonProgressChevrons — full-width connected chevron pipeline
+ * showing Off Season → Preseason → Regular Season → Playoffs → Championship
+ * with date ranges and the current phase highlighted.
+ */
+function SeasonProgressChevrons({ season, leagueId }: { season: SeasonInfo; leagueId: string }) {
   const info = LEAGUE_INFO[leagueId]
   const accentColor = info?.color || "#00d4ff"
   const s = LEAGUE_SEASON[leagueId]
   const currentYear = new Date().getFullYear()
 
-  /** Format date; append year when it differs from the current calendar year */
   const fmtD = (iso: string): string => {
     const year = parseInt(iso.split('-')[0], 10)
-    const short = fmtShort(iso)
-    return year !== currentYear ? `${short}, ${year}` : short
+    return year !== currentYear ? `${fmtShort(iso)} '${String(year).slice(-2)}` : fmtShort(iso)
   }
 
-  type PhaseStatus = 'current' | 'past' | 'future'
-  interface PhaseRow { key: string; name: string; dateRange: string; phaseStatus: PhaseStatus; isTbd?: boolean }
-  const phases: PhaseRow[] = []
+  type Phase = 'offseason' | 'preseason' | 'regular' | 'playoffs' | 'championship'
 
+  // Determine the active phase — treat 'playoffs' as either playoffs or championship
+  // depending on today's date vs championshipStart
+  const today = new Date().toISOString().split('T')[0]
+  let activePhase: Phase = season.status === 'offseason' ? 'offseason'
+    : season.status === 'preseason' ? 'preseason'
+    : season.status === 'regular'   ? 'regular'
+    : season.status === 'playoffs'  ?
+        (s && today >= s.championshipStart ? 'championship' : 'playoffs')
+    : 'offseason'
+
+  interface Chevron {
+    key:   Phase
+    label: string
+    dates: string
+    tbd?:  boolean
+  }
+
+  const chevrons: Chevron[] = []
+
+  // 1. Off Season
+  chevrons.push({
+    key:   'offseason',
+    label: 'Off Season',
+    dates: s?.preseasonStart ? `Until ${fmtD(s.preseasonStart)}` : '',
+  })
+
+  // 2. Preseason (only if dates exist)
+  if (s?.preseasonStart && s.preseasonEnd) {
+    chevrons.push({
+      key:   'preseason',
+      label: 'Preseason',
+      dates: `${fmtD(s.preseasonStart)} – ${fmtD(s.preseasonEnd)}`,
+    })
+  }
+
+  // 3. Regular Season
   if (s) {
-    // Preseason (optional)
-    if (s.preseasonStart && s.preseasonEnd) {
-      const ps: PhaseStatus =
-        season.status === 'preseason' ? 'current' :
-        ['regular', 'playoffs', 'offseason'].includes(season.status) ? 'past' : 'future'
-      phases.push({ key: 'pre', name: 'Preseason',
-        dateRange: `${fmtD(s.preseasonStart)} – ${fmtD(s.preseasonEnd)}`, phaseStatus: ps })
-    }
+    chevrons.push({
+      key:   'regular',
+      label: 'Regular Season',
+      dates: `${fmtD(s.regularStart)} – ${fmtD(s.regularEnd)}`,
+    })
 
-    // Regular season
-    const rs: PhaseStatus =
-      season.status === 'regular' ? 'current' :
-      ['playoffs', 'offseason'].includes(season.status) ? 'past' : 'future'
-    phases.push({ key: 'reg', name: 'Regular Season',
-      dateRange: `${fmtD(s.regularStart)} – ${fmtD(s.regularEnd)}`, phaseStatus: rs })
+    // 4. Playoffs (up to championship start)
+    chevrons.push({
+      key:   'playoffs',
+      label: 'Playoffs',
+      dates: `${fmtD(s.playoffStart)} – ${fmtD(s.championshipStart)}`,
+      tbd:   s.tbd,
+    })
 
-    // Playoffs
-    const pls: PhaseStatus =
-      season.status === 'playoffs' ? 'current' :
-      season.status === 'offseason' ? 'past' : 'future'
-    phases.push({ key: 'playoff', name: s.playoffLabel || 'Playoffs',
-      dateRange: `${fmtD(s.playoffStart)} – ${fmtD(s.playoffEnd)}`, phaseStatus: pls, isTbd: s.tbd })
+    // 5. Championship
+    chevrons.push({
+      key:   'championship',
+      label: s.championship,
+      dates: `${fmtD(s.championshipStart)} – ${fmtD(s.playoffEnd)}`,
+      tbd:   s.tbd,
+    })
+  } else {
+    // Fallback for leagues without LEAGUE_SEASON entry
+    chevrons.push({ key: 'regular',      label: 'Regular Season', dates: '' })
+    chevrons.push({ key: 'playoffs',     label: 'Playoffs',       dates: '' })
+    chevrons.push({ key: 'championship', label: 'Championship',   dates: '' })
   }
 
-  // Next milestone line
-  let nextMilestone: string | null = null
-  if (s) {
-    if (season.status === 'preseason')       nextMilestone = `Regular season starts ${fmtD(s.regularStart)}`
-    else if (season.status === 'regular')    nextMilestone = `Playoffs start ${fmtD(s.playoffStart)}`
-    else if (season.status === 'playoffs')   nextMilestone = `Championship: ${s.championship}`
-    else if (season.status === 'offseason' && season.nextStartApprox)
-      nextMilestone = `Next season starts ${season.nextStartApprox}`
-  } else if (season.status === 'offseason' && season.nextStartApprox) {
-    nextMilestone = `Next season starts ${season.nextStartApprox}`
-  }
+  const activeIdx = chevrons.findIndex(c => c.key === activePhase)
 
-  const isRegular = season.status === 'regular'
+  // Chevron clip-paths
+  const ARROW = 12  // px of the arrow tip
+  const clipFirst  = `polygon(0 0, calc(100% - ${ARROW}px) 0, 100% 50%, calc(100% - ${ARROW}px) 100%, 0 100%)`
+  const clipMiddle = `polygon(${ARROW}px 0, calc(100% - ${ARROW}px) 0, 100% 50%, calc(100% - ${ARROW}px) 100%, 0 100%, ${ARROW}px 50%)`
+  const clipLast   = `polygon(${ARROW}px 0, 100% 0, 100% 100%, 0 100%, ${ARROW}px 50%)`
 
   return (
-    <div className="mx-3 mt-3 px-4 py-4 rounded-2xl"
-      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+    <div className="mt-3 px-2">
+      {/* Chevron row — spans full width */}
+      <div className="flex" style={{ gap: '-1px' }}>
+        {chevrons.map((chev, idx) => {
+          const isActive = idx === activeIdx
+          const isPast   = idx < activeIdx
+          const isLast   = idx === chevrons.length - 1
+          const isFirst  = idx === 0
+          const clip     = isFirst ? clipFirst : isLast ? clipLast : clipMiddle
 
-      {/* Full phase timeline */}
-      {phases.length > 0 && (
-        <div className="space-y-2.5">
-          {phases.map(phase => {
-            const isCurrent = phase.phaseStatus === 'current'
-            const isPast    = phase.phaseStatus === 'past'
-            return (
-              <div key={phase.key} className="flex items-center gap-2.5">
-                {/* Dot */}
-                <div className="w-3.5 flex items-center justify-center flex-shrink-0">
-                  {isCurrent ? (
-                    isRegular ? (
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ backgroundColor: accentColor }} />
-                        <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: accentColor }} />
-                      </span>
-                    ) : (
-                      <span className="inline-flex rounded-full h-2 w-2 flex-shrink-0" style={{ backgroundColor: accentColor }} />
-                    )
-                  ) : isPast ? (
-                    <span className="inline-flex rounded-full h-1.5 w-1.5 bg-zinc-700 flex-shrink-0" />
-                  ) : (
-                    <span className="inline-flex rounded-full h-1.5 w-1.5 bg-zinc-800 border border-zinc-700 flex-shrink-0" />
-                  )}
-                </div>
+          // Colors
+          const bg = isActive
+            ? accentColor
+            : isPast
+              ? 'rgba(255,255,255,0.06)'
+              : 'rgba(255,255,255,0.025)'
 
-                {/* Phase label */}
+          const labelColor = isActive
+            ? '#08080f'
+            : isPast   ? 'rgba(255,255,255,0.45)'
+            : 'rgba(255,255,255,0.2)'
+
+          const dateColor = isActive
+            ? 'rgba(0,0,0,0.55)'
+            : isPast   ? 'rgba(255,255,255,0.25)'
+            : 'rgba(255,255,255,0.12)'
+
+          return (
+            <div
+              key={chev.key}
+              className="flex-1 flex flex-col items-center justify-center py-2.5 relative"
+              style={{
+                clipPath: clip,
+                background: bg,
+                marginRight: isLast ? 0 : '-1px',
+                minHeight: '54px',
+                // Add subtle right overlap so chevrons connect cleanly
+                zIndex: isActive ? 10 : chevrons.length - idx,
+              }}
+            >
+              <span
+                className="font-display text-[9px] font-800 uppercase tracking-widest leading-tight text-center px-3"
+                style={{ color: labelColor, paddingLeft: idx === 0 ? '8px' : `${ARROW + 4}px`, paddingRight: isLast ? '8px' : `${ARROW + 4}px` }}
+              >
+                {chev.label}
+              </span>
+              {chev.dates && (
                 <span
-                  className={`font-display text-[11px] uppercase tracking-widest flex-shrink-0 w-28 ${isCurrent ? 'font-700' : 'font-500 text-zinc-600'}`}
-                  style={isCurrent ? { color: accentColor } : undefined}
+                  className="text-[8px] leading-tight text-center mt-0.5"
+                  style={{
+                    color: dateColor,
+                    paddingLeft: idx === 0 ? '8px' : `${ARROW + 4}px`,
+                    paddingRight: isLast ? '8px' : `${ARROW + 4}px`,
+                  }}
                 >
-                  {phase.name}
+                  {chev.dates}{chev.tbd ? '*' : ''}
                 </span>
-
-                {/* Date range */}
-                <span className={`font-display text-[11px] ${isCurrent ? 'text-zinc-300' : isPast ? 'text-zinc-700' : 'text-zinc-600'}`}>
-                  {phase.dateRange}
-                  {phase.isTbd && <span className="text-zinc-700 ml-1">(TBD)</span>}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {/* Fallback: no LEAGUE_SEASON entry */}
-      {phases.length === 0 && (
-        <>
-          <div className="font-display text-[13px] font-700 uppercase tracking-widest" style={{ color: accentColor }}>
-            {season.status === 'offseason' ? 'Off-Season'
-              : season.status === 'preseason' ? 'Preseason'
-              : season.status === 'regular'   ? 'Regular Season'
-              : 'Playoffs'}
-          </div>
-          <div className="font-display text-[11px] text-zinc-500 mt-0.5">{season.label}</div>
-        </>
-      )}
-
-      {/* Next milestone */}
-      {nextMilestone && (
-        <div className="mt-3 pt-2.5 border-t border-white/[0.05]">
-          <span className="font-display text-[12px] font-600" style={{ color: accentColor }}>{nextMilestone}</span>
-        </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+      {/* TBD note */}
+      {s?.tbd && (
+        <p className="text-[9px] text-zinc-700 mt-1 text-right px-1">* Dates subject to change</p>
       )}
     </div>
   )
 }
+
+// Keep the old name as alias so the call-sites don't need to change
+const SeasonBanner = SeasonProgressChevrons
+
 
 function ScopePicker({
   scope, setScope, hasDivision, hasConference, followedDivisionName, followedConferenceName,
