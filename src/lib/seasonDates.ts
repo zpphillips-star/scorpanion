@@ -114,6 +114,8 @@ export const LEAGUE_SEASON: Record<string, LeagueSeason> = {
     playoffLabel:      'MLS Cup Playoffs',
     championship:      'MLS Cup',
   },
+  // alias — standings client uses 'mls'
+  get mls() { return this['usa.1'] },
 
   // ── WNBA 2026 ─────────────────────────────────────────────────────────────
   // Source: WNBA official. 15-team season (Portland Fire + Toronto Tempo debut).
@@ -144,6 +146,8 @@ export const LEAGUE_SEASON: Record<string, LeagueSeason> = {
     playoffLabel:      'NWSL Playoffs',
     championship:      'NWSL Championship',
   },
+  // alias — standings client uses 'nwsl'
+  get nwsl() { return this['usa.nwsl'] },
 
   // ── WHL 2026-27 ───────────────────────────────────────────────────────────
   // Source: WHL official schedule (confirmed).
