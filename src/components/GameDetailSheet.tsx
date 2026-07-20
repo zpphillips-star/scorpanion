@@ -88,7 +88,7 @@ function SectionLabel({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 mb-3">
       <div className="flex-1 h-px bg-zinc-800" />
-      <span className="font-display text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500 flex-shrink-0">
+      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex-shrink-0">
         {label}
       </span>
       <div className="flex-1 h-px bg-zinc-800" />
@@ -118,20 +118,18 @@ function RecentFormDots({ form }: { form: { result: "W" | "L" | "T" }[] }) {
   )
 }
 
-/** Compact team context card — record, form dots, division rank */
+/** Compact team context card — record, form dots, division standings */
 function TeamContextCard({
-  name, logo, emoji, abbr, color, record, detail, label,
+  name, logo, emoji, abbr, color, record, detail,
 }: {
   name: string; logo: string; emoji: string; abbr: string
   color: string
   record?: { wins: number; losses: number; ties?: number }
   detail: TeamDetail | null
-  label: "Away" | "Home"
 }) {
   const wins    = detail?.wins   ?? record?.wins
   const losses  = detail?.losses ?? record?.losses
   const ties    = record?.ties
-  const divRank = detail?.divisionRank
   const divName = detail?.divisionName ?? ""
   const form    = (detail?.recentForm ?? []).slice(0, 5)
   const standings = detail?.divisionStandings ?? []
@@ -143,17 +141,11 @@ function TeamContextCard({
         <TeamLogo src={logo} emoji={emoji} abbr={abbr} size={26} />
         <div className="flex-1 min-w-0">
           <div className="font-display text-[13px] font-bold text-white truncate leading-tight">{name}</div>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="font-display text-[9px] uppercase tracking-[0.14em] text-zinc-600">{label}</span>
-            {wins !== undefined && losses !== undefined && (
-              <span className="text-[11px] text-zinc-500">
-                · {wins}–{losses}{ties !== undefined && ties > 0 ? `–${ties}` : ""}
-              </span>
-            )}
-            {divRank !== null && divRank !== undefined && divName && (
-              <span className="text-[11px] text-zinc-600">· #{divRank} {divName}</span>
-            )}
-          </div>
+          {wins !== undefined && losses !== undefined && (
+            <div className="text-[11px] text-zinc-500 mt-0.5">
+              {wins}–{losses}{ties !== undefined && ties > 0 ? `–${ties}` : ""}
+            </div>
+          )}
         </div>
       </div>
 
@@ -258,14 +250,8 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
   const awayWon   = hasScore && (awayScore ?? 0) > (homeScore ?? 0)
   const homeWon   = hasScore && (homeScore ?? 0) > (awayScore ?? 0)
 
-  // Build gradient: team-color blobs on left/right, deep navy in center
-  const awayRgb = hexToRgb(awayColor)
-  const homeRgb = hexToRgb(homeColor)
-  const headerGradient = `
-    radial-gradient(ellipse 55% 100% at 0% 50%, rgba(${awayRgb},0.22) 0%, transparent 70%),
-    radial-gradient(ellipse 55% 100% at 100% 50%, rgba(${homeRgb},0.22) 0%, transparent 70%),
-    linear-gradient(180deg, #0d1f38 0%, #0c1b31 100%)
-  `
+  // Build gradient: flat dark — no team color blobs
+  const headerBackground = "linear-gradient(180deg, #0d1f38 0%, #0c1b31 100%)"
 
   const showTeamContext = (awayDetail || awayRecord) && (homeDetail || homeRecord)
 
@@ -296,7 +282,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
         {/* ── HEADER ── */}
         <div
           className="relative flex-shrink-0 px-5 pt-3 pb-6"
-          style={{ background: headerGradient }}
+          style={{ background: headerBackground }}
         >
           {/* Drag handle */}
           <div className="flex justify-center mb-3">
@@ -333,10 +319,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                 : { id: game.seattleTeam.espnId, name: game.seattleTeam.name, logo: seattleLogoUrl }
               )}
             >
-              <div
-                className="rounded-2xl p-2 flex items-center justify-center"
-                style={{ background: `rgba(${awayRgb},0.12)`, border: `1px solid rgba(${awayRgb},0.2)` }}
-              >
+              <div className="rounded-2xl p-2 flex items-center justify-center">
                 <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={52}
                   className={hasScore && homeWon ? "opacity-40" : ""} />
               </div>
@@ -345,11 +328,6 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                   {awayName}
                 </div>
                 <div className="font-display text-[9px] uppercase tracking-[0.14em] text-zinc-600 mt-0.5">{awayAbbr}</div>
-                {(awayRecord || awayDetail?.wins !== undefined) && (
-                  <div className="text-[11px] text-zinc-500 mt-0.5">
-                    {awayRecord ? formatRecord(awayRecord) : `${awayDetail!.wins}-${awayDetail!.losses}`}
-                  </div>
-                )}
               </div>
             </button>
 
@@ -424,10 +402,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                 : { id: game.opponent.id, name: game.opponent.name, logo: game.opponent.logo }
               )}
             >
-              <div
-                className="rounded-2xl p-2 flex items-center justify-center"
-                style={{ background: `rgba(${homeRgb},0.12)`, border: `1px solid rgba(${homeRgb},0.2)` }}
-              >
+              <div className="rounded-2xl p-2 flex items-center justify-center">
                 <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={52}
                   className={hasScore && awayWon ? "opacity-40" : ""} />
               </div>
@@ -436,11 +411,6 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                   {homeName}
                 </div>
                 <div className="font-display text-[9px] uppercase tracking-[0.14em] text-zinc-600 mt-0.5">{homeAbbr}</div>
-                {(homeRecord || homeDetail?.wins !== undefined) && (
-                  <div className="text-[11px] text-zinc-500 mt-0.5">
-                    {homeRecord ? formatRecord(homeRecord) : `${homeDetail!.wins}-${homeDetail!.losses}`}
-                  </div>
-                )}
               </div>
             </button>
 
@@ -515,7 +485,6 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                     color={awayColor}
                     record={awayRecord}
                     detail={awayDetail}
-                    label="Away"
                   />
                 </div>
                 <div className="p-4">
@@ -527,7 +496,6 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                     color={homeColor}
                     record={homeRecord}
                     detail={homeDetail}
-                    label="Home"
                   />
                 </div>
               </div>
