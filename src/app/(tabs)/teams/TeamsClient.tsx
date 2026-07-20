@@ -581,9 +581,14 @@ export default function TeamsClient() {
       )}
 
       {/* ── Golf tab content ── */}
-      {activeTab === 'GOLF' && (
+      {(activeTab === 'GOLF' || activeTab === 'ALL') && (
         <div className="px-4 mt-4">
-          <p className="text-zinc-500 text-[13px] mb-4">Follow a tour to see live leaderboards on the Home tab.</p>
+          {activeTab === 'GOLF' && (
+            <p className="text-zinc-500 text-[13px] mb-4">Follow a tour to see live leaderboards on the Home tab.</p>
+          )}
+          {activeTab === 'ALL' && (
+            <p className="font-display text-[10px] font-700 text-zinc-500 uppercase tracking-widest mb-2">Golf</p>
+          )}
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
             {byIds(['pga', 'lpga']).map(team => <SeattleTeamCard key={team.id} team={team} />)}
           </div>
