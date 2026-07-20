@@ -21,13 +21,13 @@ function formatRecord(r?: TeamRecord): string {
   return r.ties ? `${r.wins}-${r.losses}-${r.ties}` : `${r.wins}-${r.losses}`
 }
 
-/** "Monday, Jul 20" */
+/** "Sunday, July 20" — full weekday + full month name */
 function formatHeaderDate(dateStr: string) {
   const [y, m, d] = dateStr.split("-").map(Number)
   const date = new Date(y, m - 1, d)
-  const weekday = date.toLocaleDateString("en-US", { weekday: "long" })        // "Monday"
-  const monthDay = date.toLocaleDateString("en-US", { month: "short", day: "numeric" }) // "Jul 20"
-  return { weekday, monthDay }
+  const weekday  = date.toLocaleDateString("en-US", { weekday: "long" })              // "Sunday"
+  const fullDate = date.toLocaleDateString("en-US", { month: "long", day: "numeric" }) // "July 20"
+  return { weekday, fullDate }
 }
 
 function getTodayStr() {
@@ -45,26 +45,68 @@ function leagueLabel(league: string): string {
     .trim()
 }
 
-// ── DayGameCard ───────────────────────────────────────────────────────────────
+/** Sport/league → emoji icon for section headers */
+function leagueEmoji(label: string): string {
+  const l = label.toUpperCase()
+  if (l === "MLB") return "⚾"
+  if (l === "NBA") return "🏀"
+  if (l === "WNBA") return "🏀"
+  if (l === "NFL") return "🏈"
+  if (l === "NHL") return "🏒"
+  if (l === "MLS" || l === "NWSL") return "⚽"
+  if (l === "PWHL") return "🏒"
+  if (l === "WHL") return "🏒"
+  if (l.includes("SOCCER")) return "⚽"
+  if (l.includes("SOFTBALL") || l.includes("BASEBALL")) return "⚾"
+  if (l.includes("BASKETBALL")) return "🏀"
+  if (l.includes("HOCKEY")) return "🏒"
+  if (l.includes("FOOTBALL")) return "🏈"
+  return "🏟️"
+}
+
+/** Live period/clock formatted per sport */
+function getLiveDetail(game: Game): string {
+  const p = game.period ? Number(game.period) : null
+  const clk = game.clock
+  if (game.sport === "baseball" && p) {
+    const half = p % 2 === 1 ? "Top" : "Bot"
+    return `${half} ${Math.ceil(p / 2)}${clk ? " · " + clk : ""}`
+  }
+  if (game.sport === "basketball" && p) return clk ? `Q${p}  ${clk}` : `Q${p}`
+  if (game.sport === "hockey" && p) {
+    const l = ["1st", "2nd", "3rd", "OT"][p - 1] || `P${p}`
+    return clk ? `${l}  ${clk}` : l
+  }
+  if (game.sport === "football" && p) {
+    const l = ["1st", "2nd", "3rd", "4th", "OT"][p - 1] || `Q${p}`
+    return clk ? `${l}  ${clk}` : l
+  }
+  if (game.sport === "soccer") return clk ? `${clk}′` : "Live"
+  return clk || "Live"
+}
+
+// ── DayGameCard — ESPN-style horizontal matchup card ─────────────────────────
 
 function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
   const isFt   = game.status === "ft"
   const isLive = game.status === "live"
+  const isUp   = game.status === "upcoming"
 
   const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
+  const accentColor    = game.seattleTeam.primaryColor ?? "#D95C17"
 
   // away = left, home = right
-  const awayLogo   = game.isHome ? game.opponent.logo         : seattleLogoUrl
-  const awayEmoji  = game.isHome ? "🏟️"                      : game.seattleTeam.emoji
-  const awayAbbr   = game.isHome ? game.opponent.abbr         : game.seattleTeam.abbr
+  const awayLogo   = game.isHome ? game.opponent.logo  : seattleLogoUrl
+  const awayEmoji  = game.isHome ? "🏟️"               : game.seattleTeam.emoji
+  const awayAbbr   = game.isHome ? game.opponent.abbr  : game.seattleTeam.abbr
   const awayName   = game.isHome ? (game.opponent.shortName || game.opponent.name) : game.seattleTeam.shortName
-  const awayRecord = game.isHome ? game.opponentRecord        : game.seattleRecord
+  const awayRecord = game.isHome ? game.opponentRecord : game.seattleRecord
 
-  const homeLogo   = game.isHome ? seattleLogoUrl             : game.opponent.logo
-  const homeEmoji  = game.isHome ? game.seattleTeam.emoji     : "🏟️"
-  const homeAbbr   = game.isHome ? game.seattleTeam.abbr      : game.opponent.abbr
+  const homeLogo   = game.isHome ? seattleLogoUrl      : game.opponent.logo
+  const homeEmoji  = game.isHome ? game.seattleTeam.emoji : "🏟️"
+  const homeAbbr   = game.isHome ? game.seattleTeam.abbr  : game.opponent.abbr
   const homeName   = game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)
-  const homeRecord = game.isHome ? game.seattleRecord         : game.opponentRecord
+  const homeRecord = game.isHome ? game.seattleRecord  : game.opponentRecord
 
   const awayScoreRaw = game.isHome ? game.opponentScore : game.seattleScore
   const homeScoreRaw = game.isHome ? game.seattleScore  : game.opponentScore
@@ -80,122 +122,200 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
   const awayWon = isFt && hasScore && (awayScore ?? 0) > (homeScore ?? 0)
   const homeWon = isFt && hasScore && (homeScore ?? 0) > (awayScore ?? 0)
 
-  const dimmedAway = isFt && homeWon
-  const dimmedHome = isFt && awayWon
+  const liveDetail = isLive ? getLiveDetail(game) : ""
 
   return (
     <button
       onClick={onTap}
-      className="w-full flex items-center gap-2 px-3 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] active:bg-white/[0.08] transition-all active:scale-[0.985] text-left"
+      className="w-full text-left transition-all active:scale-[0.983] active:opacity-90"
     >
-      {/* ── Away team ── */}
-      <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
-        {/* Name + record stacked, right-aligned */}
-        <div className="text-right min-w-0">
-          <div
-            className="text-[13px] font-semibold truncate leading-tight"
-            style={{ color: dimmedAway ? "rgba(255,255,255,0.22)" : "#f0f0f8" }}
-          >
-            {awayName}
-          </div>
-          {awayRecord && (
-            <div className="text-[10px] text-white/28 leading-tight mt-0.5 tabular-nums">
-              {formatRecord(awayRecord)}
-            </div>
-          )}
-        </div>
-        <TeamLogo
-          src={awayLogo}
-          emoji={awayEmoji}
-          abbr={awayAbbr}
-          size={30}
-          className={`flex-shrink-0 transition-opacity${dimmedAway ? " opacity-25" : ""}`}
-        />
-        {hasScore && (
+      <div
+        className="rounded-xl overflow-hidden"
+        style={{
+          background: isLive
+            ? "linear-gradient(135deg, rgba(255,180,0,0.06) 0%, rgba(26,45,74,0.9) 100%)"
+            : "var(--surface-2)",
+          border: `1px solid ${isLive ? "rgba(255,180,0,0.22)" : "var(--border-default)"}`,
+          borderLeft: `3.5px solid ${isLive ? "#FFB400" : accentColor}`,
+        }}
+      >
+        {/* ── Top bar: broadcast + status ── */}
+        <div
+          className="flex items-center justify-between px-3 pt-2.5 pb-1"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+        >
+          {/* Broadcast network */}
           <span
-            className="text-[18px] font-black tabular-nums w-7 text-right flex-shrink-0 leading-none"
-            style={{ color: awayWon ? "#f0f0f8" : "rgba(255,255,255,0.32)" }}
+            className="text-[10px] font-bold uppercase tracking-widest"
+            style={{ color: "var(--text-faint)" }}
           >
-            {awayScore}
+            {game.broadcast || (game.isHome ? "Home" : "Away")}
           </span>
-        )}
-      </div>
 
-      {/* ── Center: status / time ── */}
-      <div className="flex-shrink-0 flex flex-col items-center gap-0.5 w-[56px]">
-        {isLive ? (
-          <span className="px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 text-[9px] font-bold uppercase tracking-wide flex items-center gap-1 leading-none">
-            <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
+          {/* Status badge */}
+          {isLive ? (
+            <div className="flex items-center gap-1.5">
+              <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                      style={{ backgroundColor: "#FFB400" }} />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5"
+                      style={{ backgroundColor: "#FFB400" }} />
+              </span>
+              <span className="text-[11px] font-bold uppercase tracking-wider"
+                    style={{ color: "#FFB400" }}>
+                Live
+              </span>
+              {liveDetail && (
+                <span className="text-[10px] font-semibold tabular-nums"
+                      style={{ color: "rgba(255,180,0,0.55)" }}>
+                  · {liveDetail}
+                </span>
+              )}
+            </div>
+          ) : isFt ? (
+            <span className="text-[10px] font-bold uppercase tracking-widest"
+                  style={{ color: "var(--text-faint)" }}>
+              Final
             </span>
-            Live
-          </span>
-        ) : isFt ? (
-          <span className="text-[10px] font-semibold text-white/30 uppercase tracking-wider leading-none">Final</span>
-        ) : (
-          <span className="text-[11px] font-medium text-white/45 tabular-nums whitespace-nowrap leading-none">
-            {formatTime(game.kickoff)}
-          </span>
-        )}
-        {(game.period || game.clock) && isLive && (
-          <span className="text-[9px] text-red-400/50 leading-tight tabular-nums mt-0.5">
-            {game.period}{game.clock ? ` ${game.clock}` : ""}
-          </span>
-        )}
-      </div>
-
-      {/* ── Home team ── */}
-      <div className="flex-1 flex items-center gap-2 min-w-0">
-        {hasScore && (
-          <span
-            className="text-[18px] font-black tabular-nums w-7 text-left flex-shrink-0 leading-none"
-            style={{ color: homeWon ? "#f0f0f8" : "rgba(255,255,255,0.32)" }}
-          >
-            {homeScore}
-          </span>
-        )}
-        <TeamLogo
-          src={homeLogo}
-          emoji={homeEmoji}
-          abbr={homeAbbr}
-          size={30}
-          className={`flex-shrink-0 transition-opacity${dimmedHome ? " opacity-25" : ""}`}
-        />
-        {/* Name + record stacked, left-aligned */}
-        <div className="min-w-0">
-          <div
-            className="text-[13px] font-semibold truncate leading-tight"
-            style={{ color: dimmedHome ? "rgba(255,255,255,0.22)" : "#f0f0f8" }}
-          >
-            {homeName}
-          </div>
-          {homeRecord && (
-            <div className="text-[10px] text-white/28 leading-tight mt-0.5 tabular-nums">
-              {formatRecord(homeRecord)}
-            </div>
+          ) : (
+            <span className="text-[12px] font-semibold tabular-nums"
+                  style={{ color: "var(--text)" }}>
+              {formatTime(game.kickoff)}
+            </span>
           )}
         </div>
-      </div>
 
-      {/* Chevron */}
-      <svg className="w-3.5 h-3.5 text-white/15 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-      </svg>
+        {/* ── Main matchup row ── */}
+        <div className="flex items-center px-3 py-3 gap-2">
+          {/* Away team */}
+          <div className="flex-1 flex items-center gap-2.5 min-w-0">
+            <TeamLogo
+              src={awayLogo}
+              emoji={awayEmoji}
+              abbr={awayAbbr}
+              size={38}
+              className={`flex-shrink-0 transition-opacity${isFt && homeWon ? " opacity-25" : ""}`}
+            />
+            <div className="min-w-0">
+              <div
+                className="text-[14px] font-bold leading-tight truncate"
+                style={{ color: isFt && homeWon ? "rgba(242,230,207,0.25)" : "var(--text)" }}
+              >
+                {awayName}
+              </div>
+              {awayRecord && (
+                <div className="text-[10px] tabular-nums leading-tight mt-0.5"
+                     style={{ color: "var(--text-faint)" }}>
+                  {formatRecord(awayRecord)}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Score / VS center */}
+          <div className="flex-shrink-0 flex items-center gap-1 mx-1">
+            {hasScore ? (
+              <>
+                <span
+                  className="font-display text-[24px] font-800 tabular-nums leading-none w-8 text-right"
+                  style={{ color: awayWon ? "var(--text)" : isFt ? "rgba(242,230,207,0.28)" : "var(--text)" }}
+                >
+                  {awayScore}
+                </span>
+                <span
+                  className="font-display text-[14px] font-600 leading-none px-0.5"
+                  style={{ color: "var(--border-strong)" }}
+                >
+                  –
+                </span>
+                <span
+                  className="font-display text-[24px] font-800 tabular-nums leading-none w-8 text-left"
+                  style={{ color: homeWon ? "var(--text)" : isFt ? "rgba(242,230,207,0.28)" : "var(--text)" }}
+                >
+                  {homeScore}
+                </span>
+              </>
+            ) : (
+              <span
+                className="font-display text-[15px] font-700 uppercase tracking-wider px-1"
+                style={{ color: "var(--border-strong)" }}
+              >
+                vs
+              </span>
+            )}
+          </div>
+
+          {/* Home team */}
+          <div className="flex-1 flex items-center justify-end gap-2.5 min-w-0">
+            <div className="min-w-0 text-right">
+              <div
+                className="text-[14px] font-bold leading-tight truncate"
+                style={{ color: isFt && awayWon ? "rgba(242,230,207,0.25)" : "var(--text)" }}
+              >
+                {homeName}
+              </div>
+              {homeRecord && (
+                <div className="text-[10px] tabular-nums leading-tight mt-0.5"
+                     style={{ color: "var(--text-faint)" }}>
+                  {formatRecord(homeRecord)}
+                </div>
+              )}
+            </div>
+            <TeamLogo
+              src={homeLogo}
+              emoji={homeEmoji}
+              abbr={homeAbbr}
+              size={38}
+              className={`flex-shrink-0 transition-opacity${isFt && awayWon ? " opacity-25" : ""}`}
+            />
+          </div>
+        </div>
+
+        {/* ── Venue footer ── */}
+        {game.venue?.name && (
+          <div
+            className="flex items-center justify-between px-3 pb-2.5"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
+          >
+            <span className="text-[10px] truncate" style={{ color: "var(--text-faint)" }}>
+              📍 {game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}
+            </span>
+            <svg className="w-3 h-3 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor" style={{ color: "var(--border-strong)" }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        )}
+        {!game.venue?.name && (
+          <div className="flex justify-end px-3 pb-2">
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor" style={{ color: "var(--border-strong)" }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        )}
+      </div>
     </button>
   )
 }
 
-// ── League section header ─────────────────────────────────────────────────────
+// ── League section header with emoji ─────────────────────────────────────────
 
 function LeagueSectionHeader({ label }: { label: string }) {
+  const emoji = leagueEmoji(label)
   return (
-    <div className="flex items-center gap-3 px-1 pt-4 pb-2">
-      <div className="flex-1 h-px bg-white/[0.07]" />
-      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/25 flex-shrink-0">
-        {label}
-      </span>
-      <div className="flex-1 h-px bg-white/[0.07]" />
+    <div className="flex items-center gap-2.5 px-1 pt-5 pb-2.5">
+      <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        <span className="text-[13px] leading-none">{emoji}</span>
+        <span
+          className="font-display text-[11px] font-800 uppercase tracking-[0.2em] leading-none"
+          style={{ color: "var(--text-faint)" }}
+        >
+          {label}
+        </span>
+      </div>
+      <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
     </div>
   )
 }
@@ -228,12 +348,10 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
   const isToday = date === today
   const hasLive = games.some(g => g.status === "live")
 
-  const { weekday, monthDay } = formatHeaderDate(date)
-
-  // Sub-label: "Live Now" with pulsing dot, or "N Games"
+  const { weekday, fullDate } = formatHeaderDate(date)
   const countText = `${games.length} Game${games.length !== 1 ? "s" : ""}`
 
-  // Group games by league for the sport labels
+  // Group games by league — preserve encounter order
   const grouped: { label: string; games: Game[] }[] = []
   for (const g of games) {
     const lbl = leagueLabel(g.league)
@@ -246,7 +364,8 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
     <>
       {/* ── Backdrop ── */}
       <div
-        className="fixed inset-0 bg-black/65 backdrop-blur-[3px] z-[9998]"
+        className="fixed inset-0 z-[9998]"
+        style={{ background: "rgba(4,10,20,0.75)", backdropFilter: "blur(4px)" }}
         onClick={onClose}
       />
 
@@ -254,84 +373,119 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
       <div
         className="fixed bottom-0 left-0 right-0 z-[9999] lg:max-w-2xl lg:mx-auto animate-slide-up flex flex-col overflow-hidden"
         style={{
-          background: "linear-gradient(180deg, #0e1e36 0%, #0c1220 100%)",
-          borderRadius: "22px 22px 0 0",
-          maxHeight: "88dvh",
+          background: "linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 40%, #0a1525 100%)",
+          borderRadius: "24px 24px 0 0",
+          maxHeight: "90dvh",
           paddingBottom: "env(safe-area-inset-bottom)",
-          boxShadow: "0 -8px 40px rgba(0,0,0,0.6), 0 -1px 0 rgba(255,255,255,0.06)",
+          boxShadow: "0 -12px 60px rgba(0,0,0,0.75), 0 -1px 0 rgba(255,255,255,0.07), inset 0 1px 0 rgba(255,255,255,0.05)",
         }}
         onClick={e => e.stopPropagation()}
         onTouchStart={handleSheetTouchStart}
         onTouchEnd={handleSheetTouchEnd}
       >
         {/* Drag handle */}
-        <div className="w-9 h-[3px] bg-white/20 rounded-full mx-auto mt-3 flex-shrink-0" />
+        <div className="w-10 h-[3.5px] rounded-full mx-auto mt-3 flex-shrink-0"
+             style={{ background: "rgba(242,230,207,0.18)" }} />
 
         {/* ── Header ── */}
         <div className="flex items-start justify-between px-5 pt-4 pb-4 flex-shrink-0">
-          <div>
-            {/* Date — prominent */}
-            <h2 className="text-[24px] font-black text-white leading-none tracking-tight">
-              {weekday}, <span className="text-white/70">{monthDay}</span>
+          <div className="min-w-0 flex-1">
+            {/* TODAY badge */}
+            {isToday && (
+              <div className="inline-flex items-center gap-1.5 mb-2">
+                <div
+                  className="flex items-center gap-1.5 px-2 py-0.5 rounded-full"
+                  style={{
+                    background: hasLive ? "rgba(255,180,0,0.15)" : "rgba(217,92,23,0.15)",
+                    border: `1px solid ${hasLive ? "rgba(255,180,0,0.3)" : "rgba(217,92,23,0.3)"}`,
+                  }}
+                >
+                  {hasLive && (
+                    <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                            style={{ backgroundColor: "#FFB400" }} />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5"
+                            style={{ backgroundColor: "#FFB400" }} />
+                    </span>
+                  )}
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-widest leading-none"
+                    style={{ color: hasLive ? "#FFB400" : "var(--accent)" }}
+                  >
+                    {hasLive ? "Live Now" : "Today"}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Date headline */}
+            <h2 className="font-display leading-none tracking-tight"
+                style={{ fontSize: "28px", fontWeight: 800, color: "var(--text)" }}>
+              {weekday},
             </h2>
-            {/* Sub-label: game count + optional live indicator */}
-            <div className="flex items-center gap-1.5 mt-1.5">
-              {isToday && hasLive ? (
-                <>
-                  <span className="relative flex h-2 w-2 flex-shrink-0">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
-                  </span>
-                  <span className="text-[12px] font-semibold text-red-400 uppercase tracking-widest leading-none">
-                    Live Now
-                  </span>
-                  <span className="text-[11px] text-white/25 leading-none">· {countText}</span>
-                </>
-              ) : (
-                <span className="text-[12px] font-semibold text-white/40 uppercase tracking-widest leading-none">
-                  {games.length === 0 ? "No Games" : countText}
-                </span>
-              )}
-            </div>
+            <h2 className="font-display leading-none tracking-tight mt-0.5"
+                style={{ fontSize: "28px", fontWeight: 800, color: "var(--text-muted)" }}>
+              {fullDate}
+            </h2>
+
+            {/* Game count */}
+            <p className="mt-2 text-[12px] font-semibold uppercase tracking-widest"
+               style={{ color: "var(--text-faint)" }}>
+              {games.length === 0 ? "No games" : countText}
+            </p>
           </div>
 
           {/* Close button */}
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-white/40 text-[15px] hover:bg-white/10 transition-colors mt-0.5 flex-shrink-0"
-            style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.08)" }}
+            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors active:scale-95"
+            style={{
+              background: "rgba(242,230,207,0.07)",
+              border: "1px solid rgba(242,230,207,0.1)",
+              color: "var(--text-muted)",
+            }}
             aria-label="Close"
           >
-            ✕
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
-        {/* Thin divider */}
-        <div className="h-px bg-white/[0.07] flex-shrink-0 mx-4" />
+        {/* Divider */}
+        <div className="flex-shrink-0 mx-5 h-px" style={{ background: "var(--border)" }} />
 
-        {/* ── Game cards — scrollable ── */}
+        {/* ── Game list — scrollable ── */}
         <div className="overflow-y-auto flex-1 overscroll-contain">
           {games.length === 0 ? (
-            <div className="py-16 text-center flex flex-col items-center gap-3">
-              {/* Calendar icon */}
-              <svg className="w-10 h-10 text-white/15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <rect x="3" y="4" width="18" height="18" rx="3" />
-                <path strokeLinecap="round" d="M16 2v4M8 2v4M3 10h18" />
-              </svg>
-              <div className="text-[12px] font-bold text-white/25 uppercase tracking-[0.18em]">
-                No games scheduled
+            <div className="py-20 flex flex-col items-center gap-4">
+              <div
+                className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+              >
+                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                     style={{ color: "var(--text-faint)" }} strokeWidth={1.5}>
+                  <rect x="3" y="4" width="18" height="18" rx="3" />
+                  <path strokeLinecap="round" d="M16 2v4M8 2v4M3 10h18" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-center font-display text-[15px] font-700 uppercase tracking-widest"
+                   style={{ color: "var(--text-faint)" }}>
+                  No games scheduled
+                </p>
+                <p className="text-center text-[12px] mt-1" style={{ color: "var(--text-faint)", opacity: 0.6 }}>
+                  {weekday}, {fullDate}
+                </p>
               </div>
             </div>
           ) : (
-            <div className="px-3 pb-2 pt-2">
-              {grouped.map(({ label, games: groupGames }, gi) => (
+            <div className="px-4 pt-1 pb-2">
+              {grouped.map(({ label, games: groupGames }) => (
                 <div key={label}>
-                  {/* Section header — only when multiple leagues */}
-                  {grouped.length > 1 && (
-                    <LeagueSectionHeader label={label} />
-                  )}
-                  {/* Card list with spacing */}
-                  <div className={`flex flex-col gap-2 ${gi > 0 && grouped.length > 1 ? "" : grouped.length === 1 ? "pt-1" : ""}`}>
+                  {grouped.length > 1 && <LeagueSectionHeader label={label} />}
+                  {grouped.length === 1 && <div className="pt-3" />}
+                  <div className="flex flex-col gap-2.5">
                     {groupGames.map(g => (
                       <DayGameCard
                         key={g.id}
@@ -346,7 +500,7 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
           )}
 
           {/* Bottom breathing room */}
-          <div className="h-6" />
+          <div className="h-8" />
         </div>
       </div>
 
