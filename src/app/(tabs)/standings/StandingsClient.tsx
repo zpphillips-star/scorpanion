@@ -9,6 +9,7 @@ import { ALL_PRO_TEAMS } from "@/lib/allProTeams"
 import TeamLogo from "@/components/TeamLogo"
 import PageHeader from "@/components/PageHeader"
 import { GolfTournamentSection } from "@/components/GolfTournamentSection"
+import { LEAGUE_SEASON, fmtShort } from "@/lib/seasonDates"
 
 interface StandingsEntry {
   teamId: string; teamName: string; abbr: string; logo: string
@@ -94,12 +95,19 @@ function TeamLogoImg({ src, abbr }: { src: string; abbr: string }) {
 function SeasonBanner({ season, leagueId }: { season: SeasonInfo; leagueId: string }) {
   const info = LEAGUE_INFO[leagueId]
   const accentColor = info?.color || "#00d4ff"
+  const s = LEAGUE_SEASON[leagueId]
 
   if (season.status === "offseason") {
     return (
       <div className="mx-3 mt-3 px-4 py-4 rounded-2xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
         <div className="font-display text-[14px] font-700 text-zinc-300 uppercase tracking-widest mb-1">Off-Season</div>
         <div className="font-display text-[12px] text-zinc-600">{season.label} · Regular season complete</div>
+        {s && (
+          <div className="font-display text-[11px] text-zinc-500 mt-1">
+            Season ran <span className="text-zinc-300">{fmtShort(s.regularStart)} – {fmtShort(s.regularEnd)}</span>
+            {' · '}Playoffs <span className="text-zinc-300">{fmtShort(s.playoffStart)} – {fmtShort(s.playoffEnd)}</span>
+          </div>
+        )}
         {season.nextStartApprox && (
           <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
             <span className="font-display text-[11px] text-zinc-400">Next season starts <span className="text-white font-700">{season.nextStartApprox}</span></span>
@@ -120,9 +128,11 @@ function SeasonBanner({ season, leagueId }: { season: SeasonInfo; leagueId: stri
         style={{ background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.2)" }}>
         <div className="font-display text-[12px] font-700 text-purple-400 uppercase tracking-widest">Preseason</div>
         <div className="font-display text-[11px] text-zinc-500 mt-0.5">{season.label}</div>
-        {season.nextStartApprox && (
-          <div className="font-display text-[11px] text-zinc-400 mt-1">
-            Regular season starts <span className="text-white font-700">{season.nextStartApprox}</span>
+        {s && (
+          <div className="font-display text-[11px] text-zinc-400 mt-1.5 space-y-0.5">
+            <div>Regular season <span className="text-white font-700">{fmtShort(s.regularStart)} – {fmtShort(s.regularEnd)}</span></div>
+            <div>Playoffs <span className="text-white font-700">{fmtShort(s.playoffStart)} – {fmtShort(s.playoffEnd)}</span>{s.tbd && <span className="text-zinc-600"> (dates TBD)</span>}</div>
+            <div className="text-zinc-600">{s.championship}</div>
           </div>
         )}
       </div>
@@ -131,15 +141,23 @@ function SeasonBanner({ season, leagueId }: { season: SeasonInfo; leagueId: stri
 
   // Regular season
   return (
-    <div className="mx-3 mt-3 px-4 py-3 rounded-2xl flex items-center gap-3"
+    <div className="mx-3 mt-3 px-4 py-3 rounded-2xl flex items-start gap-3"
       style={{ background: `${accentColor}10`, border: `1px solid ${accentColor}28` }}>
-      <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+      <span className="relative flex h-2.5 w-2.5 flex-shrink-0 mt-1">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ backgroundColor: accentColor }} />
         <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ backgroundColor: accentColor }} />
       </span>
       <div>
         <div className="font-display text-[12px] font-700 uppercase tracking-widest" style={{ color: accentColor }}>Regular Season</div>
-        <div className="font-display text-[11px] text-zinc-500 mt-0.5">{season.label} · In progress</div>
+        {s ? (
+          <div className="font-display text-[11px] text-zinc-500 mt-0.5 space-y-0.5">
+            <div>{fmtShort(s.regularStart)} – {fmtShort(s.regularEnd)}</div>
+            <div>Playoffs: {fmtShort(s.playoffStart)} – {fmtShort(s.playoffEnd)}{s.tbd && <span className="text-zinc-600"> (dates TBD)</span>}</div>
+            <div className="text-zinc-600">{s.championship}</div>
+          </div>
+        ) : (
+          <div className="font-display text-[11px] text-zinc-500 mt-0.5">{season.label} · In progress</div>
+        )}
       </div>
     </div>
   )
