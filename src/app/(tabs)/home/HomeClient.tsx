@@ -9,6 +9,7 @@ import TeamLogo from "@/components/TeamLogo"
 import PageHeader from "@/components/PageHeader"
 import { TodayGameCard } from "@/components/TodayGameCard"
 import GameDetailSheet from "@/components/GameDetailSheet"
+import GolfDetailSheet from "@/components/GolfDetailSheet"
 import { OFFSEASON_DISPLAY } from "@/lib/seasonDates"
 import { TournamentCard } from "@/components/PGATournamentCard"
 import type { PGATournament } from "@/app/api/pga/route"
@@ -187,12 +188,6 @@ function GolfTodayCard({ tournament, label, accentColor }: {
     ? 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/lpga.png'
     : 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/pga.png'
 
-  function scoreColor(s: string) {
-    if (s.startsWith('-')) return '#4ade80'
-    if (s.startsWith('+')) return '#f87171'
-    return '#e4e4e7'
-  }
-
   return (
     <>
       <button className="w-full text-left active:opacity-70 transition-opacity" onClick={() => setShowDetail(true)}>
@@ -204,7 +199,7 @@ function GolfTodayCard({ tournament, label, accentColor }: {
         }}>
           {/* Header — same as TodayGameCard */}
           <div className="flex items-center justify-between pr-4 pt-4 pb-1">
-            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
+            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#ffffff" }}>
               {label}
             </span>
             {isLive ? (
@@ -252,34 +247,12 @@ function GolfTodayCard({ tournament, label, accentColor }: {
 
       {/* Full leaderboard detail sheet */}
       {showDetail && (
-        <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'rgba(0,0,0,0.75)' }} onClick={() => setShowDetail(false)}>
-          <div className="flex-1" />
-          <div className="rounded-t-2xl overflow-hidden flex flex-col" style={{ background: 'var(--bg)', maxHeight: '85vh' }} onClick={e => e.stopPropagation()}>
-            <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
-              <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
-            </div>
-            <div className="px-5 pb-4 flex-shrink-0">
-              <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: accentColor }}>{label} · {tournament.roundLabel}</div>
-              <div className="text-[20px] font-bold text-white leading-tight">{tournament.name}</div>
-              {tournament.course && <div className="text-[12px] text-zinc-500 mt-0.5">{tournament.course}{tournament.location ? ` · ${tournament.location}` : ''}</div>}
-            </div>
-            <div className="overflow-y-auto flex-1 pb-8">
-              <div className="grid px-5 py-2 sticky top-0" style={{ gridTemplateColumns: '32px 1fr 48px 44px', background: 'var(--bg)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                <span /><span className="text-[9px] tracking-widest uppercase font-semibold text-zinc-600">Player</span>
-                <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">Total</span>
-                <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">Rd</span>
-              </div>
-              {tournament.leaders.map((p, i) => (
-                <div key={`${p.name}-${i}`} className="grid items-center px-5 py-2.5" style={{ gridTemplateColumns: '32px 1fr 48px 44px', borderBottom: i < tournament.leaders.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
-                  <span className="text-[11px] tabular-nums text-zinc-500">{p.position}</span>
-                  <span className="text-[13px] font-semibold text-white truncate pr-2">{p.shortName || p.name}</span>
-                  <span className="text-right text-[13px] font-bold tabular-nums" style={{ color: scoreColor(p.totalScore) }}>{p.totalScore}</span>
-                  <span className="text-right text-[12px] text-zinc-600 tabular-nums">{p.todayScore}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <GolfDetailSheet
+          tournament={tournament}
+          label={label}
+          accentColor={accentColor}
+          onClose={() => setShowDetail(false)}
+        />
       )}
     </>
   )
@@ -336,34 +309,12 @@ function GolfRecentCard({ tournament, label, accentColor }: {
       </button>
 
       {showDetail && (
-        <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'rgba(0,0,0,0.75)' }} onClick={() => setShowDetail(false)}>
-          <div className="flex-1" />
-          <div className="rounded-t-2xl overflow-hidden flex flex-col" style={{ background: '#0c1b31', maxHeight: '85vh' }} onClick={e => e.stopPropagation()}>
-            <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
-              <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
-            </div>
-            <div className="px-5 pb-4 flex-shrink-0">
-              <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: accentColor }}>{label} · Final</div>
-              <div className="text-[20px] font-bold text-white leading-tight">{tournament.name}</div>
-              {tournament.course && <div className="text-[12px] text-zinc-500 mt-0.5">{tournament.course}{tournament.location ? ` · ${tournament.location}` : ''}</div>}
-            </div>
-            <div className="overflow-y-auto flex-1 pb-8">
-              <div className="grid px-5 py-2 sticky top-0" style={{ gridTemplateColumns: '32px 1fr 48px 44px', background: '#0c1b31', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                <span /><span className="text-[9px] tracking-widest uppercase font-semibold text-zinc-600">Player</span>
-                <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">Total</span>
-                <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">Rd</span>
-              </div>
-              {tournament.leaders.map((p, i) => (
-                <div key={`${p.name}-${i}`} className="grid items-center px-5 py-2.5" style={{ gridTemplateColumns: '32px 1fr 48px 44px', borderBottom: i < tournament.leaders.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
-                  <span className="text-[11px] font-semibold tabular-nums text-zinc-500">{p.position}</span>
-                  <span className="text-[13px] font-semibold text-white truncate pr-2">{p.shortName || p.name}</span>
-                  <span className="text-right text-[13px] font-bold tabular-nums" style={{ color: p.totalScore.startsWith('-') ? '#4ade80' : p.totalScore.startsWith('+') ? '#f87171' : '#e4e4e7' }}>{p.totalScore}</span>
-                  <span className="text-right text-[12px] text-zinc-600 tabular-nums">{p.todayScore}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <GolfDetailSheet
+          tournament={tournament}
+          label={label}
+          accentColor={accentColor}
+          onClose={() => setShowDetail(false)}
+        />
       )}
     </>
   )
@@ -383,7 +334,7 @@ function GolfUpcomingRow({ tournament, label, accentColor }: {
   return (
     <div className="py-3 border-b border-white/5">
       <div className="pl-6 mb-1.5 flex items-center gap-2">
-        <span className="text-[11px] uppercase tracking-wide tabular-nums font-semibold" style={{ color: "var(--text-faint)" }}>
+        <span className="text-[11px] uppercase tracking-wide tabular-nums font-semibold" style={{ color: "#ffffff" }}>
           {label}
         </span>
         {tournament.course && (
@@ -970,7 +921,7 @@ export default function HomeClient() {
                     <div className="grid items-center px-4" style={{ gridTemplateColumns: "1fr 2rem 1fr" }}>
                       {/* Left: league label */}
                       <div className="flex items-center justify-end">
-                        <span className="text-[14px] font-semibold truncate leading-tight" style={{ color: "var(--text-faint)" }}>{label}</span>
+                        <span className="text-[14px] font-semibold truncate leading-tight" style={{ color: "#ffffff" }}>{label}</span>
                       </div>
                       {/* Center: league logo */}
                       <div className="flex items-center justify-center">
@@ -995,77 +946,14 @@ export default function HomeClient() {
       )}
 
       {/* ── Golf upcoming detail sheet ────────────────────────────────────── */}
-      {selectedGolfUpcoming && (() => {
-        const { tournament: gt, label: gl, accentColor: ga } = selectedGolfUpcoming
-        const fmtGolfDate = (iso: string) => {
-          if (!iso) return ''
-          try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) } catch { return '' }
-        }
-        const dateRange = gt.endDate && gt.endDate !== gt.startDate
-          ? `${fmtGolfDate(gt.startDate)} – ${fmtGolfDate(gt.endDate)}`
-          : fmtGolfDate(gt.startDate)
-        return (
-          <div
-            className="fixed inset-0 z-50 flex flex-col"
-            style={{ background: 'rgba(0,0,0,0.75)' }}
-            onClick={() => setSelectedGolfUpcoming(null)}
-          >
-            <div className="flex-1" />
-            <div
-              className="rounded-t-2xl overflow-hidden flex flex-col"
-              style={{ background: '#0c1b31', maxHeight: '85vh' }}
-              onClick={e => e.stopPropagation()}
-            >
-              {/* Drag handle */}
-              <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
-                <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
-              </div>
-              {/* Header */}
-              <div className="px-5 pb-4 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                <button
-                  onClick={() => setSelectedGolfUpcoming(null)}
-                  className="absolute top-4 right-5 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/70 text-sm hover:bg-white/15 transition-colors"
-                >✕</button>
-                <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: ga }}>{gl}</div>
-                <div className="text-[20px] font-bold text-white leading-tight pr-10">{gt.name}</div>
-                {gt.course && (
-                  <div className="text-[12px] text-zinc-500 mt-0.5">
-                    {gt.course}{gt.location ? ` · ${gt.location}` : ''}
-                  </div>
-                )}
-                {dateRange && (
-                  <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.07)' }}>
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300">{dateRange}</span>
-                  </div>
-                )}
-              </div>
-              {/* Body */}
-              {gt.leaders.length > 0 ? (
-                <div className="overflow-y-auto flex-1 pb-8">
-                  <div className="grid px-5 py-2 sticky top-0" style={{ gridTemplateColumns: '32px 1fr 48px 44px', background: '#0c1b31', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                    <span />
-                    <span className="text-[9px] tracking-widest uppercase font-semibold text-zinc-600">Player</span>
-                    <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">Total</span>
-                    <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">Rd</span>
-                  </div>
-                  {gt.leaders.map((p, i) => (
-                    <div key={`${p.name}-${i}`} className="grid items-center px-5 py-2.5" style={{ gridTemplateColumns: '32px 1fr 48px 44px', borderBottom: i < gt.leaders.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
-                      <span className="text-[11px] tabular-nums text-zinc-500">{p.position}</span>
-                      <span className="text-[13px] font-semibold text-white truncate pr-2">{p.shortName || p.name}</span>
-                      <span className="text-right text-[13px] font-bold tabular-nums" style={{ color: p.totalScore.startsWith('-') ? '#4ade80' : p.totalScore.startsWith('+') ? '#f87171' : '#e4e4e7' }}>{p.totalScore}</span>
-                      <span className="text-right text-[12px] text-zinc-600 tabular-nums">{p.todayScore}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex-1 flex items-center justify-center py-12">
-                  <span className="text-[13px] text-zinc-600">Leaderboard available when tournament begins</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )
-      })()}
+      {selectedGolfUpcoming && (
+        <GolfDetailSheet
+          tournament={selectedGolfUpcoming.tournament}
+          label={selectedGolfUpcoming.label}
+          accentColor={selectedGolfUpcoming.accentColor}
+          onClose={() => setSelectedGolfUpcoming(null)}
+        />
+      )}
 
       {/* ── Recent game detail sheet ──────────────────────────────────────── */}
       {selectedRecentGame && (
