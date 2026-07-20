@@ -141,11 +141,6 @@ function TeamContextCard({
         <TeamLogo src={logo} emoji={emoji} abbr={abbr} size={26} />
         <div className="flex-1 min-w-0">
           <div className="font-display text-[13px] font-bold text-white truncate leading-tight">{name}</div>
-          {wins !== undefined && losses !== undefined && (
-            <div className="text-[11px] text-zinc-500 mt-0.5">
-              {wins}–{losses}{ties !== undefined && ties > 0 ? `–${ties}` : ""}
-            </div>
-          )}
         </div>
       </div>
 
@@ -250,8 +245,8 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
   const awayWon   = hasScore && (awayScore ?? 0) > (homeScore ?? 0)
   const homeWon   = hasScore && (homeScore ?? 0) > (awayScore ?? 0)
 
-  // Build gradient: flat dark — no team color blobs
-  const headerBackground = "linear-gradient(180deg, #0d1f38 0%, #0c1b31 100%)"
+  // Flat uniform background — same color across header and body
+  const headerBackground = "#0c1b31"
 
   const showTeamContext = (awayDetail || awayRecord) && (homeDetail || homeRecord)
 
@@ -328,6 +323,11 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                   {awayName}
                 </div>
                 <div className="font-display text-[9px] uppercase tracking-[0.14em] text-zinc-600 mt-0.5">{awayAbbr}</div>
+                {(awayRecord || awayDetail) && (
+                  <div className="text-[11px] text-zinc-500 mt-0.5">
+                    {awayRecord ? formatRecord(awayRecord) : awayDetail ? `${awayDetail.wins}–${awayDetail.losses}` : ""}
+                  </div>
+                )}
               </div>
             </button>
 
@@ -411,6 +411,11 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                   {homeName}
                 </div>
                 <div className="font-display text-[9px] uppercase tracking-[0.14em] text-zinc-600 mt-0.5">{homeAbbr}</div>
+                {(homeRecord || homeDetail) && (
+                  <div className="text-[11px] text-zinc-500 mt-0.5">
+                    {homeRecord ? formatRecord(homeRecord) : homeDetail ? `${homeDetail.wins}–${homeDetail.losses}` : ""}
+                  </div>
+                )}
               </div>
             </button>
 
