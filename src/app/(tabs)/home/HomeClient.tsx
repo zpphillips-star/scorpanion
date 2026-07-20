@@ -296,7 +296,10 @@ function GolfRecentCard({ tournament, label, accentColor }: {
   const winner = tournament.leaders[0]
   const fmtDate = (iso: string) => {
     if (!iso) return ''
-    try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) } catch { return '' }
+    try {
+      const [y, m, d] = iso.split('T')[0].split('-').map(Number)
+      return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'short' })
+    } catch { return '' }
   }
 
   return (
@@ -809,15 +812,27 @@ export default function HomeClient() {
           </div>
           <div className="overflow-x-auto no-scrollbar px-4">
           <div className="flex min-w-max pb-1">
-              {recent.map(g => (
-                <RecentCard key={g.id} game={g} onClick={() => setSelectedRecentGame(g)} />
-              ))}
-              {pgaRecent.map(t => (
-                <GolfRecentCard key={`pga-${t.id}`} tournament={t} label="PGA Tour" accentColor="#CBA135" />
-              ))}
-              {lpgaRecent.map(t => (
-                <GolfRecentCard key={`lpga-${t.id}`} tournament={t} label="LPGA" accentColor="#C084FC" />
-              ))}
+              {(() => {
+                // Merge team games + golf recent cards, sorted by date ascending
+                type RecentItem =
+                  | { kind: 'game'; g: typeof recent[0] }
+                  | { kind: 'golf'; t: PGATournament; label: string; accentColor: string }
+                const items: RecentItem[] = [
+                  ...recent.map(g => ({ kind: 'game' as const, g })),
+                  ...pgaRecent.map(t => ({ kind: 'golf' as const, t, label: 'PGA Tour', accentColor: '#CBA135' })),
+                  ...lpgaRecent.map(t => ({ kind: 'golf' as const, t, label: 'LPGA', accentColor: '#C084FC' })),
+                ]
+                items.sort((a, b) => {
+                  const dateA = a.kind === 'game' ? a.g.kickoff : (a.t.endDate || a.t.startDate || '')
+                  const dateB = b.kind === 'game' ? b.g.kickoff : (b.t.endDate || b.t.startDate || '')
+                  return dateA < dateB ? -1 : dateA > dateB ? 1 : 0
+                })
+                return items.map(item =>
+                  item.kind === 'game'
+                    ? <RecentCard key={item.g.id} game={item.g} onClick={() => setSelectedRecentGame(item.g)} />
+                    : <GolfRecentCard key={`golf-${item.t.id}`} tournament={item.t} label={item.label} accentColor={item.accentColor} />
+                )
+              })()}
             </div>
           </div>
         </div>

@@ -77,7 +77,7 @@ export async function GET() {
         // Parse leaders — sorted by position
         const rawPlayers: any[] = (comp.competitors ?? [])
           .filter((c: any) => c.status !== 'cut' && c.status !== 'wd')
-          .slice(0, 15)
+          .slice(0, 100)
 
         const leaders: PGAPlayer[] = rawPlayers.map((c: any) => {
           const athlete = c.athlete ?? {}
@@ -117,7 +117,7 @@ export async function GET() {
           startDate: event.date ?? '',
           endDate: event.endDate ?? '',
           purse: event.prize ?? event.purse,
-          leaders: leaders.slice(0, 10),
+          leaders: leaders.slice(0, 50),
           cutLine: comp.notes?.[0]?.headline,
         })
       }
