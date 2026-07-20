@@ -36,7 +36,7 @@ const CANADA_PROVINCES = [
 //   Alaska/Hawaii insets bottom ≈ y=445
 // Start viewport at y=115 (13px breathing room above US top) and h=335 so the
 // bottom lands at y=450, safely containing all insets.
-const FULL_VB = { x: 0, y: 115, w: 800, h: 335 }
+const FULL_VB = { x: 0, y: 128, w: 800, h: 322 }
 const MIN_W = 80; const MAX_W = 800
 
 type VB = { x: number; y: number; w: number; h: number }
