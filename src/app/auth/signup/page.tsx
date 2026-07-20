@@ -54,7 +54,7 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0a0f' }}>
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0c1b31' }}>
         <div className="w-full max-w-[400px] text-center">
           <div className="text-5xl mb-4">✉️</div>
           <h2 className="font-extrabold text-xl mb-2" style={{ color: '#f0f0f8' }}>Check your email</h2>
@@ -71,30 +71,25 @@ export default function SignupPage() {
 
   const inputStyle = {
     height: '52px',
-    background: '#12121a',
-    border: '1px solid #2a2a3f',
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgba(255,255,255,0.1)',
     borderRadius: '10px',
     fontSize: '15px',
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0a0f' }}>
-      <div className="w-full max-w-[400px]">
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0c1b31' }}>
+      <div className="w-full max-w-[380px]">
 
         {/* ── Logo area ── */}
-        <div
-          className="text-center mb-8 pt-8 pb-2 relative"
-          style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(0,212,255,0.08) 0%, transparent 100%)' }}
-        >
+        <div className="flex items-center justify-center mb-8 pt-8" style={{ overflow: 'hidden', height: 90 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/scorpion-logo.png" alt="Scorpanion" width={64} height={64} className="object-contain mx-auto mb-3" />
-          <div
-            className="font-display text-[32px] font-extrabold uppercase tracking-[0.08em] leading-none mb-2"
-            style={{ color: '#f0f0f8' }}
-          >
-            SCORPANION
-          </div>
-          <p style={{ color: '#9090b0', fontSize: '15px', fontWeight: 400 }}>Your teams. Every score.</p>
+          <img
+            src="/scorpanion-logo-new.png"
+            alt="Scorpanion"
+            style={{ height: 90, width: 'auto', objectFit: 'contain' }}
+            onError={(e) => { (e.target as HTMLImageElement).src = '/scorpanion-full.png' }}
+          />
         </div>
 
         {/* ── Form ── */}
@@ -121,7 +116,7 @@ export default function SignupPage() {
               className="w-full px-4 text-white placeholder-[#5a5a7a] outline-none transition-all"
               style={inputStyle}
               onFocus={e => { e.currentTarget.style.borderColor = '#00d4ff'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0,212,255,0.15)' }}
-              onBlur={e => { e.currentTarget.style.borderColor = '#2a2a3f'; e.currentTarget.style.boxShadow = 'none' }}
+              onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.boxShadow = 'none' }}
             />
           </div>
 
@@ -138,7 +133,7 @@ export default function SignupPage() {
               className="w-full px-4 text-white placeholder-[#5a5a7a] outline-none transition-all"
               style={inputStyle}
               onFocus={e => { e.currentTarget.style.borderColor = '#00d4ff'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0,212,255,0.15)' }}
-              onBlur={e => { e.currentTarget.style.borderColor = '#2a2a3f'; e.currentTarget.style.boxShadow = 'none' }}
+              onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.boxShadow = 'none' }}
             />
           </div>
 
@@ -157,7 +152,7 @@ export default function SignupPage() {
                 className="w-full px-4 pr-12 text-white placeholder-[#5a5a7a] outline-none transition-all"
                 style={inputStyle}
                 onFocus={e => { e.currentTarget.style.borderColor = '#00d4ff'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0,212,255,0.15)' }}
-                onBlur={e => { e.currentTarget.style.borderColor = '#2a2a3f'; e.currentTarget.style.boxShadow = 'none' }}
+                onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.boxShadow = 'none' }}
               />
               <button
                 type="button"
@@ -177,8 +172,8 @@ export default function SignupPage() {
             className="w-full font-semibold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               height: '48px',
-              background: '#00d4ff',
-              color: '#0a0a0f',
+              background: '#D95C17',
+              color: 'white',
               borderRadius: '10px',
               fontSize: '15px',
               fontWeight: 600,
