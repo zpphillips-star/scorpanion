@@ -195,12 +195,12 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
 
   // ── Fixed height for the border-triangle technique ──────────────────────────
   // CSS border triangles need a fixed height so the half-heights can be specified.
-  const H  = 60   // total height px
+  const H  = 76   // total height px
   const HH = H / 2  // half height
-  const A  = 18   // arrow width px — how far the tip extends right
+  const A  = 20   // arrow width px — how far the tip extends right
 
   return (
-    <div className="mt-3">
+    <div className="mt-3 mb-5">
       {/* overflow:visible so right-arrow tips extend into adjacent segments */}
       <div className="flex w-full" style={{ height: H, gap: 0, border: 'none', outline: 'none' }}>
         {chevrons.map((chev, idx) => {
@@ -255,7 +255,7 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
                   className="font-display font-800 uppercase tracking-wide leading-none block"
                   style={{
                     color:    'white',
-                    fontSize: '9.5px',
+                    fontSize: '12px',
                     opacity:  isActive ? 1 : isPast ? 0.65 : 0.3,
                   }}
                 >
@@ -266,8 +266,8 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
                     className="leading-tight text-center block mt-1"
                     style={{
                       color:    'white',
-                      fontSize: '7px',
-                      opacity:  isActive ? 0.8 : isPast ? 0.35 : 0.18,
+                      fontSize: '9px',
+                      opacity:  isActive ? 0.85 : isPast ? 0.4 : 0.22,
                     }}
                   >
                     {chev.dates}
