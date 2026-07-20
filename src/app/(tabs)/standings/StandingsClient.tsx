@@ -93,9 +93,10 @@ function TeamLogoImg({ src, abbr }: { src: string; abbr: string }) {
 }
 
 /**
- * SeasonProgressChevrons — clean chevron pipeline.
- * Labels only in the bar. Tap to open a season-schedule detail sheet.
- * Uses a single clip-path per segment — no separate arrow span, no seam artifacts.
+ * SeasonProgressChevrons
+ * – Compact horizontal chevron bar (labels only). Tap to open premium schedule sheet.
+ * – Horizontal: pentagon clip-path with overlap so arrows point right cleanly.
+ * – Popup: vertical downward-pointing chevron chain, premium GameDetailSheet style.
  */
 function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
   const [showSheet, setShowSheet] = useState(false)
@@ -114,12 +115,12 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
 
   let activePhase: PhaseKey = 'offseason'
   if (s) {
-    if (today >= s.championshipStart && today <= s.playoffEnd)         activePhase = 'championship'
-    else if (today >= s.playoffStart && today < s.championshipStart)   activePhase = 'playoffs'
-    else if (today >= s.regularStart && today <= s.regularEnd)         activePhase = 'regular'
+    if (today >= s.championshipStart && today <= s.playoffEnd)        activePhase = 'championship'
+    else if (today >= s.playoffStart && today < s.championshipStart)  activePhase = 'playoffs'
+    else if (today >= s.regularStart && today <= s.regularEnd)        activePhase = 'regular'
     else if (s.preseasonStart && s.preseasonEnd &&
-             today >= s.preseasonStart && today <= s.preseasonEnd)     activePhase = 'preseason'
-    else                                                                activePhase = 'offseason'
+             today >= s.preseasonStart && today <= s.preseasonEnd)    activePhase = 'preseason'
+    else                                                               activePhase = 'offseason'
   }
 
   const shortChamp = (name: string): string => {
@@ -136,90 +137,97 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
 
   interface Phase { key: PhaseKey; label: string; dateRange: string }
   const phases: Phase[] = []
-
-  phases.push({
-    key: 'offseason', label: 'Off Season',
-    dateRange: s?.preseasonStart ? `Until ${fmtD(s.preseasonStart)}` : '—',
-  })
-  if (s?.preseasonStart && s.preseasonEnd) {
-    phases.push({
-      key: 'preseason', label: 'Pre-Season',
-      dateRange: `${fmtD(s.preseasonStart)} – ${fmtD(s.preseasonEnd)}`,
-    })
-  }
+  phases.push({ key: 'offseason', label: 'Off Season', dateRange: s?.preseasonStart ? `Until ${fmtD(s.preseasonStart)}` : '—' })
+  if (s?.preseasonStart && s.preseasonEnd)
+    phases.push({ key: 'preseason', label: 'Pre-Season', dateRange: `${fmtD(s.preseasonStart)} – ${fmtD(s.preseasonEnd)}` })
   if (s) {
-    phases.push({
-      key: 'regular', label: 'Regular',
-      dateRange: `${fmtD(s.regularStart)} – ${fmtD(s.regularEnd)}`,
-    })
-    phases.push({
-      key: 'playoffs', label: 'Playoffs',
-      dateRange: `${fmtD(s.playoffStart)} – ${fmtD(s.championshipStart)}${s.tbd ? '*' : ''}`,
-    })
-    phases.push({
-      key: 'championship', label: shortChamp(s.championship),
-      dateRange: `${fmtD(s.championshipStart)} – ${fmtD(s.playoffEnd)}${s.tbd ? '*' : ''}`,
-    })
+    phases.push({ key: 'regular',      label: 'Regular',             dateRange: `${fmtD(s.regularStart)} – ${fmtD(s.regularEnd)}` })
+    phases.push({ key: 'playoffs',     label: 'Playoffs',            dateRange: `${fmtD(s.playoffStart)} – ${fmtD(s.championshipStart)}${s.tbd ? '*' : ''}` })
+    phases.push({ key: 'championship', label: shortChamp(s.championship), dateRange: `${fmtD(s.championshipStart)} – ${fmtD(s.playoffEnd)}${s.tbd ? '*' : ''}` })
   } else {
     phases.push({ key: 'regular', label: 'Regular', dateRange: '—' })
     phases.push({ key: 'playoffs', label: 'Playoffs', dateRange: '—' })
     phases.push({ key: 'championship', label: 'Finals', dateRange: '—' })
   }
 
-  const activeIdx = phases.findIndex(p => p.key === activePhase)
+  const activeIdx  = phases.findIndex(p => p.key === activePhase)
+  const ACTIVE_BG  = '#D95C17'
+  const PAST_BG    = '#1e3a5f'
+  const FUTURE_BG  = '#0d1e30'
+  const N          = phases.length
 
-  const ACTIVE_BG = '#D95C17'
-  const PAST_BG   = '#1e3a5f'
-  const FUTURE_BG = '#0d1e30'
+  // ── Horizontal bar constants ──────────────────────────────────────────────
+  const H  = 54   // bar height px
+  const A  = 16   // horizontal arrow depth px
 
-  const H = 60   // height px — compact, equal segments
-  const A = 18   // arrow depth px
-
-  // Single clip-path per segment — arrow extends FULLY top-to-bottom, no seam
-  const clipPath = (isFirst: boolean, isLast: boolean) => {
+  // Pentagon clip-path — single element, no seam
+  const hClip = (isFirst: boolean, isLast: boolean) => {
     if (isFirst && isLast) return 'none'
     if (isFirst) return `polygon(0 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, 0 100%)`
     if (isLast)  return `polygon(${A}px 0, 100% 0, 100% 100%, ${A}px 100%, 0 50%)`
     return `polygon(${A}px 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, ${A}px 100%, 0 50%)`
   }
 
+  // ── Vertical popup chevron constants ─────────────────────────────────────
+  const BH_ACTIVE   = 88   // active block body height px
+  const BH_INACTIVE = 64   // inactive block body height px
+  const VA          = 14   // vertical arrow depth px
+
+  // Vertical downward-pointing chevron clip-path
+  const vClip = (isFirst: boolean, isLast: boolean, bh: number) => {
+    const total = bh + VA
+    if (isFirst && isLast) return 'none'
+    if (isFirst) return `polygon(0 0, 100% 0, 100% ${bh}px, 50% ${total}px, 0 ${bh}px)`
+    if (isLast)  return `polygon(0 ${VA}px, 50% 0, 100% ${VA}px, 100% 100%, 0 100%)`
+    return `polygon(0 ${VA}px, 50% 0, 100% ${VA}px, 100% ${bh}px, 50% ${total}px, 0 ${bh}px)`
+  }
+
   return (
     <>
-      {/* ── Chevron bar — tap to open schedule sheet ── */}
+      {/* ── Compact horizontal chevron bar ── */}
       <button
-        className="w-full mt-3 mb-4 block"
+        className="w-full mt-3 mb-5 block"
         onClick={() => setShowSheet(true)}
-        aria-label="View full season schedule"
+        aria-label="View season schedule"
       >
-        <div className="flex w-full" style={{ height: H }}>
+        {/* overflow:hidden clips the last segment's right arrow if it bleeds */}
+        <div className="flex w-full overflow-hidden" style={{ height: H }}>
           {phases.map((phase, idx) => {
             const isActive = idx === activeIdx
             const isPast   = idx < activeIdx
             const isFirst  = idx === 0
-            const isLast   = idx === phases.length - 1
+            const isLast   = idx === N - 1
             const bg       = isActive ? ACTIVE_BG : isPast ? PAST_BG : FUTURE_BG
-            // Left-to-right z-index so each arrow sits on top of the next segment's notch
-            const z        = phases.length + 2 - idx
-            // Horizontal padding: account for notch width so text doesn't clip
-            const pl = (isFirst ? 8 : A + 6) + 'px'
-            const pr = (isLast  ? 8 : A + 4) + 'px'
+            // Left-first z-index so each arrow covers the next segment's left notch
+            const z        = N + 2 - idx
+            // Explicit widths so negative-margin overlap works correctly
+            const widthStr = isLast
+              ? `${(100 / N).toFixed(4)}%`
+              : `calc(${(100 / N).toFixed(4)}% + ${A}px)`
+            const pl = (isFirst ? 10 : A + 8) + 'px'
+            const pr = (isLast  ? 10 : A + 4) + 'px'
 
             return (
               <div
                 key={phase.key}
-                className="relative flex-1 flex items-center justify-center"
                 style={{
-                  background: bg,
-                  zIndex: z,
-                  height: H,
-                  clipPath: clipPath(isFirst, isLast),
+                  width:       widthStr,
+                  flexShrink:  0,
+                  marginLeft:  isFirst ? 0 : -A,
+                  zIndex:      z,
+                  height:      H,
+                  background:  bg,
+                  clipPath:    hClip(isFirst, isLast),
+                  display:     'flex',
+                  alignItems:  'center',
+                  justifyContent: 'center',
                   paddingLeft: pl,
                   paddingRight: pr,
                 }}
               >
                 <span
                   className="font-display font-800 uppercase tracking-wide text-white leading-none text-center"
-                  style={{ fontSize: '11px', opacity: isActive ? 1 : 0.55 }}
+                  style={{ fontSize: '11px', opacity: isActive ? 1 : isPast ? 0.6 : 0.4 }}
                 >
                   {phase.label}
                 </span>
@@ -229,85 +237,101 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
         </div>
       </button>
 
-      {/* ── Season Schedule Detail Sheet ── */}
+      {/* ── Premium Season Schedule Sheet ── */}
       {showSheet && (
         <>
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40" onClick={() => setShowSheet(false)} />
           <div
-            className="fixed inset-0 bg-black/65 backdrop-blur-sm z-40"
-            onClick={() => setShowSheet(false)}
-          />
-          <div
-            className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-2xl lg:mx-auto animate-slide-up overflow-hidden"
+            className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-2xl lg:mx-auto animate-slide-up"
             style={{
               background: '#0c1b31',
-              borderRadius: '16px 16px 0 0',
+              borderRadius: '20px 20px 0 0',
               paddingBottom: 'env(safe-area-inset-bottom)',
+              maxHeight: '88dvh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
-            {/* Sheet header */}
-            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-white/[0.11]">
-              <div>
-                <h3 className="font-display text-[18px] font-800 text-white uppercase tracking-wide">
-                  {leagueId.toUpperCase()} Season
-                </h3>
-                <p className="text-zinc-600 text-[11px] mt-0.5">2026 schedule</p>
-              </div>
+            {/* Gradient header */}
+            <div
+              className="relative px-6 pt-6 pb-5 flex-shrink-0"
+              style={{ background: 'linear-gradient(180deg, #142a40 0%, #0c1b31 100%)', borderBottom: '1px solid rgba(255,255,255,0.09)' }}
+            >
               <button
                 onClick={() => setShowSheet(false)}
-                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-sm"
+                className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white text-base"
               >✕</button>
+              <div className="text-zinc-500 text-[11px] uppercase tracking-widest mb-1.5">2026 Season</div>
+              <div className="font-display text-[32px] font-800 text-white uppercase leading-none tracking-tight">
+                {leagueId.toUpperCase()}
+              </div>
+              <div className="text-zinc-500 text-[13px] mt-2">Tap a phase to learn more · scroll to track progress</div>
             </div>
 
-            {/* Phase rows */}
-            <div className="px-5 py-4 space-y-2.5 pb-8">
-              {phases.map((phase, idx) => {
-                const isActive = idx === activeIdx
-                const isPast   = idx < activeIdx
-                return (
-                  <div
-                    key={phase.key}
-                    className="flex items-center gap-3 px-4 py-3.5 rounded-xl"
-                    style={{
-                      background: isActive
-                        ? 'rgba(217,92,23,0.15)'
-                        : isPast ? 'rgba(30,58,95,0.35)' : 'rgba(13,30,48,0.5)',
-                      border: `1px solid ${isActive ? 'rgba(217,92,23,0.35)' : 'rgba(255,255,255,0.11)'}`,
-                    }}
-                  >
-                    {/* Dot indicator */}
+            {/* Vertical chevron chain */}
+            <div className="overflow-y-auto px-5 pt-5 pb-8">
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {phases.map((phase, idx) => {
+                  const isActive = idx === activeIdx
+                  const isPast   = idx < activeIdx
+                  const isFirst  = idx === 0
+                  const isLast   = idx === N - 1
+                  const bh       = isActive ? BH_ACTIVE : BH_INACTIVE
+                  const bg       = isActive ? ACTIVE_BG : isPast ? PAST_BG : FUTURE_BG
+                  const zv       = N + 2 - idx
+                  const total    = bh + VA
+
+                  return (
                     <div
-                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      key={phase.key}
                       style={{
-                        background: isActive ? '#D95C17' : isPast ? '#2d4a6b' : 'rgba(255,255,255,0.12)',
+                        width:      '100%',
+                        height:     total,
+                        marginTop:  isFirst ? 0 : -VA,
+                        zIndex:     zv,
+                        position:   'relative',
+                        background: bg,
+                        clipPath:   vClip(isFirst, isLast, bh),
+                        display:    'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        paddingTop:    isFirst ? 16 : VA + 12,
+                        paddingBottom: isLast  ? 16 : VA + 8,
+                        paddingLeft:   24,
+                        paddingRight:  24,
                       }}
-                    />
-                    {/* Phase name */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                    >
+                      <div className="flex items-center gap-3">
                         <span
-                          className="font-display font-800 uppercase tracking-wide"
+                          className="font-display font-800 uppercase tracking-wide leading-none"
                           style={{
-                            fontSize: '13px',
-                            color: isActive ? '#D95C17' : isPast ? '#4a6a8a' : '#3a5070',
+                            fontSize: isActive ? '20px' : '15px',
+                            color:    isActive ? '#ffffff' : isPast ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.30)',
                           }}
                         >
                           {phase.label}
                         </span>
                         {isActive && (
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-orange-400 bg-orange-500/15 px-1.5 py-0.5 rounded">
-                            Now
+                          <span className="text-[10px] font-bold uppercase tracking-widest bg-white/20 text-white px-2 py-0.5 rounded-full">
+                            NOW
                           </span>
                         )}
                       </div>
                       {phase.dateRange && phase.dateRange !== '—' && (
-                        <div className="text-[12px] text-zinc-500 mt-0.5">{phase.dateRange}</div>
+                        <div
+                          className="mt-1.5 text-[13px]"
+                          style={{ color: isActive ? 'rgba(255,255,255,0.75)' : isPast ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.20)' }}
+                        >
+                          {phase.dateRange}
+                        </div>
                       )}
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
               {s?.tbd && (
-                <p className="text-[10px] text-zinc-700 text-right px-1 pt-1">* Dates approximate</p>
+                <p className="text-[11px] text-zinc-700 text-right pt-3">* Dates approximate</p>
               )}
             </div>
           </div>
