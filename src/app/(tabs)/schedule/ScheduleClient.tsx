@@ -477,13 +477,15 @@ export default function ScheduleClient() {
   function scrollToDate(dateStr: string) {
     const el = dateRefs.current[dateStr]
     if (!el) return
-    const main = el.closest('main')
-    if (main) {
-      const elTop = el.getBoundingClientRect().top
-      const mainTop = main.getBoundingClientRect().top
-      const offset = main.scrollTop + (elTop - mainTop) - 120
-      main.scrollTo({ top: offset, behavior: 'smooth' })
-    }
+    const main = el.closest('main') as HTMLElement | null
+    if (!main) return
+    // Measure the actual sticky header at scroll time — avoids hardcoded offsets
+    const header = main.querySelector('.glass-header') as HTMLElement | null
+    const headerH = header ? header.offsetHeight : 160
+    const elTop = el.getBoundingClientRect().top
+    const mainTop = main.getBoundingClientRect().top
+    const offset = main.scrollTop + (elTop - mainTop) - headerH - 8
+    main.scrollTo({ top: offset, behavior: 'smooth' })
   }
 
   function scrollToToday() {
