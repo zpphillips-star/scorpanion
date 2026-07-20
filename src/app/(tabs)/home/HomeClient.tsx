@@ -275,6 +275,22 @@ function GolfRecentCard({ tournament, label, accentColor }: {
     } catch { return '' }
   }
 
+  const logoUrl = label === 'LPGA'
+    ? 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/lpga.png'
+    : 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/pgatour.png'
+
+  const scoreColor = !winner ? '#52525b'
+    : winner.totalScore.startsWith('-') ? '#4ade80'
+    : winner.totalScore.startsWith('+') ? '#f87171' : '#e4e4e7'
+
+  // Shorten tournament name to a compact abbrev-like label (≤ ~8 chars)
+  const shortTourneyName = (() => {
+    const base = (tournament.shortName || tournament.name).replace(/^The /, '')
+    const words = base.split(' ')
+    // If first word alone is long enough to stand alone (e.g. "Open"), use first 2 words; else first word
+    return words.slice(0, 2).join(' ')
+  })()
+
   return (
     <>
       <button
@@ -282,30 +298,27 @@ function GolfRecentCard({ tournament, label, accentColor }: {
         className="flex-shrink-0 w-[148px] text-left active:opacity-70 transition-opacity last:border-r-0 pr-7 mr-7 last:pr-0 last:mr-0"
         style={{ borderRight: '1px solid rgba(255,255,255,0.07)' }}
       >
-        {/* Date + label */}
+        {/* Date + label — identical structure to RecentCard */}
         <div className="flex items-center justify-between mb-4 px-1">
           <span className="text-[10px] text-zinc-600">{fmtDate(tournament.endDate)}</span>
           <span className="text-[10px] text-zinc-700 uppercase tracking-wide">{label}</span>
         </div>
-        {/* Tournament name */}
-        <div className="px-1 mb-2">
-          <span className="text-[12px] font-semibold text-white leading-tight block truncate">
-            {tournament.shortName || tournament.name}
-          </span>
-          <span className="text-[10px] text-zinc-600 uppercase tracking-wide mt-0.5 block">Final</span>
-        </div>
-        {/* Winner row */}
-        {winner && (
-          <div className="px-1">
-            <div className="flex items-baseline justify-between gap-1">
-              <span className="text-[12px] text-zinc-300 truncate flex-1">{winner.shortName || winner.name}</span>
-              <span className="text-[14px] font-bold tabular-nums flex-shrink-0"
-                    style={{ color: winner.totalScore.startsWith('-') ? '#4ade80' : winner.totalScore.startsWith('+') ? '#f87171' : '#e4e4e7' }}>
-                {winner.totalScore}
-              </span>
-            </div>
+        {/* Single centered column: logo + tourney name + winner score — mirrors two-team layout */}
+        <div className="flex items-center justify-center">
+          <div className="flex flex-col items-center flex-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={logoUrl} alt={label} width={26} height={26} className="object-contain rounded" />
+            <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0.5 truncate max-w-[100px] text-center">
+              {shortTourneyName}
+            </span>
+            <span
+              className="font-display text-[17px] font-800 tabular-nums leading-none mt-1.5"
+              style={{ color: scoreColor }}
+            >
+              {winner ? winner.totalScore : '–'}
+            </span>
           </div>
-        )}
+        </div>
       </button>
 
       {showDetail && (
