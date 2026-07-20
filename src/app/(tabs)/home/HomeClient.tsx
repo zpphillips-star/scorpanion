@@ -507,6 +507,11 @@ export default function HomeClient() {
   const pgaVisibleInFilter = pgaFollowed && (activeFilter === 'all' || activeFilter === 'pga')
   const lpgaVisibleInFilter = lpgaFollowed && (activeFilter === 'all' || activeFilter === 'lpga')
 
+  // ── Date helpers — declared early so golf filters can reference `today` ────
+  const today = todayStr()
+  const cutoff7 = daysAgo(7)
+  const cutoff14 = daysFromNow(14)
+
   // Classify PGA tournaments by section
   // Today: live OR completed-today (tournament ended during today/yesterday UTC→PT shift)
   const pgaToday = pgaTournaments.filter(t => {
@@ -598,10 +603,6 @@ export default function HomeClient() {
     : allGames.filter(g => filterMatchIds(activeFilter).includes(g.seattleTeamId))
 
   // Categorize
-  const today = todayStr()
-  const cutoff7 = daysAgo(7)
-  const cutoff14 = daysFromNow(14)
-
   const recent = filtered.filter(g => {
     const d = dateStr(parseKickoff(g.kickoff))
     // Exclude today — those show in the featured section; show last 7 days
