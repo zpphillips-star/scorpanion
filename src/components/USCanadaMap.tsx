@@ -29,11 +29,14 @@ const CANADA_PROVINCES = [
   { abbr: 'PE', label: 'PE' }, { abbr: 'NL', label: 'NL' },
 ]
 
-// geoAlbersUsa at scale 680 places the continental US content starting ~y=70
-// within the 800×450 SVG canvas.  Start at y=70 and crop to h=340 so the map
-// fills the container without a large void at the top.  Alaska/Hawaii insets
-// end around y=405 → 405–70=335 < 340 ✓, so they still fit comfortably.
-const FULL_VB = { x: 0, y: 70, w: 800, h: 340 }
+// react-simple-maps default SVG canvas: 800×600, projection translate=[400,300].
+// geoAlbersUsa at scale=680 in this canvas places content at:
+//   continental US top  ≈ y=128  (Maine / northern WA)
+//   continental US btm  ≈ y=383  (Florida / southern TX)
+//   Alaska/Hawaii insets bottom ≈ y=445
+// Start viewport at y=115 (13px breathing room above US top) and h=335 so the
+// bottom lands at y=450, safely containing all insets.
+const FULL_VB = { x: 0, y: 115, w: 800, h: 335 }
 const MIN_W = 80; const MAX_W = 800
 
 type VB = { x: number; y: number; w: number; h: number }
@@ -145,7 +148,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
       {/* Map container — full aspect ratio, no maxHeight cap */}
       <div
         ref={containerRef}
-        style={{ width: '100%', position: 'relative', aspectRatio: '800/340', overflow: 'hidden', touchAction: 'none', cursor: isZoomed ? 'grab' : 'default' }}
+        style={{ width: '100%', position: 'relative', aspectRatio: '800/335', overflow: 'hidden', touchAction: 'none', cursor: isZoomed ? 'grab' : 'default' }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
