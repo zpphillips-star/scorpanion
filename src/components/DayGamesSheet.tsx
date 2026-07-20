@@ -132,9 +132,7 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
       <div
         className="rounded-xl overflow-hidden"
         style={{
-          background: isLive
-            ? "linear-gradient(135deg, rgba(255,180,0,0.06) 0%, rgba(26,45,74,0.9) 100%)"
-            : "var(--surface-2)",
+          background: "var(--surface-2)",
           border: `1px solid ${isLive ? "rgba(255,180,0,0.22)" : "var(--border-default)"}`,
           borderLeft: `3.5px solid ${isLive ? "#FFB400" : accentColor}`,
         }}
@@ -419,14 +417,10 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
               </div>
             )}
 
-            {/* Date headline */}
+            {/* Date headline — single line */}
             <h2 className="font-display leading-none tracking-tight"
                 style={{ fontSize: "28px", fontWeight: 800, color: "var(--text)" }}>
-              {weekday},
-            </h2>
-            <h2 className="font-display leading-none tracking-tight mt-0.5"
-                style={{ fontSize: "28px", fontWeight: 800, color: "var(--text-muted)" }}>
-              {fullDate}
+              {weekday}, <span style={{ color: "var(--text-muted)" }}>{fullDate}</span>
             </h2>
 
             {/* Game count */}
@@ -484,8 +478,7 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
             <div className="px-4 pt-2 pb-4">
               {grouped.map(({ label, games: groupGames }) => (
                 <div key={label}>
-                  {grouped.length > 1 && <LeagueSectionHeader label={label} />}
-                  {grouped.length === 1 && <div className="pt-4" />}
+                  <div className="pt-4" />
                   <div className="flex flex-col gap-4">
                     {groupGames.map(g => (
                       <DayGameCard
