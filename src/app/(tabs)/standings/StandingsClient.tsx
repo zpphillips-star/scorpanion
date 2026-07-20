@@ -93,195 +93,227 @@ function TeamLogoImg({ src, abbr }: { src: string; abbr: string }) {
 }
 
 /**
- * SeasonProgressChevrons — full-width connected chevron pipeline.
- * Uses LEAGUE_SEASON dates directly (not the API status) for accurate phase detection.
- * Active phase = orange (#D95C17). Past = medium navy. Future = dark navy.
- * All text is white. Matches the reference arrow-chain design.
+ * SeasonProgressChevrons — clean chevron pipeline.
+ * Labels only in the bar. Tap to open a season-schedule detail sheet.
+ * Uses a single clip-path per segment — no separate arrow span, no seam artifacts.
  */
 function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
+  const [showSheet, setShowSheet] = useState(false)
   const s = LEAGUE_SEASON[leagueId]
 
   const fmtD = (iso: string): string => {
     const year = parseInt(iso.split('-')[0], 10)
-    return year !== new Date().getFullYear() ? `${fmtShort(iso)} '${String(year).slice(-2)}` : fmtShort(iso)
+    return year !== new Date().getFullYear()
+      ? `${fmtShort(iso)} '${String(year).slice(-2)}`
+      : fmtShort(iso)
   }
 
   type PhaseKey = 'offseason' | 'preseason' | 'regular' | 'playoffs' | 'championship'
 
-  // ── Date-based phase detection ─────────────────────────────────────────────
-  // Always use LEAGUE_SEASON dates so the UI is accurate regardless of what
-  // the ESPN API reports for season type.
   const today = new Date().toISOString().split('T')[0]
 
   let activePhase: PhaseKey = 'offseason'
   if (s) {
-    if (today >= s.championshipStart && today <= s.playoffEnd) {
-      activePhase = 'championship'
-    } else if (today >= s.playoffStart && today < s.championshipStart) {
-      activePhase = 'playoffs'
-    } else if (today >= s.regularStart && today <= s.regularEnd) {
-      activePhase = 'regular'
-    } else if (s.preseasonStart && s.preseasonEnd && today >= s.preseasonStart && today <= s.preseasonEnd) {
-      activePhase = 'preseason'
-    } else {
-      activePhase = 'offseason'
-    }
+    if (today >= s.championshipStart && today <= s.playoffEnd)         activePhase = 'championship'
+    else if (today >= s.playoffStart && today < s.championshipStart)   activePhase = 'playoffs'
+    else if (today >= s.regularStart && today <= s.regularEnd)         activePhase = 'regular'
+    else if (s.preseasonStart && s.preseasonEnd &&
+             today >= s.preseasonStart && today <= s.preseasonEnd)     activePhase = 'preseason'
+    else                                                                activePhase = 'offseason'
   }
 
-  // ── Short championship label ────────────────────────────────────────────────
-  // Long names (e.g. "Stanley Cup Finals") need to fit inside a narrow chevron.
   const shortChamp = (name: string): string => {
     const map: Record<string, string> = {
-      'Super Bowl LXI':               'Super Bowl',
-      'NBA Finals':                   'NBA Finals',
-      'Stanley Cup Finals':           'Stanley Cup',
-      'World Series':                 'World Series',
-      'MLS Cup':                      'MLS Cup',
-      'WNBA Finals':                  'WNBA Finals',
-      'NWSL Championship':            'NWSL Final',
-      'Ed Chynoweth Cup':             'WHL Final',
-      'PWHL Championship':            'PWHL Final',
-      'FedEx Cup':                    'FedEx Cup',
-      'CME Group Tour Championship':  'CME Final',
+      'Super Bowl LXI': 'Super Bowl', 'NBA Finals': 'NBA Finals',
+      'Stanley Cup Finals': 'Stanley Cup', 'World Series': 'World Series',
+      'MLS Cup': 'MLS Cup', 'WNBA Finals': 'WNBA Finals',
+      'NWSL Championship': 'NWSL Final', 'Ed Chynoweth Cup': 'WHL Final',
+      'PWHL Championship': 'PWHL Final', 'FedEx Cup': 'FedEx Cup',
+      'CME Group Tour Championship': 'CME Final',
     }
     return map[name] ?? name
   }
 
-  interface Chevron { key: PhaseKey; label: string; dates: string }
-  const chevrons: Chevron[] = []
+  interface Phase { key: PhaseKey; label: string; dateRange: string }
+  const phases: Phase[] = []
 
-  chevrons.push({
-    key:   'offseason',
-    label: 'Off Season',
-    dates: s?.preseasonStart ? `Until ${fmtD(s.preseasonStart)}` : '',
+  phases.push({
+    key: 'offseason', label: 'Off Season',
+    dateRange: s?.preseasonStart ? `Until ${fmtD(s.preseasonStart)}` : '—',
   })
-
   if (s?.preseasonStart && s.preseasonEnd) {
-    chevrons.push({
-      key:   'preseason',
-      label: 'Preseason',
-      dates: `${fmtD(s.preseasonStart)} – ${fmtD(s.preseasonEnd)}`,
+    phases.push({
+      key: 'preseason', label: 'Pre-Season',
+      dateRange: `${fmtD(s.preseasonStart)} – ${fmtD(s.preseasonEnd)}`,
     })
   }
-
   if (s) {
-    chevrons.push({
-      key:   'regular',
-      label: 'Regular',
-      dates: `${fmtD(s.regularStart)} – ${fmtD(s.regularEnd)}`,
+    phases.push({
+      key: 'regular', label: 'Regular',
+      dateRange: `${fmtD(s.regularStart)} – ${fmtD(s.regularEnd)}`,
     })
-    chevrons.push({
-      key:   'playoffs',
-      label: 'Playoffs',
-      dates: `${fmtD(s.playoffStart)} – ${fmtD(s.championshipStart)}${s.tbd ? '*' : ''}`,
+    phases.push({
+      key: 'playoffs', label: 'Playoffs',
+      dateRange: `${fmtD(s.playoffStart)} – ${fmtD(s.championshipStart)}${s.tbd ? '*' : ''}`,
     })
-    chevrons.push({
-      key:   'championship',
-      label: shortChamp(s.championship),
-      dates: `${fmtD(s.championshipStart)} – ${fmtD(s.playoffEnd)}${s.tbd ? '*' : ''}`,
+    phases.push({
+      key: 'championship', label: shortChamp(s.championship),
+      dateRange: `${fmtD(s.championshipStart)} – ${fmtD(s.playoffEnd)}${s.tbd ? '*' : ''}`,
     })
   } else {
-    chevrons.push({ key: 'regular',      label: 'Regular',      dates: '' })
-    chevrons.push({ key: 'playoffs',     label: 'Playoffs',     dates: '' })
-    chevrons.push({ key: 'championship', label: 'Championship', dates: '' })
+    phases.push({ key: 'regular', label: 'Regular', dateRange: '—' })
+    phases.push({ key: 'playoffs', label: 'Playoffs', dateRange: '—' })
+    phases.push({ key: 'championship', label: 'Finals', dateRange: '—' })
   }
 
-  const activeIdx = chevrons.findIndex(c => c.key === activePhase)
+  const activeIdx = phases.findIndex(p => p.key === activePhase)
 
-  // ── Color palette — uniform across all leagues ───────────────────────────────
-  const ACTIVE_BG = '#D95C17'  // orange — current phase
-  const PAST_BG   = '#1e3a5f'  // medium navy — completed phases
-  const FUTURE_BG = '#0d1e30'  // dark navy — upcoming phases
+  const ACTIVE_BG = '#D95C17'
+  const PAST_BG   = '#1e3a5f'
+  const FUTURE_BG = '#0d1e30'
 
-  // ── Fixed height for the border-triangle technique ──────────────────────────
-  // CSS border triangles need a fixed height so the half-heights can be specified.
-  const H  = 76   // total height px
-  const HH = H / 2  // half height
-  const A  = 20   // arrow width px — how far the tip extends right
+  const H = 60   // height px — compact, equal segments
+  const A = 18   // arrow depth px
+
+  // Single clip-path per segment — arrow extends FULLY top-to-bottom, no seam
+  const clipPath = (isFirst: boolean, isLast: boolean) => {
+    if (isFirst && isLast) return 'none'
+    if (isFirst) return `polygon(0 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, 0 100%)`
+    if (isLast)  return `polygon(${A}px 0, 100% 0, 100% 100%, ${A}px 100%, 0 50%)`
+    return `polygon(${A}px 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, ${A}px 100%, 0 50%)`
+  }
 
   return (
-    <div className="mt-3 mb-5">
-      {/* overflow:visible so right-arrow tips extend into adjacent segments */}
-      <div className="flex w-full" style={{ height: H, gap: 0, border: 'none', outline: 'none' }}>
-        {chevrons.map((chev, idx) => {
-          const isActive = idx === activeIdx
-          const isPast   = idx < activeIdx
-          const isFirst  = idx === 0
-          const isLast   = idx === chevrons.length - 1
-          const bg       = isActive ? ACTIVE_BG : isPast ? PAST_BG : FUTURE_BG
-          // Leftmost segments have highest z-index so their arrow sits on top
-          const z        = chevrons.length + 2 - idx
+    <>
+      {/* ── Chevron bar — tap to open schedule sheet ── */}
+      <button
+        className="w-full mt-3 mb-4 block"
+        onClick={() => setShowSheet(true)}
+        aria-label="View full season schedule"
+      >
+        <div className="flex w-full" style={{ height: H }}>
+          {phases.map((phase, idx) => {
+            const isActive = idx === activeIdx
+            const isPast   = idx < activeIdx
+            const isFirst  = idx === 0
+            const isLast   = idx === phases.length - 1
+            const bg       = isActive ? ACTIVE_BG : isPast ? PAST_BG : FUTURE_BG
+            // Left-to-right z-index so each arrow sits on top of the next segment's notch
+            const z        = phases.length + 2 - idx
+            // Horizontal padding: account for notch width so text doesn't clip
+            const pl = (isFirst ? 8 : A + 6) + 'px'
+            const pr = (isLast  ? 8 : A + 4) + 'px'
 
-          // Content padding: left side accounts for previous arrow tip covering it
-          const pl = isFirst ? 10 : A + 6
-          const pr = isLast  ? 10 : A + 6
-
-          return (
-            <div
-              key={chev.key}
-              className="relative flex-1 flex flex-col items-center justify-center"
-              style={{
-                background: bg,
-                zIndex: z,
-                height: H,
-                border: 'none',
-                outline: 'none',
-                // Rounded corners on outer edges only
-                borderRadius: isFirst ? '3px 0 0 3px' : isLast ? '0 3px 3px 0' : '0',
-              }}
-            >
-              {/* ── Right arrow tip — clip-path triangle (no CSS border artifacts) ── */}
-              {/* Extends A px BEYOND this segment into the next one.
-                  Uses clip-path instead of CSS border trick to avoid mobile sub-pixel seam. */}
-              {!isLast && (
+            return (
+              <div
+                key={phase.key}
+                className="relative flex-1 flex items-center justify-center"
+                style={{
+                  background: bg,
+                  zIndex: z,
+                  height: H,
+                  clipPath: clipPath(isFirst, isLast),
+                  paddingLeft: pl,
+                  paddingRight: pr,
+                }}
+              >
                 <span
-                  style={{
-                    position:     'absolute',
-                    right:        -A,
-                    top:          0,
-                    width:        A + 2,     // +2px overlap with segment to close any gap at base
-                    height:       H,
-                    background:   bg,
-                    clipPath:     'polygon(0 0, 100% 50%, 0 100%)',
-                    zIndex:       z + 1,
-                    pointerEvents: 'none',
-                  }}
-                />
-              )}
-
-              {/* ── Text content ── */}
-              <div className="text-center" style={{ paddingLeft: pl, paddingRight: pr }}>
-                <span
-                  className="font-display font-800 uppercase tracking-wide leading-none block"
-                  style={{
-                    color:    'white',
-                    fontSize: '12px',
-                    opacity:  isActive ? 1 : isPast ? 0.65 : 0.3,
-                  }}
+                  className="font-display font-800 uppercase tracking-wide text-white leading-none text-center"
+                  style={{ fontSize: '11px', opacity: isActive ? 1 : 0.55 }}
                 >
-                  {chev.label}
+                  {phase.label}
                 </span>
-                {chev.dates && (
-                  <span
-                    className="leading-tight text-center block mt-1"
+              </div>
+            )
+          })}
+        </div>
+      </button>
+
+      {/* ── Season Schedule Detail Sheet ── */}
+      {showSheet && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/65 backdrop-blur-sm z-40"
+            onClick={() => setShowSheet(false)}
+          />
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-2xl lg:mx-auto animate-slide-up overflow-hidden"
+            style={{
+              background: '#0c1b31',
+              borderRadius: '16px 16px 0 0',
+              paddingBottom: 'env(safe-area-inset-bottom)',
+            }}
+          >
+            {/* Sheet header */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-white/[0.07]">
+              <div>
+                <h3 className="font-display text-[18px] font-800 text-white uppercase tracking-wide">
+                  {leagueId.toUpperCase()} Season
+                </h3>
+                <p className="text-zinc-600 text-[11px] mt-0.5">2026 schedule</p>
+              </div>
+              <button
+                onClick={() => setShowSheet(false)}
+                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-sm"
+              >✕</button>
+            </div>
+
+            {/* Phase rows */}
+            <div className="px-5 py-4 space-y-2.5 pb-8">
+              {phases.map((phase, idx) => {
+                const isActive = idx === activeIdx
+                const isPast   = idx < activeIdx
+                return (
+                  <div
+                    key={phase.key}
+                    className="flex items-center gap-3 px-4 py-3.5 rounded-xl"
                     style={{
-                      color:    'white',
-                      fontSize: '9px',
-                      opacity:  isActive ? 0.85 : isPast ? 0.4 : 0.22,
+                      background: isActive
+                        ? 'rgba(217,92,23,0.15)'
+                        : isPast ? 'rgba(30,58,95,0.35)' : 'rgba(13,30,48,0.5)',
+                      border: `1px solid ${isActive ? 'rgba(217,92,23,0.35)' : 'rgba(255,255,255,0.06)'}`,
                     }}
                   >
-                    {chev.dates}
-                  </span>
-                )}
-              </div>
+                    {/* Dot indicator */}
+                    <div
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{
+                        background: isActive ? '#D95C17' : isPast ? '#2d4a6b' : 'rgba(255,255,255,0.12)',
+                      }}
+                    />
+                    {/* Phase name */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="font-display font-800 uppercase tracking-wide"
+                          style={{
+                            fontSize: '13px',
+                            color: isActive ? '#D95C17' : isPast ? '#4a6a8a' : '#3a5070',
+                          }}
+                        >
+                          {phase.label}
+                        </span>
+                        {isActive && (
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-orange-400 bg-orange-500/15 px-1.5 py-0.5 rounded">
+                            Now
+                          </span>
+                        )}
+                      </div>
+                      {phase.dateRange && phase.dateRange !== '—' && (
+                        <div className="text-[12px] text-zinc-500 mt-0.5">{phase.dateRange}</div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+              {s?.tbd && (
+                <p className="text-[10px] text-zinc-700 text-right px-1 pt-1">* Dates approximate</p>
+              )}
             </div>
-          )
-        })}
-      </div>
-      {s?.tbd && (
-        <p className="text-[9px] mt-1 text-right px-2" style={{ color: '#1e3a5f' }}>* Dates TBD</p>
+          </div>
+        </>
       )}
-    </div>
+    </>
   )
 }
 
