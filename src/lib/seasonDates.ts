@@ -33,142 +33,179 @@ export interface LeagueSeason {
 
 export const LEAGUE_SEASON: Record<string, LeagueSeason> = {
   // ── MLB 2026 ──────────────────────────────────────────────────────────────
+  // Source: MLB official schedule
+  // Opening Night: Mar 25 (SF @ NYY). Opening Day (full slate): Mar 26.
+  // Wild Card: Sep 29. World Series Game 1: Oct 23, Game 7: Oct 31.
   mlb: {
-    preseasonStart:    '2026-02-12',  // Spring Training opens
-    preseasonEnd:      '2026-03-25',
-    regularStart:      '2026-03-26',
-    regularEnd:        '2026-09-28',
-    playoffStart:      '2026-10-01',  // Wild Card
-    championshipStart: '2026-10-24',  // World Series begins
-    playoffEnd:        '2026-11-04',  // World Series ends ~early Nov
+    preseasonStart:    '2026-02-20',  // Spring Training games begin
+    preseasonEnd:      '2026-03-24',  // Day before Opening Night
+    regularStart:      '2026-03-26',  // Opening Day (full slate)
+    regularEnd:        '2026-09-27',  // Last day of regular season
+    playoffStart:      '2026-09-29',  // Wild Card Round begins
+    championshipStart: '2026-10-23',  // World Series Game 1
+    playoffEnd:        '2026-10-31',  // World Series Game 7 (if needed)
     playoffLabel:      'Wild Card Round',
     championship:      'World Series',
   },
 
   // ── NFL 2026-27 ───────────────────────────────────────────────────────────
+  // Source: NFL official calendar
+  // Kickoff: Sep 9 (Patriots @ Seahawks). Regular season ends Week 18: Jan 10, 2027.
+  // Wild Card: Jan 16-18. Divisional: Jan 23-24. Conf. Champs: Jan 31.
+  // Super Bowl LXI: Feb 14, 2027 (Valentine's Day) at SoFi Stadium, Inglewood CA.
   nfl: {
-    preseasonStart:    '2026-07-22',  // Training camp opens
-    preseasonEnd:      '2026-09-08',
-    regularStart:      '2026-09-10',
-    regularEnd:        '2027-01-04',  // end of Week 18
-    playoffStart:      '2027-01-10',  // Wild Card Weekend
-    championshipStart: '2027-02-08',  // Super Bowl LXI
-    playoffEnd:        '2027-02-08',
+    preseasonStart:    '2026-07-22',  // Training camp opens (~varies by team)
+    preseasonEnd:      '2026-09-07',  // Last preseason game (~Labor Day weekend)
+    regularStart:      '2026-09-09',  // NFL Kickoff (Patriots @ Seahawks)
+    regularEnd:        '2027-01-10',  // Week 18 final games
+    playoffStart:      '2027-01-16',  // Wild Card Weekend (Sat)
+    championshipStart: '2027-02-14',  // Super Bowl LXI — Valentine's Day
+    playoffEnd:        '2027-02-14',
     playoffLabel:      'Wild Card Weekend',
     championship:      'Super Bowl LXI',
   },
 
   // ── NBA 2026-27 ───────────────────────────────────────────────────────────
+  // Source: NBA official (partial). Regular season start TBD (schedule releases Aug 2026).
+  // Preseason international games in Macau: Oct 9-11.
+  // All-Star: Feb 21, 2027 (Phoenix). NBA Finals: ~June 2027.
   nba: {
-    preseasonStart:    '2026-09-29',  // Training camp opens
-    preseasonEnd:      '2026-10-21',
-    regularStart:      '2026-10-22',
-    regularEnd:        '2027-04-13',
-    playoffStart:      '2027-04-19',
+    preseasonStart:    '2026-09-28',  // Training camp opens
+    preseasonEnd:      '2026-10-18',  // Approx end of preseason
+    regularStart:      '2026-10-22',  // Approx — official date TBD
+    regularEnd:        '2027-04-12',  // Approx
+    playoffStart:      '2027-04-18',  // Approx (Play-In: Apr 14-17)
     championshipStart: '2027-06-05',  // NBA Finals begin ~early June
-    playoffEnd:        '2027-06-22',
+    playoffEnd:        '2027-06-22',  // NBA Finals end ~late June
     playoffLabel:      'NBA Playoffs',
     championship:      'NBA Finals',
     tbd:               true,
   },
 
   // ── NHL 2026-27 ───────────────────────────────────────────────────────────
+  // Source: NHL official. NEW: 84-game regular season (first since 1993-94).
+  // Season opens Sep 29. Heritage Classic: Oct 25. Winter Classic: Dec 31.
+  // All-Star: Feb 7, 2027. Regular season ends Apr 10, 2027.
   nhl: {
-    preseasonStart:    '2026-09-18',  // Training camp opens
-    preseasonEnd:      '2026-10-07',
-    regularStart:      '2026-10-08',
-    regularEnd:        '2027-04-18',
-    playoffStart:      '2027-04-19',
+    preseasonStart:    '2026-09-17',  // Training camp opens
+    preseasonEnd:      '2026-09-28',  // Day before regular season
+    regularStart:      '2026-09-29',  // Official puck drop (84-game season)
+    regularEnd:        '2027-04-10',  // Official end of regular season
+    playoffStart:      '2027-04-12',  // Approx (day after season ends)
     championshipStart: '2027-06-02',  // Stanley Cup Finals begin ~early June
-    playoffEnd:        '2027-06-20',
+    playoffEnd:        '2027-06-22',  // Stanley Cup Finals end ~late June
     playoffLabel:      'NHL Playoffs',
     championship:      'Stanley Cup Finals',
     tbd:               true,
   },
 
   // ── MLS 2026 ──────────────────────────────────────────────────────────────
+  // Source: MLS official. LAST spring-fall season (shifts to summer-spring 2027-28).
+  // 7-week World Cup break: May 25 – Jul 16. Decision Day: Nov 7.
+  // MLS Cup Final: Dec 18.
   'usa.1': {
-    preseasonStart:    '2026-02-01',
-    preseasonEnd:      '2026-02-27',
-    regularStart:      '2026-02-28',
-    regularEnd:        '2026-10-18',
-    playoffStart:      '2026-11-01',
-    championshipStart: '2026-12-05',  // MLS Cup final weekend
-    playoffEnd:        '2026-12-07',
+    preseasonStart:    '2026-02-01',  // Approx preseason start
+    preseasonEnd:      '2026-02-20',  // Day before regular season
+    regularStart:      '2026-02-21',  // Official MLS season opener
+    regularEnd:        '2026-11-07',  // Decision Day
+    playoffStart:      '2026-11-18',  // MLS Cup Playoffs begin
+    championshipStart: '2026-12-18',  // MLS Cup Final
+    playoffEnd:        '2026-12-18',
     playoffLabel:      'MLS Cup Playoffs',
     championship:      'MLS Cup',
   },
 
   // ── WNBA 2026 ─────────────────────────────────────────────────────────────
+  // Source: WNBA official. 15-team season (Portland Fire + Toronto Tempo debut).
+  // Preseason: Apr 25. Regular season: May 8. Finals window ends Sep 24.
   wnba: {
-    preseasonStart:    '2026-05-01',
-    preseasonEnd:      '2026-05-15',
-    regularStart:      '2026-05-16',
-    regularEnd:        '2026-09-14',
-    playoffStart:      '2026-09-17',
-    championshipStart: '2026-10-10',  // WNBA Finals begin ~mid Oct
-    playoffEnd:        '2026-10-20',
+    preseasonStart:    '2026-04-25',  // Preseason begins
+    preseasonEnd:      '2026-05-07',  // Day before regular season
+    regularStart:      '2026-05-08',  // Official regular season opener
+    regularEnd:        '2026-09-06',  // Approx regular season end (before playoffs)
+    playoffStart:      '2026-09-10',  // Approx playoffs begin
+    championshipStart: '2026-09-18',  // WNBA Finals begin ~mid-Sep
+    playoffEnd:        '2026-09-24',  // Official window closes
     playoffLabel:      'WNBA Playoffs',
     championship:      'WNBA Finals',
   },
 
   // ── NWSL 2026 ─────────────────────────────────────────────────────────────
+  // Source: NWSL official schedule.
+  // Regular season: Mar 13 – Nov 1. Playoffs: Nov 6. Championship: Nov 21.
   'usa.nwsl': {
-    preseasonStart:    '2026-02-15',
-    preseasonEnd:      '2026-03-13',
-    regularStart:      '2026-03-14',
-    regularEnd:        '2026-10-25',
-    playoffStart:      '2026-11-07',
-    championshipStart: '2026-11-22',  // NWSL Championship
-    playoffEnd:        '2026-11-22',
+    preseasonStart:    '2026-02-15',  // Approx preseason / camp start
+    preseasonEnd:      '2026-03-12',  // Day before regular season
+    regularStart:      '2026-03-13',  // Official regular season opener
+    regularEnd:        '2026-11-01',  // Regular season ends
+    playoffStart:      '2026-11-06',  // NWSL Playoffs begin
+    championshipStart: '2026-11-21',  // NWSL Championship
+    playoffEnd:        '2026-11-21',
     playoffLabel:      'NWSL Playoffs',
     championship:      'NWSL Championship',
   },
 
   // ── WHL 2026-27 ───────────────────────────────────────────────────────────
+  // Source: WHL official schedule (confirmed).
+  // Preseason: Aug 30. Regular season: Sep 18 – Mar 28. Playoffs: Mar 31.
+  // Ed Chynoweth Cup: May 7-17. Memorial Cup (Guelph): May 21-30.
   whl: {
-    regularStart:      '2026-09-19',
-    regularEnd:        '2027-03-21',
-    playoffStart:      '2027-03-25',
-    championshipStart: '2027-05-10',  // Ed Chynoweth Cup finals
-    playoffEnd:        '2027-05-18',
+    preseasonStart:    '2026-08-30',  // First preseason game
+    preseasonEnd:      '2026-09-17',  // Day before regular season
+    regularStart:      '2026-09-18',  // Regular season opens
+    regularEnd:        '2027-03-28',  // Regular season ends
+    playoffStart:      '2027-03-31',  // WHL Playoffs begin
+    championshipStart: '2027-05-07',  // Ed Chynoweth Cup (WHL Final) begins
+    playoffEnd:        '2027-05-17',  // Ed Chynoweth Cup ends
     playoffLabel:      'WHL Playoffs',
     championship:      'Ed Chynoweth Cup',
-    tbd:               true,
   },
 
   // ── PWHL 2026-27 ──────────────────────────────────────────────────────────
+  // Source: PWHL (schedule NOT yet released as of Jul 2026).
+  // League expanding from 8 → 12 teams (Detroit, Hamilton, Las Vegas, San Jose).
+  // Official schedule expected Aug–Oct 2026. All dates are projections.
   pwhl: {
-    regularStart:      '2027-01-08',
-    regularEnd:        '2027-03-30',
-    playoffStart:      '2027-04-05',
-    championshipStart: '2027-05-01',  // PWHL Championship finals
-    playoffEnd:        '2027-05-10',
+    regularStart:      '2026-11-21',  // Projected — TBD
+    regularEnd:        '2027-04-06',  // Projected — TBD
+    playoffStart:      '2027-04-10',  // Projected — TBD
+    championshipStart: '2027-05-15',  // Walter Cup Finals — projected
+    playoffEnd:        '2027-05-25',  // Projected — TBD
     playoffLabel:      'PWHL Playoffs',
-    championship:      'PWHL Championship',
+    championship:      'Walter Cup',
     tbd:               true,
   },
 
-  // ── PGA Tour 2025-26 ──────────────────────────────────────────────────────
+  // ── PGA Tour 2026 ─────────────────────────────────────────────────────────
+  // Source: PGA Tour official. Calendar-year 2026 season.
+  // Note: The Sentry was canceled Oct 2025 — Sony Open (Jan 15) is the real opener.
+  // Majors: Masters Apr 9-12, PGA Champ May 14-17, US Open Jun 18-21, Open Jul 16-19.
+  // FedEx Playoffs: St. Jude Aug 13-16, BMW Aug 20-23, Tour Championship Aug 27-30.
   pga: {
-    regularStart:      '2025-09-04',   // PGA Tour season starts early Sep
-    regularEnd:        '2026-08-16',   // Regular season ends at Tour Championship
-    playoffStart:      '2026-08-20',   // FedEx Cup Playoffs
-    championshipStart: '2026-09-04',   // Tour Championship (final event)
-    playoffEnd:        '2026-09-07',
+    regularStart:      '2026-01-15',  // Sony Open (true 2026 season opener)
+    regularEnd:        '2026-08-09',  // Last event before FedEx Playoffs
+    playoffStart:      '2026-08-13',  // FedEx St. Jude (Playoff #1)
+    championshipStart: '2026-08-27',  // Tour Championship (FedEx Cup Final)
+    playoffEnd:        '2026-08-30',  // Tour Championship ends
     playoffLabel:      'FedEx Cup Playoffs',
     championship:      'FedEx Cup',
   },
 
   // ── LPGA Tour 2026 ────────────────────────────────────────────────────────
+  // Source: LPGA official. 31 events, $132M purse.
+  // Season opener: HGV Tournament of Champions Jan 29 – Feb 1.
+  // Majors: Chevron Apr 23-26, US Women's Open Jun 4-7, KPMG Jun 25-28,
+  //         Evian Jul 9-12, AIG Women's Open Jul 30 – Aug 2.
+  // Solheim Cup (Netherlands): Sep 11-13.
+  // Season finale: CME Group Tour Championship Nov 19-22.
   lpga: {
-    regularStart:      '2026-01-22',
-    regularEnd:        '2026-10-25',
-    playoffStart:      '2026-10-22',   // CME Group Tour Championship
-    championshipStart: '2026-11-18',   // CME final tournament
-    playoffEnd:        '2026-11-22',
+    regularStart:      '2026-01-29',  // HGV Tournament of Champions
+    regularEnd:        '2026-11-15',  // Last event before CME finale
+    playoffStart:      '2026-11-19',  // CME Group Tour Championship begins
+    championshipStart: '2026-11-19',  // Same event = playoff + championship
+    playoffEnd:        '2026-11-22',  // CME Group Tour Championship ends
     playoffLabel:      'Race to CME Globe',
-    championship:      'CME Group Tour Championship',
+    championship:      'CME Tour Championship',
   },
 }
 
