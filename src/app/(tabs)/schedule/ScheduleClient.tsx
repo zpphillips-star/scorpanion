@@ -9,9 +9,11 @@ import TeamLogo from '@/components/TeamLogo'
 import TeamFilterBar, { getCollegeGroupKey } from '@/components/TeamFilterBar'
 import PageHeader from '@/components/PageHeader'
 import GameDetailSheet from '@/components/GameDetailSheet'
+import GolfDetailSheet from '@/components/GolfDetailSheet'
 import { SEASON_START_MONTH, LEAGUE_DISPLAY } from '@/lib/seasonStatus'
 import { getActivePlayoffInfo, formatPlayoffDate, PlayoffDateInfo } from '@/lib/playoffDates'
 import { getApproxNextSeason } from '@/lib/seasonDates'
+import type { PGATournament } from '@/app/api/pga/route'
 
 // Map league ID to canonical standings-API key (for leagues that have standings)
 const STANDINGS_LEAGUE_KEY: Record<string, string> = {
@@ -141,7 +143,7 @@ function DateStrip({
   }, [])
 
   return (
-    <div ref={stripRef} className="overflow-x-auto no-scrollbar px-3 pb-2 pt-0.5 border-t border-zinc-800/60">
+    <div ref={stripRef} className="overflow-x-auto no-scrollbar px-3 pb-2 pt-0.5 border-t border-zinc-700/50">
       <div className="flex gap-0.5 min-w-max">
         {stripDates.map(dateStr => {
           const isToday = dateStr === todayStr
@@ -264,7 +266,7 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
 
   return (
     <div
-      className="flex items-center px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer select-none"
+      className="flex items-center px-4 py-3 border-b border-zinc-700/40 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer select-none"
       style={isLive ? { background: "rgba(239,68,68,0.05)" } : undefined}
       onClick={onTap}
     >
@@ -335,7 +337,32 @@ export default function ScheduleClient() {
   const { counts: teamClickCounts, recordClick: recordTeamClick } = useTeamClickCounts()
   const [activeTeamFilter, setActiveTeamFilter] = useState<string>('all')
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
+  const [selectedGolf, setSelectedGolf] = useState<{ tournament: PGATournament; label: string; accentColor: string } | null>(null)
   const [seasonInfoByLeague, setSeasonInfoByLeague] = useState<Record<string, SeasonInfo>>({})
+
+  // Golf tournaments (PGA / LPGA)
+  const [pgaTournaments, setPgaTournaments] = useState<PGATournament[]>([])
+  const [lpgaTournaments, setLpgaTournaments] = useState<PGATournament[]>([])
+
+  const pgaVisible = selectedTeamIds.includes('pga')
+  const lpgaVisible = selectedTeamIds.includes('lpga')
+  const golfVisible = (activeTeamFilter === 'all' || activeTeamFilter === 'pga' || activeTeamFilter === 'lpga')
+
+  useEffect(() => {
+    if (pgaVisible) {
+      fetch('/api/pga').then(r => r.ok ? r.json() : []).then(setPgaTournaments).catch(() => {})
+    } else {
+      setPgaTournaments([])
+    }
+  }, [pgaVisible])
+
+  useEffect(() => {
+    if (lpgaVisible) {
+      fetch('/api/lpga').then(r => r.ok ? r.json() : []).then(setLpgaTournaments).catch(() => {})
+    } else {
+      setLpgaTournaments([])
+    }
+  }, [lpgaVisible])
 
   const filteredGames = (() => {
     if (activeTeamFilter === 'all') return allGames
@@ -462,14 +489,38 @@ export default function ScheduleClient() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredGames, sortedDates, todayStr])
 
+  // Build golf tournament map by date (each tournament spans Thu-Sun)
+  const golfByDate = useMemo(() => {
+    const map = new Map<string, { tournament: PGATournament; label: string; accentColor: string }[]>()
+    const addTournaments = (tours: PGATournament[], label: string, accentColor: string) => {
+      for (const t of tours) {
+        if (!t.startDate) continue
+        const start = new Date(t.startDate)
+        const end = new Date(t.endDate || t.startDate)
+        for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
+          const key = dt.toISOString().split('T')[0]
+          const arr = map.get(key) ?? []
+          if (!arr.some(a => a.tournament.id === t.id)) arr.push({ tournament: t, label, accentColor })
+          map.set(key, arr)
+        }
+      }
+    }
+    if (golfVisible && pgaVisible) addTournaments(pgaTournaments, 'PGA Tour', '#003087')
+    if (golfVisible && lpgaVisible) addTournaments(lpgaTournaments, 'LPGA', '#b5006e')
+    return map
+  }, [pgaTournaments, lpgaTournaments, golfVisible, pgaVisible, lpgaVisible])
+
   // Always include today in the rendered date list when there are any games at all,
   // so the auto-scroll and "Today" button always land on an anchor — even on rest days.
   const datesWithToday = useMemo(() => {
-    if (filteredGames.length === 0) return sortedDates
+    const hasAny = filteredGames.length > 0 || golfByDate.size > 0
+    if (!hasAny) return sortedDates
     const set = new Set(sortedDates)
     set.add(todayStr)
+    // Include golf dates
+    for (const key of golfByDate.keys()) set.add(key)
     return [...set].sort()
-  }, [sortedDates, todayStr, filteredGames.length])
+  }, [sortedDates, todayStr, filteredGames.length, golfByDate])
 
   // Refs for date section jumping
   const dateRefs = useRef<Record<string, HTMLDivElement | null>>({})
@@ -597,7 +648,7 @@ export default function ScheduleClient() {
                     style={{ background: 'rgba(12,27,49,0.98)', backdropFilter: 'blur(8px)' }}
                   >
                     <span className="text-[12px] uppercase tracking-widest font-bold text-white">{label}</span>
-                    <div className="flex-1 h-px bg-zinc-800" />
+                    <div className="flex-1 h-px bg-zinc-700/50" />
                   </div>
                 )}
 
@@ -610,7 +661,7 @@ export default function ScheduleClient() {
                       onTap={() => setSelectedGame(g)}
                     />
                   ))
-                ) : isToday ? (
+                ) : isToday && (golfByDate.get(dateStr) ?? []).length === 0 ? (
                   <div className="mx-4 my-3 flex items-center gap-3 px-4 py-4 rounded-2xl"
                     style={{ background: 'rgba(0,212,255,0.04)', border: '1px solid rgba(0,212,255,0.12)' }}>
                     <span className="text-2xl select-none">😴</span>
@@ -620,6 +671,60 @@ export default function ScheduleClient() {
                     </div>
                   </div>
                 ) : null}
+
+                {/* Golf tournament rows */}
+                {(golfByDate.get(dateStr) ?? []).map(({ tournament, label, accentColor }) => {
+                  const golfLogoUrl = label === 'LPGA'
+                    ? 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/lpga.png'
+                    : 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/pgatour.png'
+                  const isLive = tournament.status === 'live'
+                  const isCompleted = tournament.status === 'completed'
+                  const dateRange = (() => {
+                    const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                    if (tournament.endDate && tournament.endDate !== tournament.startDate) return `${fmt(tournament.startDate)} – ${fmt(tournament.endDate)}`
+                    return fmt(tournament.startDate)
+                  })()
+                  return (
+                    <div
+                      key={`golf-${tournament.id}`}
+                      className="flex items-center px-4 py-3 border-b border-zinc-700/40 hover:bg-zinc-800/20 active:bg-zinc-800/30 transition-colors cursor-pointer select-none"
+                      style={isLive ? { background: 'rgba(255,180,0,0.04)' } : undefined}
+                      onClick={() => setSelectedGolf({ tournament, label, accentColor })}
+                    >
+                      {/* Left: status */}
+                      <div className="w-[72px] flex-shrink-0 flex flex-col justify-center gap-0.5 pl-2">
+                        {isLive ? (
+                          <div className="flex items-center gap-1">
+                            <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75" />
+                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-yellow-400" />
+                            </span>
+                            <span className="text-[11px] font-bold text-yellow-400 uppercase leading-tight">Live</span>
+                          </div>
+                        ) : isCompleted ? (
+                          <span className="text-[11px] text-zinc-500 uppercase tracking-wide">Final</span>
+                        ) : (
+                          <span className="text-[11px] text-zinc-400 whitespace-nowrap">{dateRange}</span>
+                        )}
+                      </div>
+                      {/* Center: logo + name */}
+                      <div className="flex-1 flex items-center gap-3 min-w-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={golfLogoUrl} alt={label} width={28} height={28} style={{ objectFit: 'contain', flexShrink: 0 }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                        <div className="min-w-0">
+                          <div className="text-[13px] font-semibold text-white truncate">{tournament.name}</div>
+                          {(tournament.course || tournament.location) && (
+                            <div className="text-[11px] text-zinc-500 truncate">📍 {[tournament.course, tournament.location].filter(Boolean).join(', ')}</div>
+                          )}
+                        </div>
+                      </div>
+                      {/* Right: label */}
+                      <div className="w-14 flex-shrink-0 text-center">
+                        <span className="text-[11px] font-semibold text-zinc-500">{label === 'PGA Tour' ? 'PGA' : label}</span>
+                      </div>
+                    </div>
+                  )
+                })}
 
                 {/* ── Playoff milestone cards ────────────────────────────────── */}
                 {(playoffMilestonesByDate.get(dateStr) ?? []).map(({ league, info }) => (
@@ -633,6 +738,14 @@ export default function ScheduleClient() {
 
       {selectedGame && (
         <GameDetailSheet game={selectedGame} onClose={() => setSelectedGame(null)} />
+      )}
+      {selectedGolf && (
+        <GolfDetailSheet
+          tournament={selectedGolf.tournament}
+          label={selectedGolf.label}
+          accentColor={selectedGolf.accentColor}
+          onClose={() => setSelectedGolf(null)}
+        />
       )}
     </>
   )

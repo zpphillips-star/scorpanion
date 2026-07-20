@@ -5,6 +5,8 @@ import { Game, TeamRecord } from "@/lib/types"
 import { getTeamLogoUrl } from "@/lib/teams"
 import TeamLogo from "./TeamLogo"
 import GameDetailSheet from "./GameDetailSheet"
+import GolfDetailSheet from "./GolfDetailSheet"
+import type { PGATournament } from "@/app/api/pga/route"
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -130,7 +132,7 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
       className="w-full text-left transition-all active:scale-[0.983] active:opacity-90"
     >
       <div
-        className="rounded-xl overflow-hidden"
+        className="overflow-hidden"
         style={{
           background: "var(--surface-2)",
           border: `1px solid ${isLive ? "rgba(255,180,0,0.22)" : "var(--border-default)"}`,
@@ -140,7 +142,7 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
         {/* ── Top bar: broadcast + status ── */}
         <div
           className="flex items-center justify-between px-4 pt-3.5 pb-2"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.10)" }}
         >
           {/* Broadcast network */}
           <span
@@ -273,7 +275,7 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
         {game.venue?.name && (
           <div
             className="flex items-center justify-between px-4 pb-3.5"
-            style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+            style={{ borderTop: "1px solid rgba(255,255,255,0.10)" }}
           >
             <span className="text-[11px] truncate" style={{ color: "var(--text-faint)" }}>
               📍 {game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}
@@ -292,6 +294,76 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
             </svg>
           </div>
         )}
+      </div>
+    </button>
+  )
+}
+
+// ── Golf tournament card for day sheet ───────────────────────────────────────
+
+function GolfDayCard({ tournament, label, accentColor, onTap }: {
+  tournament: PGATournament
+  label: string
+  accentColor: string
+  onTap: () => void
+}) {
+  const isLive = tournament.status === "live"
+  const isCompleted = tournament.status === "completed"
+  const logoUrl = label === "LPGA"
+    ? "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/lpga.png"
+    : "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/pgatour.png"
+  const dateRange = (() => {
+    const fmt = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    if (tournament.endDate && tournament.endDate !== tournament.startDate)
+      return `${fmt(tournament.startDate)} – ${fmt(tournament.endDate)}`
+    return fmt(tournament.startDate)
+  })()
+
+  return (
+    <button
+      onClick={onTap}
+      className="w-full text-left transition-all active:scale-[0.983] active:opacity-90"
+    >
+      <div
+        className="overflow-hidden"
+        style={{
+          background: "var(--surface-2)",
+          border: `1px solid ${isLive ? "rgba(255,180,0,0.22)" : "var(--border-default)"}`,
+          borderLeft: `3.5px solid ${isLive ? "#FFB400" : accentColor}`,
+        }}
+      >
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-4 pt-3.5 pb-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.10)" }}>
+          <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>{label}</span>
+          {isLive ? (
+            <div className="flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2 flex-shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
+              </span>
+              <span className="text-[12px] font-bold uppercase tracking-wider text-yellow-400">Live · {tournament.roundLabel}</span>
+            </div>
+          ) : isCompleted ? (
+            <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>Final</span>
+          ) : (
+            <span className="text-[13px] font-bold text-zinc-200">{dateRange}</span>
+          )}
+        </div>
+
+        {/* Main row */}
+        <div className="flex items-center px-4 py-4 gap-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={logoUrl} alt={label} width={48} height={48} style={{ objectFit: "contain", flexShrink: 0 }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
+          <div className="min-w-0 flex-1">
+            <div className="text-[15px] font-bold text-white leading-tight truncate">{tournament.name}</div>
+            {(tournament.course || tournament.location) && (
+              <div className="text-[11px] text-zinc-500 mt-1 truncate">📍 {[tournament.course, tournament.location].filter(Boolean).join(", ")}</div>
+            )}
+          </div>
+          <svg className="w-4 h-4 flex-shrink-0 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
       </div>
     </button>
   )
@@ -323,11 +395,13 @@ function LeagueSectionHeader({ label }: { label: string }) {
 interface DayGamesSheetProps {
   date: string      // "YYYY-MM-DD"
   games: Game[]     // pre-filtered + live-score-merged games for this date
+  golfTournaments?: { tournament: PGATournament; label: string; accentColor: string }[]
   onClose: () => void
 }
 
-export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetProps) {
+export default function DayGamesSheet({ date, games, golfTournaments = [], onClose }: DayGamesSheetProps) {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
+  const [selectedGolf, setSelectedGolf] = useState<{ tournament: PGATournament; label: string; accentColor: string } | null>(null)
   // Portal requires document — wait for mount so SSR doesn't break
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
@@ -344,10 +418,11 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
 
   const today   = getTodayStr()
   const isToday = date === today
-  const hasLive = games.some(g => g.status === "live")
+  const hasLive = games.some(g => g.status === "live") || golfTournaments.some(g => g.tournament.status === "live")
+  const totalCount = games.length + golfTournaments.length
 
   const { weekday, fullDate } = formatHeaderDate(date)
-  const countText = `${games.length} Game${games.length !== 1 ? "s" : ""}`
+  const countText = totalCount === 0 ? "No events" : `${totalCount} Event${totalCount !== 1 ? "s" : ""}`
 
   const sheet = (
     <>
@@ -440,7 +515,7 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
 
         {/* ── Game list — scrollable ── */}
         <div className="overflow-y-auto flex-1 overscroll-contain">
-          {games.length === 0 ? (
+          {totalCount === 0 ? (
             <div className="py-20 flex flex-col items-center gap-4">
               <div
                 className="w-16 h-16 rounded-2xl flex items-center justify-center"
@@ -455,7 +530,7 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
               <div>
                 <p className="text-center font-display text-[15px] font-700 uppercase tracking-widest"
                    style={{ color: "var(--text-faint)" }}>
-                  No games scheduled
+                  No events scheduled
                 </p>
                 <p className="text-center text-[12px] mt-1" style={{ color: "var(--text-faint)", opacity: 0.6 }}>
                   {weekday}, {fullDate}
@@ -471,6 +546,22 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
                   onTap={() => setSelectedGame(g)}
                 />
               ))}
+              {golfTournaments.length > 0 && (
+                <>
+                  {games.length > 0 && (
+                    <LeagueSectionHeader label="Golf" />
+                  )}
+                  {golfTournaments.map(({ tournament, label, accentColor }) => (
+                    <GolfDayCard
+                      key={tournament.id}
+                      tournament={tournament}
+                      label={label}
+                      accentColor={accentColor}
+                      onTap={() => setSelectedGolf({ tournament, label, accentColor })}
+                    />
+                  ))}
+                </>
+              )}
             </div>
           )}
 
@@ -484,6 +575,15 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
         <GameDetailSheet
           game={selectedGame}
           onClose={() => setSelectedGame(null)}
+        />
+      )}
+      {/* Golf detail sheet */}
+      {selectedGolf && (
+        <GolfDetailSheet
+          tournament={selectedGolf.tournament}
+          label={selectedGolf.label}
+          accentColor={selectedGolf.accentColor}
+          onClose={() => setSelectedGolf(null)}
         />
       )}
     </>

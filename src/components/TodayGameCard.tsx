@@ -62,7 +62,7 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
       >
         <div
           style={{
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
+            borderBottom: "1px solid rgba(255,255,255,0.10)",
             borderLeft: isLive ? "3px solid #ef4444" : "none",
             paddingLeft: isLive ? "13px" : "16px",
             opacity: isFt ? 0.82 : 1,
@@ -199,7 +199,7 @@ export function TodayBanner({ gameCount, hasLive }: { gameCount: number; hasLive
       <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: hasLive ? "#f87171" : "#71717a" }}>
         {hasLive ? "Live Now" : "Today"}
       </span>
-      <div className="flex-1 h-px bg-zinc-800" />
+      <div className="flex-1 h-px bg-zinc-700/50" />
       <span className="text-[10px] text-zinc-600 uppercase tracking-wider">{dateLabel}</span>
     </div>
   )

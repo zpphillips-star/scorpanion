@@ -521,7 +521,7 @@ function CollegeStandingsPicker({
         className="absolute left-0 z-50 mt-1 rounded-2xl overflow-hidden shadow-2xl animate-slide-down"
         style={{ background: "var(--surface)", border: "1px solid var(--border)", top: "100%", minWidth: "180px" }}
       >
-        <div className="px-3 py-2.5 border-b border-white/5 flex items-center gap-2">
+        <div className="px-3 py-2.5 border-b border-white/[0.09] flex items-center gap-2">
           {rep && <TeamLogo src={getTeamLogoUrl(rep)} emoji={rep.emoji} abbr={rep.abbr} size={20} />}
           <span className="font-display text-[12px] font-800 text-white uppercase">{school}</span>
         </div>

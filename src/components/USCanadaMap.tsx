@@ -75,7 +75,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
     const sel = selectedState === abbr
     if (sel) return { background: 'rgba(217,92,23,0.25)', border: '2px solid #D95C17', color: '#D95C17' }
     if (has) return { background: 'rgba(255,255,255,0.11)', border: '1px solid rgba(255,255,255,0.22)', color: '#e5e7eb' }
-    return { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: '#4b5563' }
+    return { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.12)', color: '#4b5563' }
   }
 
   const resetZoom = useCallback(() => setVb(FULL_VB), [])

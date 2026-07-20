@@ -87,11 +87,11 @@ interface TeamDetail {
 function SectionLabel({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 mb-3">
-      <div className="flex-1 h-px bg-zinc-800" />
+      <div className="flex-1 h-px bg-zinc-700/50" />
       <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex-shrink-0">
         {label}
       </span>
-      <div className="flex-1 h-px bg-zinc-800" />
+      <div className="flex-1 h-px bg-zinc-700/50" />
     </div>
   )
 }
@@ -434,7 +434,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
           </div>
 
           {/* Hairline divider at bottom of header */}
-          <div className="absolute bottom-0 left-5 right-5 h-px bg-zinc-800/60" />
+          <div className="absolute bottom-0 left-5 right-5 h-px bg-zinc-700/50/60" />
         </div>
 
         {/* ── SCROLLABLE BODY ── */}
@@ -444,7 +444,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
           {canShowBoxScore && game.sport === "baseball" && (
             <div className="mb-5">
               <SectionLabel label="Line Score" />
-              <div className="rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div className="overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)" }}>
                 <div className="px-3 py-3">
                   <CompactBaseballLineScore
                     gameId={game.id}
@@ -460,7 +460,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
           {/* Full box score for other sports */}
           {canShowBoxScore && game.sport !== "baseball" && (
             <div className="mb-5">
-              <div className="rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div className="overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)" }}>
                 <div className="px-3 py-3">
                   <BoxScore
                     eventId={game.id.includes("|") ? game.id.split("|").at(-1)! : game.id}
@@ -478,8 +478,8 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
             <div className="mb-5">
               <SectionLabel label="Teams" />
               <div
-                className="rounded-xl grid grid-cols-2 divide-x divide-zinc-800/60"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+                className="grid grid-cols-2 divide-x divide-zinc-800/60"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)" }}
               >
                 <div className="p-4">
                   <TeamContextCard

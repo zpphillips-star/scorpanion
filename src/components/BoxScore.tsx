@@ -119,9 +119,9 @@ function TeamCell({ team, isSea }: { team: LineTeam; isSea: boolean }) {
 function SectionHeader({ label, first = false }: { label: string; first?: boolean }) {
   return (
     <div className={`flex items-center gap-2 ${first ? "pt-1" : "pt-6"} pb-3 px-1`}>
-      <div className="flex-1 h-px bg-zinc-800" />
+      <div className="flex-1 h-px bg-zinc-700/50" />
       <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{label}</span>
-      <div className="flex-1 h-px bg-zinc-800" />
+      <div className="flex-1 h-px bg-zinc-700/50" />
     </div>
   )
 }
@@ -167,7 +167,7 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
               const H = team.hits !== undefined ? String(team.hits) : "–"
               const E = team.errors !== undefined ? String(team.errors) : "–"
               return (
-                <tr key={team.teamId} className="border-t border-zinc-800/60">
+                <tr key={team.teamId} className="border-t border-zinc-700/50">
                   <TeamCell team={team} isSea={!!isSea} />
                   {periodLabels.map((_, pi) => {
                     const val = team.linescores[pi]
@@ -254,7 +254,7 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
             {linescores.map((team) => {
               const isSea = (seattleTeamId && team.teamId === seattleTeamId) || team.abbr === "SEA"
               return (
-                <tr key={team.teamId} className="border-t border-zinc-800/60">
+                <tr key={team.teamId} className="border-t border-zinc-700/50">
                   <TeamCell team={team} isSea={!!isSea} />
                   {periodLabels.map((_, pi) => {
                     const val = team.linescores[pi]
@@ -283,7 +283,7 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
           <SectionHeader label="Top Scorers" />
           <div className="pb-2">
             {/* Column header — matches player rows */}
-            <div className="flex items-center pb-1.5 mb-1 border-b border-zinc-800/60">
+            <div className="flex items-center pb-1.5 mb-1 border-b border-zinc-700/50">
               <div className="flex-1" />
               <div className="flex gap-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest tabular-nums">
                 <span className="w-8 text-center">PTS</span>
@@ -365,7 +365,7 @@ function HockeyScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattle
               const isSea = (seattleTeamId && team.teamId === seattleTeamId) || team.abbr === "SEA"
               const isWinner = winner?.teamId === team.teamId
               return (
-                <tr key={team.teamId} className="border-t border-zinc-800/60">
+                <tr key={team.teamId} className="border-t border-zinc-700/50">
                   <TeamCell team={team} isSea={!!isSea} />
                   {periodLabels.map((lbl, pi) => {
                     const val = team.linescores[pi]
@@ -420,7 +420,7 @@ function FootballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
             {linescores.map((team) => {
               const isSea = (seattleTeamId && team.teamId === seattleTeamId) || team.abbr === "SEA"
               return (
-                <tr key={team.teamId} className="border-t border-zinc-800/60">
+                <tr key={team.teamId} className="border-t border-zinc-700/50">
                   <TeamCell team={team} isSea={!!isSea} />
                   {periodLabels.map((_, pi) => {
                     const val = team.linescores[pi]
@@ -555,7 +555,7 @@ function GenericScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattl
             {linescores.map((team) => {
               const isSea = (seattleTeamId && team.teamId === seattleTeamId) || team.abbr === "SEA"
               return (
-                <tr key={team.teamId} className="border-t border-zinc-800/60">
+                <tr key={team.teamId} className="border-t border-zinc-700/50">
                   <TeamCell team={team} isSea={!!isSea} />
                   {periodLabels.map((_, pi) => {
                     const val = team.linescores[pi]
@@ -611,7 +611,7 @@ function TeamStatsSection({ data, color }: { data: BoxScoreData; color: string }
           const total = numA + numB || 1
           const pctA = numA / total
           return (
-            <div key={key} className="px-5 py-5 border-b border-zinc-800/50 last:border-0">
+            <div key={key} className="px-5 py-5 border-b border-zinc-700/40 last:border-0">
               <div className="flex justify-between items-baseline mb-3">
                 <span className="font-display text-[15px] font-700 text-white tabular-nums">{vA}</span>
                 <span className="font-display text-[10px] font-700 text-zinc-500 uppercase tracking-[0.12em]">{label}</span>

@@ -6,6 +6,7 @@ import { useTeamClickCounts } from '@/hooks/useTeamClickCounts'
 import DayGamesSheet from '@/components/DayGamesSheet'
 import TeamFilterBar, { getCollegeGroupKey } from '@/components/TeamFilterBar'
 import PageHeader from '@/components/PageHeader'
+import type { PGATournament } from '@/app/api/pga/route'
 
 const DOW = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
@@ -17,6 +18,8 @@ export default function CalendarClient() {
   const { counts: teamClickCounts, recordClick } = useTeamClickCounts()
   const [games, setGames] = useState<Game[]>([])
   const [golfDays, setGolfDays] = useState<Map<string, { color: string; label: string }[]>>(new Map())
+  // Full golf tournament objects indexed by date for DayGamesSheet
+  const [golfByDate, setGolfByDate] = useState<Map<string, { tournament: PGATournament; label: string; accentColor: string }[]>>(new Map())
   const [liveScores, setLiveScores] = useState<Record<string, ScoreUpdate>>({})
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
@@ -49,34 +52,53 @@ export default function CalendarClient() {
 
       // Fetch golf tournament dates separately
       const golfMap = new Map<string, { color: string; label: string }[]>()
+      const golfDetailMap = new Map<string, { tournament: PGATournament; label: string; accentColor: string }[]>()
       const golfFetches: Promise<void>[] = []
 
       // Helper: fetch full season schedule and plot every tournament day
-      const addGolfTour = (tour: string, color: string) => {
+      const addGolfTour = (tour: string, color: string, displayLabel: string) => {
         golfFetches.push(
-          fetch(`/api/golf?tour=${tour}&mode=schedule`)
-            .then(r => r.ok ? r.json() : [])
-            .then((tournaments: { startDate: string; endDate: string; name: string }[]) => {
-              for (const t of tournaments) {
-                if (!t.startDate) continue
-                const start = new Date(t.startDate)
-                const end = new Date(t.endDate || t.startDate)
-                for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
-                  const key = dt.toISOString().split('T')[0]
-                  const arr = golfMap.get(key) ?? []
-                  if (!arr.some(a => a.label === t.name)) arr.push({ color, label: t.name })
-                  golfMap.set(key, arr)
-                }
+          // Fetch schedule (dots) + current tournament data (for detail sheets) in parallel
+          Promise.all([
+            fetch(`/api/golf?tour=${tour}&mode=schedule`).then(r => r.ok ? r.json() : []),
+            fetch(`/api/${tour}`).then(r => r.ok ? r.json() : []),
+          ]).then(([tournaments, currentTournaments]: [{ id: string; startDate: string; endDate: string; name: string }[], PGATournament[]]) => {
+            // Plot dots for every day of every tournament
+            for (const t of tournaments) {
+              if (!t.startDate) continue
+              const start = new Date(t.startDate)
+              const end = new Date(t.endDate || t.startDate)
+              for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
+                const key = dt.toISOString().split('T')[0]
+                const arr = golfMap.get(key) ?? []
+                if (!arr.some(a => a.label === t.name)) arr.push({ color, label: t.name })
+                golfMap.set(key, arr)
               }
-            }).catch(() => {})
+            }
+            // Index full tournament objects by each day they run
+            for (const t of (currentTournaments as PGATournament[])) {
+              if (!t.startDate) continue
+              const start = new Date(t.startDate)
+              const end = new Date(t.endDate || t.startDate)
+              for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
+                const key = dt.toISOString().split('T')[0]
+                const arr = golfDetailMap.get(key) ?? []
+                if (!arr.some(a => a.tournament.id === t.id)) {
+                  arr.push({ tournament: t, label: displayLabel, accentColor: color })
+                }
+                golfDetailMap.set(key, arr)
+              }
+            }
+          }).catch(() => {})
         )
       }
 
-      if (selectedTeamIds.includes('pga'))  addGolfTour('pga',  '#003087')
-      if (selectedTeamIds.includes('lpga')) addGolfTour('lpga', '#b5006e')
+      if (selectedTeamIds.includes('pga'))  addGolfTour('pga',  '#003087', 'PGA Tour')
+      if (selectedTeamIds.includes('lpga')) addGolfTour('lpga', '#b5006e', 'LPGA')
 
       await Promise.all(golfFetches)
       setGolfDays(golfMap)
+      setGolfByDate(golfDetailMap)
     } catch {}
     finally { setLoading(false) }
   }, [loaded, selectedTeamIds])
@@ -137,6 +159,8 @@ export default function CalendarClient() {
         return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date(g.kickoff)) === selectedDate
       })
     : []
+
+  const selectedGolfTournaments = selectedDate ? (golfByDate.get(selectedDate) ?? []) : []
 
   function navigate(dir: 'prev' | 'next') {
     setSlideDir(dir === 'next' ? 'left' : 'right')
@@ -315,6 +339,7 @@ export default function CalendarClient() {
         <DayGamesSheet
           date={selectedDate}
           games={selectedGames}
+          golfTournaments={selectedGolfTournaments}
           onClose={() => setSelectedDate(null)}
         />
       )}

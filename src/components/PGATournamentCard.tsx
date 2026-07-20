@@ -18,7 +18,7 @@ function PlayerRow({ player, isLast, showRounds }: { player: PGAPlayer; isLast: 
       className="grid items-center px-4 py-2.5"
       style={{
         gridTemplateColumns: "32px 1fr 48px 44px 36px",
-        borderBottom: isLast ? "none" : "1px solid rgba(255,255,255,0.05)",
+        borderBottom: isLast ? "none" : "1px solid rgba(255,255,255,0.09)",
       }}
     >
       <span className="text-[11px] font-semibold tabular-nums" style={{ color: isTied ? "#6b7280" : "#f0f0f8" }}>
@@ -94,7 +94,7 @@ function TournamentDetailSheet({ tournament, onClose }: { tournament: PGATournam
           <div className="grid px-4 py-2 sticky top-0" style={{
             gridTemplateColumns: "32px 1fr 48px 44px 36px",
             background: "#0c1b31",
-            borderBottom: "1px solid rgba(255,255,255,0.07)"
+            borderBottom: "1px solid rgba(255,255,255,0.12)"
           }}>
             <span />
             <span className="text-[9px] tracking-widest uppercase font-semibold" style={{ color: "#374151" }}>Player</span>
@@ -143,7 +143,7 @@ export function TournamentCard({ tournament }: { tournament: PGATournament }) {
           }}
         >
           {/* Header */}
-          <div className="px-4 pt-4 pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div className="px-4 pt-4 pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.10)" }}>
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
                 {isLive ? (
@@ -181,7 +181,7 @@ export function TournamentCard({ tournament }: { tournament: PGATournament }) {
             <>
               <div className="grid px-4 py-2" style={{
                 gridTemplateColumns: "32px 1fr 48px 44px 36px",
-                borderBottom: "1px solid rgba(255,255,255,0.05)"
+                borderBottom: "1px solid rgba(255,255,255,0.09)"
               }}>
                 <span />
                 <span className="text-[9px] tracking-widest uppercase font-semibold" style={{ color: "#2d4a6b" }}>Player</span>
@@ -193,7 +193,7 @@ export function TournamentCard({ tournament }: { tournament: PGATournament }) {
                 <PlayerRow key={`${p.name}-${i}`} player={p} isLast={i === previewPlayers.length - 1} />
               ))}
               {tournament.leaders.length > 5 && (
-                <div className="px-4 py-2.5 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                <div className="px-4 py-2.5 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.09)" }}>
                   <span className="text-[11px] font-semibold" style={{ color: "#3a5070" }}>
                     +{tournament.leaders.length - 5} more · tap to view full leaderboard
                   </span>

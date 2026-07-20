@@ -25,7 +25,7 @@ function MenuItem({
         fontSize: 16,
         fontWeight: 700,
         letterSpacing: "0.1em",
-        borderBottom: noBorder ? "none" : "1px solid rgba(255,255,255,0.07)",
+        borderBottom: noBorder ? "none" : "1px solid rgba(255,255,255,0.12)",
         background: hovered ? "rgba(255,255,255,0.05)" : "transparent",
       }}
       onMouseEnter={() => setHovered(true)}
@@ -109,7 +109,7 @@ export function HamburgerMenu() {
         style={{
           width: 280,
           background: "#0c1b31",
-          borderLeft: "1px solid rgba(255,255,255,0.07)",
+          borderLeft: "1px solid rgba(255,255,255,0.12)",
           transform: open ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.25s cubic-bezier(0.4,0,0.2,1)",
         }}
@@ -146,7 +146,7 @@ export function HamburgerMenu() {
         <nav className="flex flex-col">
           {/* Sign In / Sign Out row */}
           {checked && (
-            <div style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+            <div style={{ borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
               {user ? (
                 <div className="flex items-center gap-3 py-4 px-6">
                   <span

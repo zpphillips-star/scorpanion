@@ -94,7 +94,7 @@ function OffSeasonCards({ teams, nextGames }: {
         return (
           <div
             key={team.id}
-            className="flex items-center gap-3 px-4 py-3.5 border-b border-zinc-800/50"
+            className="flex items-center gap-3 px-4 py-3.5 border-b border-zinc-700/40"
           >
             {/* Team logo */}
             <TeamLogo src={logoUrl} emoji={team.emoji} abbr={team.abbr} size={32} />
@@ -192,7 +192,7 @@ function GolfTodayCard({ tournament, label, accentColor }: {
     <>
       <button className="w-full text-left active:opacity-70 transition-opacity" onClick={() => setShowDetail(true)}>
         <div style={{
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          borderBottom: "1px solid rgba(255,255,255,0.10)",
           borderLeft: isLive ? "3px solid #ef4444" : "none",
           paddingLeft: isLive ? "13px" : "16px",
           opacity: isFt ? 0.82 : 1,
@@ -300,7 +300,7 @@ function GolfRecentCard({ tournament, label, accentColor }: {
       <button
         onClick={() => setShowDetail(true)}
         className="flex-shrink-0 w-[148px] text-left active:opacity-70 transition-opacity last:border-r-0 pr-7 mr-7 last:pr-0 last:mr-0"
-        style={{ borderRight: '1px solid rgba(255,255,255,0.07)' }}
+        style={{ borderRight: '1px solid rgba(255,255,255,0.12)' }}
       >
         {/* Day of week — centered, matches RecentCard */}
         <div className="flex items-center justify-center mb-4 px-1">
@@ -353,7 +353,7 @@ function GolfUpcomingRow({ tournament, label, accentColor }: {
     try { return new Date(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) } catch { return '' }
   }
   return (
-    <div className="py-3 border-b border-white/5">
+    <div className="py-3 border-b border-white/[0.09]">
       <div className="pl-6 mb-1.5 flex items-center gap-2">
         <span className="text-[11px] uppercase tracking-wide tabular-nums font-semibold" style={{ color: "#ffffff" }}>
           {label}
@@ -385,7 +385,7 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
     <button
       onClick={onClick}
       className="flex-shrink-0 w-[148px] text-left active:opacity-70 transition-opacity last:border-r-0 pr-7 mr-7 last:pr-0 last:mr-0"
-      style={{ borderRight: "1px solid rgba(255,255,255,0.07)" }}
+      style={{ borderRight: "1px solid rgba(255,255,255,0.12)" }}
     >
       {/* Day of week — centered */}
       <div className="flex items-center justify-center mb-4 px-1">
@@ -438,7 +438,7 @@ function CollegeSportPicker({
         className="absolute left-0 right-0 z-50 mx-3 mt-1 rounded-2xl overflow-hidden shadow-2xl animate-slide-down"
         style={{ background: "var(--surface)", border: "1px solid var(--border)", top: "100%" }}
       >
-        <div className="px-4 py-3 border-b border-white/5 flex items-center gap-2.5">
+        <div className="px-4 py-3 border-b border-white/[0.09] flex items-center gap-2.5">
           {representative && (
             <TeamLogo src={getTeamLogoUrl(representative)} emoji={representative.emoji} abbr={representative.abbr} size={24} />
           )}
@@ -784,7 +784,7 @@ export default function HomeClient() {
         <div className="mt-10">
           <div className="flex items-center gap-3 px-4 mb-4">
             <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Recent</span>
-            <div className="flex-1 h-px bg-zinc-800" />
+            <div className="flex-1 h-px bg-zinc-700/50" />
             <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">Last 7 days</span>
           </div>
           <div className="overflow-x-auto no-scrollbar px-4">
@@ -822,10 +822,10 @@ export default function HomeClient() {
         const dateLabel = todayDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
 
         return (
-          <div className="mt-20">
+          <div className="mt-28">
             <div className="flex items-center gap-3 px-4 mb-4">
               <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Today</span>
-              <div className="flex-1 h-px bg-zinc-800" />
+              <div className="flex-1 h-px bg-zinc-700/50" />
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{dateLabel}</span>
             </div>
 
@@ -855,7 +855,7 @@ export default function HomeClient() {
         <>
           <div className="mt-14 px-4 mb-2 flex items-center gap-3">
             <span className="font-display text-[13px] font-800 text-zinc-400 uppercase tracking-widest">Off Season</span>
-            <div className="flex-1 h-px bg-zinc-800" />
+            <div className="flex-1 h-px bg-zinc-700/50" />
           </div>
           <OffSeasonCards teams={teamsWithNoGames.length > 0 ? teamsWithNoGames : followedTeams} nextGames={nextGameByTeam} />
         </>
@@ -863,10 +863,10 @@ export default function HomeClient() {
 
       {/* ── Upcoming — WC compact rows ───────────────────────────────────── */}
       {upcomingDates.length > 0 && (
-        <div className="mt-20">
+        <div className="mt-28">
           <div className="px-4 mb-4 flex items-center gap-3">
             <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Upcoming</span>
-            <div className="flex-1 h-px bg-zinc-800" />
+            <div className="flex-1 h-px bg-zinc-700/50" />
             <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">
               {upcomingFallback.length > 0 ? "Next scheduled" : "Next 14 days"}
             </span>
@@ -881,7 +881,7 @@ export default function HomeClient() {
                 style={{ background: "rgba(12,27,49,0.98)", backdropFilter: "blur(8px)" }}
               >
                 <span className="text-[11px] uppercase tracking-wider font-normal text-zinc-500">{fmtDayHeader(ds)}</span>
-                <div className="flex-1 h-px bg-zinc-800" />
+                <div className="flex-1 h-px bg-zinc-700/50" />
               </div>
               {/* ── Team game rows ── */}
               {(upcomingByDate[ds] ?? []).map(g => {
@@ -897,7 +897,7 @@ export default function HomeClient() {
                 return (
                   <div
                     key={g.id}
-                    className="py-3 border-b border-white/5 hover:bg-white/[0.03] active:bg-white/[0.06] transition-colors cursor-pointer"
+                    className="py-3 border-b border-white/[0.09] hover:bg-white/[0.03] active:bg-white/[0.06] transition-colors cursor-pointer"
                     onClick={() => setSelectedRecentGame(g)}
                   >
                     <div className="pl-6 mb-1.5 flex items-center gap-2">
@@ -933,7 +933,7 @@ export default function HomeClient() {
                 return (
                   <button
                     key={`golf-${t.id}-${ds}`}
-                    className="w-full text-left py-3 border-b border-white/5 active:opacity-70 transition-opacity"
+                    className="w-full text-left py-3 border-b border-white/[0.09] active:opacity-70 transition-opacity"
                     onClick={() => setSelectedGolfUpcoming({ tournament: t, label, accentColor })}
                   >
                     {/* Sub-header: date range (matches time row of team games) */}

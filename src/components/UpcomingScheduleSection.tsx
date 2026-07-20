@@ -46,7 +46,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
   }, [seaId, oppId, league])
 
   if (loading) return (
-    <div className="border-t border-zinc-800/60">
+    <div className="border-t border-zinc-700/50">
       <div className="px-5 pt-6 pb-2">
         <span className="font-display text-[10px] font-700 uppercase tracking-[0.16em] text-zinc-500">Upcoming Schedule</span>
       </div>
@@ -67,7 +67,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
   const color = game.seattleTeam.primaryColor
 
   const GameRow = ({ g }: { g: UpcomingGame }) => (
-    <div className="flex items-center gap-3 py-3.5 border-b border-zinc-800/50 last:border-0">
+    <div className="flex items-center gap-3 py-3.5 border-b border-zinc-700/40 last:border-0">
       <span className="font-display text-[12px] font-600 text-zinc-500 w-5 text-center flex-shrink-0">
         {g.isHome ? "vs" : "@"}
       </span>
@@ -84,16 +84,16 @@ export default function UpcomingScheduleSection({ game }: Props) {
     <div className="mt-6 pb-6">
       {/* Section header — WC style */}
       <div className="flex items-center gap-2 mb-5">
-        <div className="flex-1 h-px bg-zinc-800" />
+        <div className="flex-1 h-px bg-zinc-700/50" />
         <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Upcoming Schedule</span>
-        <div className="flex-1 h-px bg-zinc-800" />
+        <div className="flex-1 h-px bg-zinc-700/50" />
       </div>
 
       {/* Two-column layout: Seattle | Opponent */}
       <div className="grid grid-cols-2 divide-x divide-zinc-800/60">
         {/* Seattle column */}
         <div>
-          <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-zinc-800">
+          <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-zinc-700/60">
             <TeamLogo src={seaLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={18} />
             <span className="text-[12px] font-semibold text-white truncate">{game.seattleTeam.shortName}</span>
           </div>
@@ -102,7 +102,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
           ) : (
             <div>
               {seaGames.map((g, i) => (
-                <div key={i} className={`py-2.5 ${i < seaGames.length - 1 ? "border-b border-zinc-800/50" : ""}`}>
+                <div key={i} className={`py-2.5 ${i < seaGames.length - 1 ? "border-b border-zinc-700/40" : ""}`}>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-[11px] text-zinc-500 flex-shrink-0 w-4">{g.isHome ? "vs" : "@"}</span>
                     {g.oppLogo
@@ -120,7 +120,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
 
         {/* Opponent column */}
         <div>
-          <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-zinc-800">
+          <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-zinc-700/60">
             {game.opponent.logo
               ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={18} height={18} className="object-contain" />
               : <div className="w-4 h-4 rounded-full bg-white/10" />
@@ -132,7 +132,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
           ) : (
             <div>
               {oppGames.map((g, i) => (
-                <div key={i} className={`py-2.5 ${i < oppGames.length - 1 ? "border-b border-zinc-800/50" : ""}`}>
+                <div key={i} className={`py-2.5 ${i < oppGames.length - 1 ? "border-b border-zinc-700/40" : ""}`}>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-[11px] text-zinc-500 flex-shrink-0 w-4">{g.isHome ? "vs" : "@"}</span>
                     {g.oppLogo

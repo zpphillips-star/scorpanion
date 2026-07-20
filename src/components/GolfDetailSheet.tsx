@@ -47,11 +47,11 @@ interface GolfDetailSheetProps {
 function SectionLabel({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 mb-3">
-      <div className="flex-1 h-px bg-zinc-800" />
+      <div className="flex-1 h-px bg-zinc-700/50" />
       <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex-shrink-0">
         {label}
       </span>
-      <div className="flex-1 h-px bg-zinc-800" />
+      <div className="flex-1 h-px bg-zinc-700/50" />
     </div>
   )
 }
@@ -231,7 +231,7 @@ export default function GolfDetailSheet({
           </div>
 
           {/* Hairline divider */}
-          <div className="absolute bottom-0 left-5 right-5 h-px bg-zinc-800/60" />
+          <div className="absolute bottom-0 left-5 right-5 h-px bg-zinc-700/50/60" />
         </div>
 
         {/* ── SCROLLABLE BODY ── */}
@@ -243,8 +243,8 @@ export default function GolfDetailSheet({
 
             {hasLeaders ? (
               <div
-                className="rounded-xl overflow-hidden"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+                className="overflow-hidden"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)" }}
               >
                 {/* Column headers for live/completed */}
                 {!isUpcoming && (
@@ -253,7 +253,7 @@ export default function GolfDetailSheet({
                     style={{
                       gridTemplateColumns: "32px 1fr 52px 44px 36px",
                       background: "rgba(255,255,255,0.03)",
-                      borderBottom: "1px solid rgba(255,255,255,0.06)",
+                      borderBottom: "1px solid rgba(255,255,255,0.10)",
                     }}
                   >
                     <span />
@@ -338,7 +338,7 @@ export default function GolfDetailSheet({
 
                 {/* Cut line note */}
                 {tournament.cutLine && (
-                  <div className="px-4 py-2.5 text-center text-[10px] text-zinc-600 border-t border-white/5">
+                  <div className="px-4 py-2.5 text-center text-[10px] text-zinc-600 border-t border-white/[0.09]">
                     {tournament.cutLine}
                   </div>
                 )}
@@ -346,8 +346,8 @@ export default function GolfDetailSheet({
             ) : (
               // No leaders yet — graceful empty state
               <div
-                className="rounded-xl p-6 flex items-center justify-center"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+                className="p-6 flex items-center justify-center"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)" }}
               >
                 <span className="text-[13px] text-zinc-600">
                   {isUpcoming
