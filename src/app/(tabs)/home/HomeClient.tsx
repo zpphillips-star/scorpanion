@@ -765,7 +765,7 @@ export default function HomeClient() {
           <div className="overflow-x-auto no-scrollbar px-4">
           <div className="flex min-w-max pb-1">
               {(() => {
-                // Merge team games + golf recent cards, sorted by date ascending
+                // Merge team games + golf recent cards, sorted by date descending (newest first)
                 type RecentItem =
                   | { kind: 'game'; g: typeof recent[0] }
                   | { kind: 'golf'; t: PGATournament; label: string; accentColor: string }
@@ -777,7 +777,7 @@ export default function HomeClient() {
                 items.sort((a, b) => {
                   const dateA = a.kind === 'game' ? a.g.kickoff : (a.t.endDate || a.t.startDate || '')
                   const dateB = b.kind === 'game' ? b.g.kickoff : (b.t.endDate || b.t.startDate || '')
-                  return dateA < dateB ? -1 : dateA > dateB ? 1 : 0
+                  return dateA > dateB ? -1 : dateA < dateB ? 1 : 0
                 })
                 return items.map(item =>
                   item.kind === 'game'
