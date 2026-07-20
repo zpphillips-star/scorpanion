@@ -98,14 +98,10 @@ function SeasonBanner({ season, leagueId }: { season: SeasonInfo; leagueId: stri
   if (season.status === "offseason") {
     return (
       <div className="mx-3 mt-3 px-4 py-4 rounded-2xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-        <div className="flex items-center gap-3 mb-1">
-          <span className="text-[22px]">💤</span>
-          <div className="font-display text-[14px] font-700 text-zinc-300 uppercase tracking-widest">Off-Season</div>
-        </div>
+        <div className="font-display text-[14px] font-700 text-zinc-300 uppercase tracking-widest mb-1">Off-Season</div>
         <div className="font-display text-[12px] text-zinc-600">{season.label} · Regular season complete</div>
         {season.nextStartApprox && (
-          <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
-            <span className="text-[10px]">📅</span>
+          <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
             <span className="font-display text-[11px] text-zinc-400">Next season starts <span className="text-white font-700">{season.nextStartApprox}</span></span>
           </div>
         )}
@@ -120,13 +116,15 @@ function SeasonBanner({ season, leagueId }: { season: SeasonInfo; leagueId: stri
 
   if (season.status === "preseason") {
     return (
-      <div className="mx-3 mt-3 px-4 py-3 rounded-2xl flex items-center gap-3"
+      <div className="mx-3 mt-3 px-4 py-3 rounded-2xl"
         style={{ background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.2)" }}>
-        <span className="text-[18px]">🔜</span>
-        <div>
-          <div className="font-display text-[12px] font-700 text-purple-400 uppercase tracking-widest">Preseason</div>
-          <div className="font-display text-[11px] text-zinc-500 mt-0.5">{season.label}</div>
-        </div>
+        <div className="font-display text-[12px] font-700 text-purple-400 uppercase tracking-widest">Preseason</div>
+        <div className="font-display text-[11px] text-zinc-500 mt-0.5">{season.label}</div>
+        {season.nextStartApprox && (
+          <div className="font-display text-[11px] text-zinc-400 mt-1">
+            Regular season starts <span className="text-white font-700">{season.nextStartApprox}</span>
+          </div>
+        )}
       </div>
     )
   }

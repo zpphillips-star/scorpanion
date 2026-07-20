@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest } from 'next/server'
+import { REGULAR_SEASON_START } from '@/lib/seasonDates'
 
 export const runtime = 'edge'
 
@@ -363,6 +364,13 @@ function getSeasonInfo(standingsData: any, leagueId: string, scoreboard: any): S
     const currentMonth = new Date().getMonth()
     const nextYear = currentMonth >= 6 ? year + 1 : year
     nextStartApprox = `${month} ${nextYear}`
+  } else if (status === 'preseason') {
+    // Use exact date from REGULAR_SEASON_START if available
+    const isoDate = REGULAR_SEASON_START[leagueId]
+    if (isoDate) {
+      const d = new Date(isoDate + 'T12:00:00Z')
+      nextStartApprox = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+    }
   }
 
   return { status, year, label, nextStartApprox }
