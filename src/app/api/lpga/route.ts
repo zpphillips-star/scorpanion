@@ -37,9 +37,13 @@ function parsePar(raw: string | undefined | null): string {
 
 export async function GET() {
   try {
-    const [scoreboardRes, schedulerRes] = await Promise.allSettled([
+    const nextWeekDate = new Date()
+    nextWeekDate.setDate(nextWeekDate.getDate() + 7)
+    const nextWeekStr = nextWeekDate.toISOString().slice(0, 10).replace(/-/g, '')
+
+    const [scoreboardRes, nextWeekRes] = await Promise.allSettled([
       fetch('https://site.api.espn.com/apis/site/v2/sports/golf/lpga/scoreboard', { cache: 'no-store' }),
-      fetch('https://site.api.espn.com/apis/site/v2/sports/golf/lpga/schedule', { cache: 'no-store' }),
+      fetch(`https://site.api.espn.com/apis/site/v2/sports/golf/lpga/scoreboard?dates=${nextWeekStr}`, { cache: 'no-store' }),
     ])
 
     const tournaments: PGATournament[] = []
@@ -116,20 +120,26 @@ export async function GET() {
       }
     }
 
-    // If no active/recent tourney, try to get next scheduled event name
-    if (tournaments.length === 0 && schedulerRes.status === 'fulfilled' && schedulerRes.value.ok) {
-      const sched = await schedulerRes.value.json()
-      const next = (sched.events ?? []).find((e: any) => {
-        const start = new Date(e.date ?? '')
-        return start >= new Date()
+    // If no active or upcoming tourney found in the current scoreboard,
+    // look for the next scheduled event in the look-ahead scoreboard.
+    const hasActiveOrUpcoming = tournaments.some(t => t.status === 'live' || t.status === 'upcoming')
+    if (!hasActiveOrUpcoming && nextWeekRes.status === 'fulfilled' && nextWeekRes.value.ok) {
+      const nextData = await nextWeekRes.value.json()
+      const next = (nextData.events ?? []).find((e: any) => {
+        const comp = e.competitions?.[0]
+        const statusName: string = comp?.status?.type?.name ?? ''
+        return statusName !== 'STATUS_FINAL' && !comp?.status?.type?.completed
       })
       if (next) {
+        const venue = next.venue ?? next.competitions?.[0]?.venue ?? {}
+        const addr = venue.address ?? {}
+        const location = [addr.city, addr.state ?? addr.country].filter(Boolean).join(', ')
         tournaments.push({
           id: next.id,
           name: next.name,
           shortName: next.shortName ?? next.name,
-          course: next.venue?.fullName ?? '',
-          location: '',
+          course: venue.fullName ?? '',
+          location,
           roundLabel: 'Upcoming',
           status: 'upcoming',
           startDate: next.date ?? '',
