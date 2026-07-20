@@ -230,25 +230,21 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
                 borderRadius: isFirst ? '3px 0 0 3px' : isLast ? '0 3px 3px 0' : '0',
               }}
             >
-              {/* ── Right arrow tip — CSS border triangle ── */}
+              {/* ── Right arrow tip — clip-path triangle (no CSS border artifacts) ── */}
               {/* Extends A px BEYOND this segment into the next one.
-                  Since this segment has higher z-index, it renders on top.
-                  rgba(0,0,0,0) avoids mobile Safari sub-pixel seam on transparent borders. */}
+                  Uses clip-path instead of CSS border trick to avoid mobile sub-pixel seam. */}
               {!isLast && (
                 <span
                   style={{
                     position:     'absolute',
-                    right:        -A,        // tip extends A px into next segment
+                    right:        -A,
                     top:          0,
-                    width:        0,
-                    height:       0,
-                    borderTop:    `${HH}px solid rgba(0,0,0,0)`,
-                    borderBottom: `${HH}px solid rgba(0,0,0,0)`,
-                    borderLeft:   `${A}px solid ${bg}`,
-                    borderRight:  0,
+                    width:        A + 2,     // +2px overlap with segment to close any gap at base
+                    height:       H,
+                    background:   bg,
+                    clipPath:     'polygon(0 0, 100% 50%, 0 100%)',
                     zIndex:       z + 1,
                     pointerEvents: 'none',
-                    display:      'block',
                   }}
                 />
               )}

@@ -778,7 +778,7 @@ export default function HomeClient() {
 
       {/* ── Recent results (horizontal scroll, tappable) ─────────────────── */}
       {(recent.length > 0 || pgaRecent.length > 0 || lpgaRecent.length > 0) && (
-        <div className="mt-8">
+        <div className="mt-10">
           <div className="flex items-center gap-3 px-4 mb-4">
             <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Recent</span>
             <div className="flex-1 h-px bg-zinc-800" />
@@ -819,8 +819,7 @@ export default function HomeClient() {
         const dateLabel = todayDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
 
         return (
-          <div className="mt-14">
-            {/* Section header — matches Recent / Upcoming style exactly */}
+          <div className="mt-20">
             <div className="flex items-center gap-3 px-4 mb-4">
               <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Today</span>
               <div className="flex-1 h-px bg-zinc-800" />
@@ -861,7 +860,7 @@ export default function HomeClient() {
 
       {/* ── Upcoming — WC compact rows ───────────────────────────────────── */}
       {upcomingDates.length > 0 && (
-        <div className="mt-14">
+        <div className="mt-20">
           <div className="px-4 mb-4 flex items-center gap-3">
             <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Upcoming</span>
             <div className="flex-1 h-px bg-zinc-800" />
