@@ -202,7 +202,7 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
   return (
     <div className="mt-3">
       {/* overflow:visible so right-arrow tips extend into adjacent segments */}
-      <div className="flex w-full" style={{ height: H }}>
+      <div className="flex w-full" style={{ height: H, gap: 0, border: 'none', outline: 'none' }}>
         {chevrons.map((chev, idx) => {
           const isActive = idx === activeIdx
           const isPast   = idx < activeIdx
@@ -224,13 +224,16 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
                 background: bg,
                 zIndex: z,
                 height: H,
+                border: 'none',
+                outline: 'none',
                 // Rounded corners on outer edges only
                 borderRadius: isFirst ? '3px 0 0 3px' : isLast ? '0 3px 3px 0' : '0',
               }}
             >
               {/* ── Right arrow tip — CSS border triangle ── */}
               {/* Extends A px BEYOND this segment into the next one.
-                  Since this segment has higher z-index, it renders on top. */}
+                  Since this segment has higher z-index, it renders on top.
+                  rgba(0,0,0,0) avoids mobile Safari sub-pixel seam on transparent borders. */}
               {!isLast && (
                 <span
                   style={{
@@ -239,11 +242,13 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
                     top:          0,
                     width:        0,
                     height:       0,
-                    borderTop:    `${HH}px solid transparent`,
-                    borderBottom: `${HH}px solid transparent`,
+                    borderTop:    `${HH}px solid rgba(0,0,0,0)`,
+                    borderBottom: `${HH}px solid rgba(0,0,0,0)`,
                     borderLeft:   `${A}px solid ${bg}`,
+                    borderRight:  0,
                     zIndex:       z + 1,
                     pointerEvents: 'none',
+                    display:      'block',
                   }}
                 />
               )}
