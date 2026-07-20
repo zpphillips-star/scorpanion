@@ -444,7 +444,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
           {canShowBoxScore && game.sport === "baseball" && (
             <div className="mb-5">
               <SectionLabel label="Line Score" />
-              <div className="overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)" }}>
+              <div className="overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}>
                 <div className="px-3 py-3">
                   <CompactBaseballLineScore
                     gameId={game.id}
@@ -460,7 +460,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
           {/* Full box score for other sports */}
           {canShowBoxScore && game.sport !== "baseball" && (
             <div className="mb-5">
-              <div className="overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)" }}>
+              <div className="overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}>
                 <div className="px-3 py-3">
                   <BoxScore
                     eventId={game.id.includes("|") ? game.id.split("|").at(-1)! : game.id}
@@ -479,7 +479,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
               <SectionLabel label="Teams" />
               <div
                 className="grid grid-cols-2 divide-x divide-zinc-800/60"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)" }}
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}
               >
                 <div className="p-4">
                   <TeamContextCard

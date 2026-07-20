@@ -106,7 +106,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
       style={{
         width: 44, height: 26, borderRadius: 13,
         background: on ? '#D95C17' : 'rgba(255,255,255,0.1)',
-        border: `1px solid ${on ? 'rgba(217,92,23,0.5)' : 'rgba(255,255,255,0.12)'}`,
+        border: `1px solid ${on ? 'rgba(217,92,23,0.5)' : 'rgba(255,255,255,0.16)'}`,
       }}
     >
       <span
@@ -153,9 +153,9 @@ export default function SettingsPage() {
 
       {/* ── Sticky header ── */}
       <div className="sticky top-0 z-20 flex items-center gap-3 px-4 py-3"
-        style={{ background: 'rgba(12,27,49,0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+        style={{ background: 'rgba(12,27,49,0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.16)' }}>
         <Link href="/home" className="flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0"
-          style={{ color: '#a1a1aa', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)' }}>
+          style={{ color: '#a1a1aa', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.16)' }}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -185,13 +185,13 @@ export default function SettingsPage() {
 
             {/* About section — special content */}
             {group.title === 'About' ? (
-              <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.02)' }}>
-                <div className="px-4 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.11)' }}>
+              <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.16)', background: 'rgba(255,255,255,0.02)' }}>
+                <div className="px-4 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
                   <span className="text-[14px] text-white font-medium">Version</span>
                   <span className="text-[13px]" style={{ color: '#52637a' }}>1.0.0</span>
                 </div>
                 <Link href="/feedback" className="px-4 py-4 flex items-center justify-between active:bg-white/5 transition-colors block"
-                  style={{ borderBottom: '1px solid rgba(255,255,255,0.11)' }}>
+                  style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
                   <span className="text-[14px] text-white font-medium">Send Feedback</span>
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: '#52637a' }}>
                     <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -205,11 +205,11 @@ export default function SettingsPage() {
                 </button>
               </div>
             ) : (
-              <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.02)' }}>
+              <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.16)', background: 'rgba(255,255,255,0.02)' }}>
                 {group.settings.map((setting, idx) => (
                   <div key={setting.key}
                     className="px-4 py-4 flex items-center gap-4"
-                    style={{ borderBottom: idx < group.settings.length - 1 ? '1px solid rgba(255,255,255,0.11)' : 'none' }}>
+                    style={{ borderBottom: idx < group.settings.length - 1 ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>
                     {/* Label */}
                     <div className="flex-1 min-w-0">
                       <p className="text-[14px] font-medium text-white leading-tight">{setting.label}</p>
@@ -227,7 +227,7 @@ export default function SettingsPage() {
                         onChange={e => updateSetting(setting.key, e.target.value)}
                         className="text-[13px] rounded-lg outline-none text-right"
                         style={{
-                          background: 'rgba(255,255,255,0.11)', border: '1px solid rgba(255,255,255,0.1)',
+                          background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.1)',
                           color: '#D95C17', padding: '6px 10px', cursor: 'pointer', maxWidth: 160,
                         }}
                       >

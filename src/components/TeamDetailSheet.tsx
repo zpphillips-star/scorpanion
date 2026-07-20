@@ -94,7 +94,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
 
         {/* ── LAST 3 GAMES ─────────────────────────────────────────────────────── */}
         {data && !loading && data.recentForm.length > 0 && (
-          <div className="px-4 pt-5 pb-4 border-t border-white/[0.11]">
+          <div className="px-4 pt-5 pb-4 border-t border-white/[0.15]">
             <div className="flex items-center gap-2 mb-3">
               <div className="font-display text-[11px] font-800 uppercase tracking-widest text-zinc-400">Last 3 Games</div>
               <div className="flex-1 h-px bg-white/5" />
@@ -126,7 +126,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                       <span className={`font-display text-[16px] font-800 tabular-nums ${awayScore > homeScore ? "text-white" : "text-zinc-500"}`}>{awayScore}</span>
                     </div>
                     {/* Home row */}
-                    <div className="flex items-center px-2.5 pb-2 pt-1 gap-1.5 border-t border-white/[0.11]">
+                    <div className="flex items-center px-2.5 pb-2 pt-1 gap-1.5 border-t border-white/[0.15]">
                       {homeLogo
                         ? <img src={homeLogo} alt={homeAbbr} width={28} height={28} className="object-contain flex-shrink-0" />
                         : <div className="w-4 h-4 rounded-full bg-white/10 flex-shrink-0" />
@@ -135,7 +135,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                       <span className={`font-display text-[16px] font-800 tabular-nums ${homeScore > awayScore ? "text-white" : "text-zinc-500"}`}>{homeScore}</span>
                     </div>
                     {/* Footer */}
-                    <div className="flex items-center justify-between px-2.5 py-1 border-t border-white/[0.11]" style={{ background: "rgba(0,0,0,0.25)" }}>
+                    <div className="flex items-center justify-between px-2.5 py-1 border-t border-white/[0.15]" style={{ background: "rgba(0,0,0,0.25)" }}>
                       <span className="font-display text-[10px] font-800 uppercase" style={{ color: rc }}>{win ? "W" : loss ? "L" : "T"}</span>
                       <span className="font-display text-[9px] text-zinc-600">{fmtShortDate(g.date)}</span>
                     </div>
@@ -148,7 +148,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
 
         {/* ── NEXT 3 GAMES ─────────────────────────────────────────────────────── */}
         {data && !loading && data.upcomingGames.length > 0 && (
-          <div className="px-4 pt-5 pb-4 border-t border-white/[0.11]">
+          <div className="px-4 pt-5 pb-4 border-t border-white/[0.15]">
             <div className="flex items-center gap-2 mb-3">
               <div className="font-display text-[11px] font-800 uppercase tracking-widest text-zinc-400">Next 3 Games</div>
               <div className="flex-1 h-px bg-white/5" />
@@ -187,7 +187,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
 
         {/* ── DIVISION STANDINGS ───────────────────────────────────────────────── */}
         {data && !loading && data.divisionStandings.length > 0 && (
-          <div className="px-4 pt-5 pb-5 border-t border-white/[0.11]">
+          <div className="px-4 pt-5 pb-5 border-t border-white/[0.15]">
             <div className="flex items-center gap-2 mb-3">
               <div className="font-display text-[11px] font-800 uppercase tracking-widest text-zinc-400">
                 {data.divisionName || "Division"}
@@ -241,7 +241,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
 
         {/* Venue */}
         {data?.venue && (
-          <div className="px-5 pb-5 border-t border-white/[0.11] pt-3">
+          <div className="px-5 pb-5 border-t border-white/[0.15] pt-3">
             <div className="flex items-center gap-2 text-zinc-600 text-[12px]">
               <span>📍</span><span>{data.venue}</span>
             </div>

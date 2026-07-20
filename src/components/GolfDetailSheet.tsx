@@ -244,7 +244,7 @@ export default function GolfDetailSheet({
             {hasLeaders ? (
               <div
                 className="overflow-hidden"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)" }}
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}
               >
                 {/* Column headers for live/completed */}
                 {!isUpcoming && (
@@ -253,7 +253,7 @@ export default function GolfDetailSheet({
                     style={{
                       gridTemplateColumns: "32px 1fr 52px 44px 36px",
                       background: "rgba(255,255,255,0.03)",
-                      borderBottom: "1px solid rgba(255,255,255,0.12)",
+                      borderBottom: "1px solid rgba(255,255,255,0.16)",
                     }}
                   >
                     <span />
@@ -338,7 +338,7 @@ export default function GolfDetailSheet({
 
                 {/* Cut line note */}
                 {tournament.cutLine && (
-                  <div className="px-4 py-2.5 text-center text-[10px] text-zinc-600 border-t border-white/[0.11]">
+                  <div className="px-4 py-2.5 text-center text-[10px] text-zinc-600 border-t border-white/[0.15]">
                     {tournament.cutLine}
                   </div>
                 )}
@@ -347,7 +347,7 @@ export default function GolfDetailSheet({
               // No leaders yet — graceful empty state
               <div
                 className="p-6 flex items-center justify-center"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)" }}
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}
               >
                 <span className="text-[13px] text-zinc-600">
                   {isUpcoming

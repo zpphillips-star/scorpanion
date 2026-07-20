@@ -24,7 +24,7 @@ export default function TeamLogo({ src, emoji, abbr, size = 32, className = '' }
           const parent = target.parentElement
           if (parent) {
             // Professional fallback: colored circle with abbreviation
-            parent.innerHTML = `<span style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.32)}px;font-weight:800;letter-spacing:-0.5px;background:rgba(255,255,255,0.12);border-radius:50%;color:#fff;" title="${abbr}">${abbr}</span>`
+            parent.innerHTML = `<span style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.32)}px;font-weight:800;letter-spacing:-0.5px;background:rgba(255,255,255,0.16);border-radius:50%;color:#fff;" title="${abbr}">${abbr}</span>`
           }
         }}
       />

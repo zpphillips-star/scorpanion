@@ -46,7 +46,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
   }, [seaId, oppId, league])
 
   if (loading) return (
-    <div className="border-t border-zinc-600/55">
+    <div className="border-t border-zinc-500/65">
       <div className="px-5 pt-6 pb-2">
         <span className="font-display text-[10px] font-700 uppercase tracking-[0.16em] text-zinc-500">Upcoming Schedule</span>
       </div>
@@ -67,7 +67,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
   const color = game.seattleTeam.primaryColor
 
   const GameRow = ({ g }: { g: UpcomingGame }) => (
-    <div className="flex items-center gap-3 py-3.5 border-b border-zinc-600/50 last:border-0">
+    <div className="flex items-center gap-3 py-3.5 border-b border-zinc-500/60 last:border-0">
       <span className="font-display text-[12px] font-600 text-zinc-500 w-5 text-center flex-shrink-0">
         {g.isHome ? "vs" : "@"}
       </span>
@@ -102,7 +102,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
           ) : (
             <div>
               {seaGames.map((g, i) => (
-                <div key={i} className={`py-2.5 ${i < seaGames.length - 1 ? "border-b border-zinc-600/50" : ""}`}>
+                <div key={i} className={`py-2.5 ${i < seaGames.length - 1 ? "border-b border-zinc-500/60" : ""}`}>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-[11px] text-zinc-500 flex-shrink-0 w-4">{g.isHome ? "vs" : "@"}</span>
                     {g.oppLogo
@@ -132,7 +132,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
           ) : (
             <div>
               {oppGames.map((g, i) => (
-                <div key={i} className={`py-2.5 ${i < oppGames.length - 1 ? "border-b border-zinc-600/50" : ""}`}>
+                <div key={i} className={`py-2.5 ${i < oppGames.length - 1 ? "border-b border-zinc-500/60" : ""}`}>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-[11px] text-zinc-500 flex-shrink-0 w-4">{g.isHome ? "vs" : "@"}</span>
                     {g.oppLogo

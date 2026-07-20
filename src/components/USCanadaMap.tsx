@@ -51,7 +51,7 @@ function clampVB(vb: VB): VB {
 
 function getFill(abbr: string, selected: string | null, teamsPerState: Record<string, number>) {
   if (selected === abbr) return 'rgba(217,92,23,0.35)'
-  if ((teamsPerState[abbr] || 0) > 0) return 'rgba(255,255,255,0.11)'
+  if ((teamsPerState[abbr] || 0) > 0) return 'rgba(255,255,255,0.15)'
   return 'rgba(255,255,255,0.03)'
 }
 function getStroke(abbr: string, selected: string | null) {
@@ -74,8 +74,8 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
     const has = (teamsPerState[abbr] || 0) > 0
     const sel = selectedState === abbr
     if (sel) return { background: 'rgba(217,92,23,0.25)', border: '2px solid #D95C17', color: '#D95C17' }
-    if (has) return { background: 'rgba(255,255,255,0.11)', border: '1px solid rgba(255,255,255,0.22)', color: '#e5e7eb' }
-    return { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.12)', color: '#4b5563' }
+    if (has) return { background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.22)', color: '#e5e7eb' }
+    return { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.16)', color: '#4b5563' }
   }
 
   const resetZoom = useCallback(() => setVb(FULL_VB), [])
@@ -184,7 +184,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
                         transition: 'fill 0.1s',
                       },
                       hover: {
-                        fill: isSelected ? 'rgba(217,92,23,0.45)' : (teamsPerState[abbr] || 0) > 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.11)',
+                        fill: isSelected ? 'rgba(217,92,23,0.45)' : (teamsPerState[abbr] || 0) > 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.15)',
                         stroke: isSelected ? '#D95C17' : 'rgba(255,255,255,0.3)',
                         strokeWidth: isSelected ? 1.5 : 0.7,
                         outline: 'none',
@@ -220,7 +220,7 @@ export default function USCanadaMap({ selectedState, onStateSelect, teamsPerStat
         <span style={{ color: '#4b5563' }}>Pinch to zoom · drag to pan</span>
         <span style={{ display: 'flex', gap: 10 }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: 'rgba(255,255,255,0.11)', border: '1px solid rgba(255,255,255,0.22)' }} />
+            <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.22)' }} />
             <span style={{ color: '#9ca3af' }}>Has teams</span>
           </span>
         </span>

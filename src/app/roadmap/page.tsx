@@ -67,7 +67,7 @@ function RoadmapSection({
     <div
       className="rounded-xl overflow-hidden mb-3"
       style={{
-        border: "1px solid rgba(255,255,255,0.12)",
+        border: "1px solid rgba(255,255,255,0.16)",
         background: open ? STAGE_BG[stage.key] : "rgba(255,255,255,0.03)",
       }}
     >
@@ -89,7 +89,7 @@ function RoadmapSection({
           </span>
           <span
             className="text-xs font-semibold px-1.5 py-0.5 rounded-md"
-            style={{ background: "rgba(255,255,255,0.12)", color: "var(--text-faint)" }}
+            style={{ background: "rgba(255,255,255,0.16)", color: "var(--text-faint)" }}
           >
             {items.length}
           </span>
@@ -118,7 +118,7 @@ function RoadmapSection({
               <div
                 key={item.id}
                 className="rounded-lg px-3 py-2.5"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)" }}
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -145,8 +145,8 @@ function RoadmapSection({
                       onChange={e => onStatusChange(item.id, e.target.value as Stage)}
                       className="text-xs rounded-md px-2 py-1 shrink-0"
                       style={{
-                        background: "rgba(255,255,255,0.12)",
-                        border: "1px solid rgba(255,255,255,0.12)",
+                        background: "rgba(255,255,255,0.16)",
+                        border: "1px solid rgba(255,255,255,0.16)",
                         color: "var(--text)",
                         fontSize: "11px",
                         cursor: "pointer",
@@ -267,7 +267,7 @@ export default function RoadmapPage() {
         {unavailable ? (
           <div
             className="rounded-xl p-5"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)" }}
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}
           >
             <p style={{ color: "var(--text-faint)", fontSize: "14px" }}>
               Roadmap data is currently unavailable.
