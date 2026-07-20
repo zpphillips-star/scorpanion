@@ -590,25 +590,7 @@ export default function TeamsClient() {
         </div>
       )}
 
-      {/* ── Seattle section (local pro teams + golf tours) — hidden during search ── */}
-      {activeTab === 'ALL' && !searchQuery && (
-        <>
-          <div className="px-4 mt-8 pb-1">
-            <div className="flex items-center gap-2">
-              <div className="flex-1 h-px bg-white/5" />
-              <p className="font-display text-[10px] font-700 text-zinc-600 uppercase tracking-widest">Seattle Area</p>
-              <div className="flex-1 h-px bg-white/5" />
-            </div>
-          </div>
 
-          <div className="px-4 mt-4 pb-6">
-            <h2 className="font-display text-[11px] font-700 text-zinc-500 uppercase tracking-widest mb-3">Pro Teams</h2>
-            <div className="grid grid-cols-4 lg:grid-cols-6 gap-3">
-              {byIds(PRO_TEAM_IDS).map(team => <SeattleTeamCard key={team.id} team={team} />)}
-            </div>
-          </div>
-        </>
-      )}
     </div>
   )
 }
