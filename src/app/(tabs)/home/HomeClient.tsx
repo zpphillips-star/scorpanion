@@ -302,10 +302,9 @@ function GolfRecentCard({ tournament, label, accentColor }: {
         className="flex-shrink-0 w-[148px] text-left active:opacity-70 transition-opacity last:border-r-0 pr-7 mr-7 last:pr-0 last:mr-0"
         style={{ borderRight: '1px solid rgba(255,255,255,0.07)' }}
       >
-        {/* Date + label — identical structure to RecentCard */}
-        <div className="flex items-center justify-between mb-4 px-1">
-          <span className="text-[10px] text-zinc-600">{fmtDate(tournament.endDate)}</span>
-          <span className="text-[10px] text-zinc-700 uppercase tracking-wide">{label}</span>
+        {/* Day of week — centered, matches RecentCard */}
+        <div className="flex items-center justify-center mb-4 px-1">
+          <span className="text-[10px] text-zinc-500 uppercase tracking-wide font-semibold">{fmtDate(tournament.endDate)}</span>
         </div>
         {/* Single centered column: logo + tourney name + winner score — mirrors two-team layout */}
         <div className="flex items-center justify-center">
@@ -317,7 +316,7 @@ function GolfRecentCard({ tournament, label, accentColor }: {
             </span>
             <div className="flex items-baseline gap-1 mt-1.5">
               {winnerLastName ? (
-                <span className="text-[10px] text-zinc-400 font-medium truncate max-w-[52px]">{winnerLastName}</span>
+                <span className="font-display text-[17px] font-800 tabular-nums leading-none text-zinc-300 truncate max-w-[60px]">{winnerLastName}</span>
               ) : null}
               <span
                 className="font-display text-[17px] font-800 tabular-nums leading-none"
@@ -388,10 +387,9 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
       className="flex-shrink-0 w-[148px] text-left active:opacity-70 transition-opacity last:border-r-0 pr-7 mr-7 last:pr-0 last:mr-0"
       style={{ borderRight: "1px solid rgba(255,255,255,0.07)" }}
     >
-      {/* Date + league — inset so it doesn't crowd the edges */}
-      <div className="flex items-center justify-between mb-4 px-1">
-        <span className="text-[10px] text-zinc-600">{fmtDate(game.kickoff).replace(/,.*/, "")}</span>
-        <span className="text-[10px] text-zinc-700 uppercase tracking-wide">{game.league.toUpperCase()}</span>
+      {/* Day of week — centered */}
+      <div className="flex items-center justify-center mb-4 px-1">
+        <span className="text-[10px] text-zinc-500 uppercase tracking-wide font-semibold">{fmtDate(game.kickoff).replace(/,.*/, "")}</span>
       </div>
       {/* Logo · Score · Logo */}
       <div className="flex items-center justify-between gap-1">
