@@ -349,15 +349,6 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
   const { weekday, fullDate } = formatHeaderDate(date)
   const countText = `${games.length} Game${games.length !== 1 ? "s" : ""}`
 
-  // Group games by league — preserve encounter order
-  const grouped: { label: string; games: Game[] }[] = []
-  for (const g of games) {
-    const lbl = leagueLabel(g.league)
-    const existing = grouped.find(grp => grp.label === lbl)
-    if (existing) existing.games.push(g)
-    else grouped.push({ label: lbl, games: [g] })
-  }
-
   const sheet = (
     <>
       {/* ── Backdrop ── */}
@@ -371,12 +362,12 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
       <div
         className="fixed bottom-0 left-0 right-0 z-[9999] lg:max-w-2xl lg:mx-auto animate-slide-up flex flex-col overflow-hidden"
         style={{
-          background: "linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 40%, #0a1525 100%)",
+          background: "var(--bg)",
           borderRadius: "24px 24px 0 0",
           minHeight: "82dvh",
           maxHeight: "96dvh",
           paddingBottom: "env(safe-area-inset-bottom)",
-          boxShadow: "0 -12px 60px rgba(0,0,0,0.75), 0 -1px 0 rgba(255,255,255,0.07), inset 0 1px 0 rgba(255,255,255,0.05)",
+          boxShadow: "0 -12px 60px rgba(0,0,0,0.75), 0 -1px 0 rgba(255,255,255,0.07)",
         }}
         onClick={e => e.stopPropagation()}
         onTouchStart={handleSheetTouchStart}
@@ -447,9 +438,6 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
           </button>
         </div>
 
-        {/* Divider */}
-        <div className="flex-shrink-0 mx-5 h-px" style={{ background: "var(--border)" }} />
-
         {/* ── Game list — scrollable ── */}
         <div className="overflow-y-auto flex-1 overscroll-contain">
           {games.length === 0 ? (
@@ -475,20 +463,13 @@ export default function DayGamesSheet({ date, games, onClose }: DayGamesSheetPro
               </div>
             </div>
           ) : (
-            <div className="px-4 pt-2 pb-4">
-              {grouped.map(({ label, games: groupGames }) => (
-                <div key={label}>
-                  <div className="pt-4" />
-                  <div className="flex flex-col gap-4">
-                    {groupGames.map(g => (
-                      <DayGameCard
-                        key={g.id}
-                        game={g}
-                        onTap={() => setSelectedGame(g)}
-                      />
-                    ))}
-                  </div>
-                </div>
+            <div className="px-4 pt-3 pb-4 flex flex-col gap-4">
+              {games.map(g => (
+                <DayGameCard
+                  key={g.id}
+                  game={g}
+                  onTap={() => setSelectedGame(g)}
+                />
               ))}
             </div>
           )}
