@@ -99,9 +99,9 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
           </div>
 
           {/* Main: away | score | home */}
-          <div className="flex items-center pr-4 py-5 gap-2">
+          <div className="flex items-stretch pr-4 gap-2" style={{ minHeight: 110 }}>
             {/* Away team */}
-            <div className="flex-1 flex flex-col items-center gap-2">
+            <div className="flex-1 flex flex-col items-center justify-center gap-2">
               <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={logoSize}
                 className={`rounded-xl${isFt && !awayWon && homeWon ? " opacity-30" : ""}`} />
               <div className="text-center">
@@ -139,7 +139,7 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
             </div>
 
             {/* Home team */}
-            <div className="flex-1 flex flex-col items-center gap-2">
+            <div className="flex-1 flex flex-col items-center justify-center gap-2">
               <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={logoSize}
                 className={`rounded-xl${isFt && !homeWon && awayWon ? " opacity-30" : ""}`} />
               <div className="text-center">

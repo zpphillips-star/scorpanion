@@ -897,14 +897,16 @@ export default function HomeClient() {
                 return (
                   <div
                     key={g.id}
-                    className="py-3 border-b border-white/[0.09] hover:bg-white/[0.03] active:bg-white/[0.06] transition-colors cursor-pointer"
+                    className="flex items-center py-3 px-4 border-b border-white/[0.09] hover:bg-white/[0.03] active:bg-white/[0.06] transition-colors cursor-pointer gap-3"
                     onClick={() => setSelectedRecentGame(g)}
                   >
-                    <div className="pl-6 mb-1.5 flex items-center gap-2">
-                      <span className="text-[11px] text-zinc-500 font-normal uppercase tracking-wide tabular-nums">{fmtTime(g.kickoff)}</span>
+                    {/* Left: time + league */}
+                    <div className="w-16 flex-shrink-0 flex flex-col gap-0.5">
+                      <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{fmtTime(g.kickoff)}</span>
                       {g.broadcast && <span className="text-[10px] text-zinc-600">{g.broadcast}</span>}
                     </div>
-                    <div className="grid items-center px-4" style={{ gridTemplateColumns: "1fr 2rem 1fr" }}>
+                    {/* Matchup grid */}
+                    <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr 2rem 1fr" }}>
                       <div className="flex items-center justify-end gap-2 min-w-0">
                         <span className="text-[14px] font-semibold text-white whitespace-nowrap leading-tight truncate">{awayName}</span>
                         <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={28} className="flex-shrink-0" />
@@ -933,26 +935,23 @@ export default function HomeClient() {
                 return (
                   <button
                     key={`golf-${t.id}-${ds}`}
-                    className="w-full text-left py-3 border-b border-white/[0.09] active:opacity-70 transition-opacity"
+                    className="w-full text-left flex items-center py-3 px-4 border-b border-white/[0.09] active:opacity-70 transition-opacity gap-3"
                     onClick={() => setSelectedGolfUpcoming({ tournament: t, label, accentColor })}
                   >
-                    {/* Sub-header: date range (matches time row of team games) */}
-                    <div className="pl-6 mb-1.5 flex items-center gap-2">
-                      <span className="text-[11px] text-zinc-500 font-normal uppercase tracking-wide tabular-nums">{dateRange}</span>
-                      {t.course && <span className="text-[10px] text-zinc-600">{t.course}</span>}
+                    {/* Left: date range */}
+                    <div className="w-16 flex-shrink-0 flex flex-col gap-0.5">
+                      <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{dateRange}</span>
+                      {t.course && <span className="text-[10px] text-zinc-600 truncate">{t.course}</span>}
                     </div>
-                    {/* Content row: label · logo · tournament name (matches team vs row) */}
-                    <div className="grid items-center px-4" style={{ gridTemplateColumns: "1fr 2rem 1fr" }}>
-                      {/* Left: league label */}
+                    {/* Matchup: label · logo · tournament name */}
+                    <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr 2rem 1fr" }}>
                       <div className="flex items-center justify-end">
                         <span className="text-[14px] font-semibold truncate leading-tight" style={{ color: "#ffffff" }}>{label}</span>
                       </div>
-                      {/* Center: league logo */}
                       <div className="flex items-center justify-center">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={golfLogoUrl} alt={label} width={28} height={28} className="object-contain" />
                       </div>
-                      {/* Right: tournament name */}
                       <div className="flex items-center justify-start">
                         <span className="text-[14px] font-semibold text-white truncate leading-tight">{t.shortName || t.name}</span>
                       </div>
