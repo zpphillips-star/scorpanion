@@ -177,78 +177,84 @@ function SeasonProgressChevrons({ season, leagueId }: { season: SeasonInfo; leag
 
   const activeIdx = chevrons.findIndex(c => c.key === activePhase)
 
-  // Chevron clip-paths
-  const ARROW = 12  // px of the arrow tip
-  const clipFirst  = `polygon(0 0, calc(100% - ${ARROW}px) 0, 100% 50%, calc(100% - ${ARROW}px) 100%, 0 100%)`
-  const clipMiddle = `polygon(${ARROW}px 0, calc(100% - ${ARROW}px) 0, 100% 50%, calc(100% - ${ARROW}px) 100%, 0 100%, ${ARROW}px 50%)`
-  const clipLast   = `polygon(${ARROW}px 0, 100% 0, 100% 100%, 0 100%, ${ARROW}px 50%)`
+  // Arrow size — how deep the notch/tip cuts in pixels
+  const A = 14
+
+  // clip-path shapes
+  const clipFirst  = `polygon(0 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, 0 100%)`
+  const clipMiddle = `polygon(${A}px 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, 0 100%, ${A}px 50%)`
+  const clipLast   = `polygon(${A}px 0, 100% 0, 100% 100%, 0 100%, ${A}px 50%)`
 
   return (
-    <div className="mt-3 px-2">
-      {/* Chevron row — spans full width */}
-      <div className="flex" style={{ gap: '-1px' }}>
+    <div className="mt-3 px-0">
+      {/* Full-width chevron pipeline — no gap, overlap via negative marginLeft */}
+      <div className="flex w-full">
         {chevrons.map((chev, idx) => {
           const isActive = idx === activeIdx
           const isPast   = idx < activeIdx
-          const isLast   = idx === chevrons.length - 1
           const isFirst  = idx === 0
+          const isLast   = idx === chevrons.length - 1
           const clip     = isFirst ? clipFirst : isLast ? clipLast : clipMiddle
 
-          // Colors
+          // Left arrow items sit on top of right ones so the arrow tip is visible
+          const zIdx = isActive ? chevrons.length + 1 : chevrons.length - idx
+
+          // Background
           const bg = isActive
             ? accentColor
             : isPast
-              ? 'rgba(255,255,255,0.06)'
-              : 'rgba(255,255,255,0.025)'
+              ? 'rgba(255,255,255,0.09)'
+              : 'rgba(255,255,255,0.03)'
 
           const labelColor = isActive
             ? '#08080f'
-            : isPast   ? 'rgba(255,255,255,0.45)'
-            : 'rgba(255,255,255,0.2)'
+            : isPast  ? 'rgba(255,255,255,0.5)'
+                      : 'rgba(255,255,255,0.22)'
 
           const dateColor = isActive
-            ? 'rgba(0,0,0,0.55)'
-            : isPast   ? 'rgba(255,255,255,0.25)'
-            : 'rgba(255,255,255,0.12)'
+            ? 'rgba(0,0,0,0.5)'
+            : isPast  ? 'rgba(255,255,255,0.28)'
+                      : 'rgba(255,255,255,0.13)'
+
+          // Inner padding: account for the arrow cutout on each side
+          const pl = isFirst ? 10 : A + 6
+          const pr = isLast  ? 10 : A + 6
 
           return (
             <div
               key={chev.key}
-              className="flex-1 flex flex-col items-center justify-center py-2.5 relative"
+              className="flex-1 flex flex-col items-center justify-center"
               style={{
-                clipPath: clip,
-                background: bg,
-                marginRight: isLast ? 0 : '-1px',
-                minHeight: '54px',
-                // Add subtle right overlap so chevrons connect cleanly
-                zIndex: isActive ? 10 : chevrons.length - idx,
+                clipPath:    clip,
+                background:  bg,
+                // Overlap each segment by A px so arrow tip slots into the next notch
+                marginLeft:  isFirst ? 0 : -A,
+                zIndex:      zIdx,
+                minHeight:   '58px',
+                paddingTop:  '8px',
+                paddingBottom: '8px',
               }}
             >
               <span
-                className="font-display text-[9px] font-800 uppercase tracking-widest leading-tight text-center px-3"
-                style={{ color: labelColor, paddingLeft: idx === 0 ? '8px' : `${ARROW + 4}px`, paddingRight: isLast ? '8px' : `${ARROW + 4}px` }}
+                className="font-display font-800 uppercase tracking-widest leading-tight text-center block"
+                style={{ color: labelColor, fontSize: '8.5px', paddingLeft: pl, paddingRight: pr }}
               >
                 {chev.label}
               </span>
               {chev.dates && (
                 <span
-                  className="text-[8px] leading-tight text-center mt-0.5"
-                  style={{
-                    color: dateColor,
-                    paddingLeft: idx === 0 ? '8px' : `${ARROW + 4}px`,
-                    paddingRight: isLast ? '8px' : `${ARROW + 4}px`,
-                  }}
+                  className="leading-tight text-center block mt-0.5"
+                  style={{ color: dateColor, fontSize: '7.5px', paddingLeft: pl, paddingRight: pr }}
                 >
-                  {chev.dates}{chev.tbd ? '*' : ''}
+                  {chev.dates}{chev.tbd ? ' *' : ''}
                 </span>
               )}
             </div>
           )
         })}
       </div>
-      {/* TBD note */}
       {s?.tbd && (
-        <p className="text-[9px] text-zinc-700 mt-1 text-right px-1">* Dates subject to change</p>
+        <p className="text-[9px] text-zinc-700 mt-1 text-right px-2">* Dates subject to change</p>
       )}
     </div>
   )
