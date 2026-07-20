@@ -219,14 +219,14 @@ export default function GolfDetailSheet({
           </div>
 
           {/* Venue line — 📍 Course, Location — same as GameDetailSheet */}
-          <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-0.5 mt-5">
+          <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-1 mt-5">
             {(tournament.course || tournament.location) && (
-              <span className="text-[11px] text-zinc-600">
+              <span className="text-[12px] text-zinc-300">
                 📍{tournament.course ? ` ${tournament.course}` : ""}{tournament.location ? `, ${tournament.location}` : ""}
               </span>
             )}
             {tournament.purse && (
-              <span className="text-[11px] text-zinc-600">💰 {tournament.purse}</span>
+              <span className="text-[11px] text-zinc-500">💰 {tournament.purse}</span>
             )}
           </div>
 
