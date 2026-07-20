@@ -35,6 +35,25 @@ function parsePar(raw: string | undefined | null): string {
   return n > 0 ? `+${n}` : `${n}`
 }
 
+/** Fetch course name + location from ESPN core API for a given LPGA event ID */
+async function fetchVenueInfo(eventId: string): Promise<{ course: string; location: string }> {
+  try {
+    const r = await fetch(
+      `https://sports.core.api.espn.com/v2/sports/golf/leagues/lpga/events/${eventId}`,
+      { cache: 'no-store' }
+    )
+    if (!r.ok) return { course: '', location: '' }
+    const d = await r.json()
+    const courseObj = Array.isArray(d.courses) ? d.courses[0] : d.courses
+    const courseName: string = courseObj?.name ?? ''
+    const addr = courseObj?.address ?? {}
+    const location = [addr.city, addr.state ?? addr.country].filter(Boolean).join(', ')
+    return { course: courseName, location }
+  } catch {
+    return { course: '', location: '' }
+  }
+}
+
 export async function GET() {
   try {
     const nextWeekDate = new Date()
@@ -66,10 +85,8 @@ export async function GET() {
         else if (status === 'completed') roundLabel = 'Final'
         else if (period > 0) roundLabel = `Round ${period}`
 
-        const venue = event.venue ?? comp.venue ?? {}
-        const course = venue.fullName ?? ''
-        const addr = venue.address ?? {}
-        const location = [addr.city, addr.state ?? addr.country].filter(Boolean).join(', ')
+        // ESPN scoreboard has null venue — fetch from core API
+        const { course, location } = await fetchVenueInfo(event.id)
 
         // Parse leaders — sorted by position
         const rawPlayers: any[] = (comp.competitors ?? [])
@@ -131,14 +148,12 @@ export async function GET() {
         return statusName !== 'STATUS_FINAL' && !comp?.status?.type?.completed
       })
       if (next) {
-        const venue = next.venue ?? next.competitions?.[0]?.venue ?? {}
-        const addr = venue.address ?? {}
-        const location = [addr.city, addr.state ?? addr.country].filter(Boolean).join(', ')
+        const { course, location } = await fetchVenueInfo(next.id)
         tournaments.push({
           id: next.id,
           name: next.name,
           shortName: next.shortName ?? next.name,
-          course: venue.fullName ?? '',
+          course,
           location,
           roundLabel: 'Upcoming',
           status: 'upcoming',
