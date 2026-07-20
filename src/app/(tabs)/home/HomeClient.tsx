@@ -489,8 +489,8 @@ export default function HomeClient() {
   const [selectedRecentGame, setSelectedRecentGame] = useState<Game | null>(null)
   const [selectedGolfUpcoming, setSelectedGolfUpcoming] = useState<{ tournament: PGATournament; label: string; accentColor: string } | null>(null)
 
-  // Golf follow state — always fetch if user follows, regardless of active filter
-  // (The active filter only hides golf from the Today section, not from Recent/Upcoming)
+  // Golf follow state — only show golf when filter is 'all' or golf-specific
+  // pgaVisibleInFilter / lpgaVisibleInFilter gate all three sections (Today, Recent, Upcoming)
   const pgaFollowed = selectedTeamIds.includes('pga')
   const lpgaFollowed = selectedTeamIds.includes('lpga')
 
@@ -521,7 +521,7 @@ export default function HomeClient() {
     return false
   })
   const pgaUpcoming = pgaTournaments.filter(t => pgaVisibleInFilter && t.status === 'upcoming')
-  const pgaRecent = pgaTournaments.filter(t => t.status === 'completed').slice(0, 1)
+  const pgaRecent = pgaTournaments.filter(t => pgaVisibleInFilter && t.status === 'completed').slice(0, 1)
 
   // Classify LPGA tournaments by section
   const lpgaToday = lpgaTournaments.filter(t => {
@@ -534,7 +534,7 @@ export default function HomeClient() {
     return false
   })
   const lpgaUpcoming = lpgaTournaments.filter(t => lpgaVisibleInFilter && t.status === 'upcoming')
-  const lpgaRecent = lpgaTournaments.filter(t => t.status === 'completed').slice(0, 1)
+  const lpgaRecent = lpgaTournaments.filter(t => lpgaVisibleInFilter && t.status === 'completed').slice(0, 1)
 
   // Any golf happening today?
   const hasGolfToday = pgaToday.length > 0 || lpgaToday.length > 0
