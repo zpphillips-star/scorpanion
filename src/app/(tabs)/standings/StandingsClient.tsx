@@ -94,9 +94,9 @@ function TeamLogoImg({ src, abbr }: { src: string; abbr: string }) {
 
 /**
  * SeasonProgressChevrons
- * – Compact horizontal chevron bar (labels only). Tap to open premium schedule sheet.
- * – Horizontal: pentagon clip-path with overlap so arrows point right cleanly.
- * – Popup: vertical downward-pointing chevron chain, premium GameDetailSheet style.
+ * – Horizontal bar: pure SVG paths rendered in REVERSE order so first segment
+ *   is always on top. No clip-path, no overlap artifacts, no diamonds.
+ * – Popup: vertical downward-pointing SVG chevrons, same technique.
  */
 function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
   const [showSheet, setShowSheet] = useState(false)
@@ -112,7 +112,6 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
   type PhaseKey = 'offseason' | 'preseason' | 'regular' | 'playoffs' | 'championship'
 
   const today = new Date().toISOString().split('T')[0]
-
   let activePhase: PhaseKey = 'offseason'
   if (s) {
     if (today >= s.championshipStart && today <= s.playoffEnd)        activePhase = 'championship'
@@ -141,8 +140,8 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
   if (s?.preseasonStart && s.preseasonEnd)
     phases.push({ key: 'preseason', label: 'Pre-Season', dateRange: `${fmtD(s.preseasonStart)} – ${fmtD(s.preseasonEnd)}` })
   if (s) {
-    phases.push({ key: 'regular',      label: 'Regular',             dateRange: `${fmtD(s.regularStart)} – ${fmtD(s.regularEnd)}` })
-    phases.push({ key: 'playoffs',     label: 'Playoffs',            dateRange: `${fmtD(s.playoffStart)} – ${fmtD(s.championshipStart)}${s.tbd ? '*' : ''}` })
+    phases.push({ key: 'regular',      label: 'Regular',                 dateRange: `${fmtD(s.regularStart)} – ${fmtD(s.regularEnd)}` })
+    phases.push({ key: 'playoffs',     label: 'Playoffs',                dateRange: `${fmtD(s.playoffStart)} – ${fmtD(s.championshipStart)}${s.tbd ? '*' : ''}` })
     phases.push({ key: 'championship', label: shortChamp(s.championship), dateRange: `${fmtD(s.championshipStart)} – ${fmtD(s.playoffEnd)}${s.tbd ? '*' : ''}` })
   } else {
     phases.push({ key: 'regular', label: 'Regular', dateRange: '—' })
@@ -150,84 +149,94 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
     phases.push({ key: 'championship', label: 'Finals', dateRange: '—' })
   }
 
-  const activeIdx  = phases.findIndex(p => p.key === activePhase)
-  const ACTIVE_BG  = '#D95C17'
-  const PAST_BG    = '#1e3a5f'
-  const FUTURE_BG  = '#0d1e30'
-  const N          = phases.length
+  const activeIdx = phases.findIndex(p => p.key === activePhase)
+  const ACTIVE_BG = '#D95C17'
+  const PAST_BG   = '#1e3a5f'
+  const FUTURE_BG = '#0d1e30'
+  const N         = phases.length
 
-  // ── Horizontal bar constants ──────────────────────────────────────────────
-  const H  = 54   // bar height px
-  const A  = 16   // horizontal arrow depth px
+  const getBg = (idx: number) => idx === activeIdx ? ACTIVE_BG : idx < activeIdx ? PAST_BG : FUTURE_BG
 
-  // Pentagon clip-path — single element, no seam
-  const hClip = (isFirst: boolean, isLast: boolean) => {
-    if (isFirst && isLast) return 'none'
-    if (isFirst) return `polygon(0 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, 0 100%)`
-    if (isLast)  return `polygon(${A}px 0, 100% 0, 100% 100%, ${A}px 100%, 0 50%)`
-    return `polygon(${A}px 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, ${A}px 100%, 0 50%)`
+  // ── SVG horizontal bar ───────────────────────────────────────────────────
+  // ViewBox: W=1000 wide, H=54 tall. Arrow depth = ~22% of segment width.
+  const SVG_W  = 1000
+  const SVG_H  = 54
+  const segW   = SVG_W / N
+  const A      = Math.round(segW * 0.22)  // arrow depth in SVG units
+  const H_BAR  = 54  // DOM height px
+
+  // Corrected SVG path for each segment:
+  // Render in REVERSE order so idx=0 is on TOP (drawn last in SVG = visually on top)
+  const hPathCorrect = (idx: number): string => {
+    const x0 = idx * segW        // segment nominal left edge
+    const x1 = (idx + 1) * segW  // segment nominal right edge
+    const isFirst = idx === 0
+    const isLast  = idx === N - 1
+    // Arrow extends A units BEYOND x1. Left notch is A units from x0 on the left.
+    if (isFirst && isLast) return `M${x0},0 L${x1},0 L${x1},${SVG_H} L${x0},${SVG_H} Z`
+    if (isFirst) return `M${x0},0 L${x1+A},0 L${x1+2*A},${SVG_H/2} L${x1+A},${SVG_H} L${x0},${SVG_H} Z`
+    if (isLast)  return `M${x0-2*A},${SVG_H/2} L${x0-A},0 L${x1},0 L${x1},${SVG_H} L${x0-A},${SVG_H} Z`
+    return `M${x0-2*A},${SVG_H/2} L${x0-A},0 L${x1+A},0 L${x1+2*A},${SVG_H/2} L${x1+A},${SVG_H} L${x0-A},${SVG_H} Z`
   }
 
-  // ── Vertical popup chevron constants ─────────────────────────────────────
-  const BH_ACTIVE   = 88   // active block body height px
-  const BH_INACTIVE = 64   // inactive block body height px
-  const VA          = 14   // vertical arrow depth px
+  // ── SVG vertical popup chevrons ──────────────────────────────────────────
+  // Each block: W=1000, height variable. Arrow depth = 25% of body height.
+  const POPUP_SVG_W    = 1000
+  const BODY_H_ACTIVE  = 90   // body height in px for active phase
+  const BODY_H_INACTIVE = 66  // body height for inactive
+  const vArrowDepth    = 18   // px — downward arrow depth
 
-  // Vertical downward-pointing chevron clip-path
-  const vClip = (isFirst: boolean, isLast: boolean, bh: number) => {
+  // SVG path for vertical downward-pointing chevron
+  // bh = body height in SVG units (1:1 with px since width=1000 but height is real px)
+  const vPath = (idx: number, bh: number): string => {
+    const isFirst = idx === 0
+    const isLast  = idx === N - 1
+    const W = POPUP_SVG_W
+    const VA = vArrowDepth
     const total = bh + VA
-    if (isFirst && isLast) return 'none'
-    if (isFirst) return `polygon(0 0, 100% 0, 100% ${bh}px, 50% ${total}px, 0 ${bh}px)`
-    if (isLast)  return `polygon(0 ${VA}px, 50% 0, 100% ${VA}px, 100% 100%, 0 100%)`
-    return `polygon(0 ${VA}px, 50% 0, 100% ${VA}px, 100% ${bh}px, 50% ${total}px, 0 ${bh}px)`
+    if (isFirst && isLast) return `M0,0 L${W},0 L${W},${total} L0,${total} Z`
+    if (isFirst) return `M0,0 L${W},0 L${W},${bh} L${W/2},${total} L0,${bh} Z`
+    if (isLast)  return `M0,${VA} L${W/2},0 L${W},${VA} L${W},${total} L0,${total} Z`
+    return `M0,${VA} L${W/2},0 L${W},${VA} L${W},${bh} L${W/2},${total} L0,${bh} Z`
   }
 
   return (
     <>
-      {/* ── Compact horizontal chevron bar ── */}
+      {/* ── Horizontal chevron bar — SVG shapes + HTML text overlay ── */}
       <button
-        className="w-full mt-3 mb-5 block"
+        className="w-full mt-3 mb-5 block relative"
+        style={{ height: H_BAR }}
         onClick={() => setShowSheet(true)}
         aria-label="View season schedule"
       >
-        {/* overflow:hidden clips the last segment's right arrow if it bleeds */}
-        <div className="flex w-full overflow-hidden" style={{ height: H }}>
+        {/* SVG rendered in REVERSE order: last segment drawn first (bottom), first drawn last (top) */}
+        <svg
+          viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+          preserveAspectRatio="none"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }}
+        >
+          {[...phases].reverse().map((_, revIdx) => {
+            const idx = N - 1 - revIdx
+            return <path key={phases[idx].key} d={hPathCorrect(idx)} fill={getBg(idx)} />
+          })}
+        </svg>
+
+        {/* HTML text labels over SVG */}
+        <div className="absolute inset-0 flex" style={{ height: H_BAR }}>
           {phases.map((phase, idx) => {
             const isActive = idx === activeIdx
             const isPast   = idx < activeIdx
-            const isFirst  = idx === 0
-            const isLast   = idx === N - 1
-            const bg       = isActive ? ACTIVE_BG : isPast ? PAST_BG : FUTURE_BG
-            // Left-first z-index so each arrow covers the next segment's left notch
-            const z        = N + 2 - idx
-            // Explicit widths so negative-margin overlap works correctly
-            const widthStr = isLast
-              ? `${(100 / N).toFixed(4)}%`
-              : `calc(${(100 / N).toFixed(4)}% + ${A}px)`
-            const pl = (isFirst ? 10 : A + 8) + 'px'
-            const pr = (isLast  ? 10 : A + 4) + 'px'
-
+            // Pad text inside arrow area so it doesn't overlap the arrow tips
+            const arrowPct = `${((A * 1.5) / SVG_W * 100).toFixed(1)}%`
             return (
               <div
                 key={phase.key}
-                style={{
-                  width:       widthStr,
-                  flexShrink:  0,
-                  marginLeft:  isFirst ? 0 : -A,
-                  zIndex:      z,
-                  height:      H,
-                  background:  bg,
-                  clipPath:    hClip(isFirst, isLast),
-                  display:     'flex',
-                  alignItems:  'center',
-                  justifyContent: 'center',
-                  paddingLeft: pl,
-                  paddingRight: pr,
-                }}
+                className="flex-1 flex items-center justify-center overflow-hidden"
+                style={{ paddingLeft: idx === 0 ? '2%' : arrowPct, paddingRight: idx === N-1 ? '2%' : arrowPct }}
               >
                 <span
-                  className="font-display font-800 uppercase tracking-wide text-white leading-none text-center"
-                  style={{ fontSize: '11px', opacity: isActive ? 1 : isPast ? 0.6 : 0.4 }}
+                  className="font-display font-800 uppercase tracking-wide text-white leading-none text-center truncate"
+                  style={{ fontSize: '11px', opacity: isActive ? 1 : isPast ? 0.65 : 0.4 }}
                 >
                   {phase.label}
                 </span>
@@ -237,7 +246,7 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
         </div>
       </button>
 
-      {/* ── Premium Season Schedule Sheet ── */}
+      {/* ── Season Schedule Sheet — no rounded corners, premium vertical chevrons ── */}
       {showSheet && (
         <>
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40" onClick={() => setShowSheet(false)} />
@@ -245,7 +254,7 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
             className="fixed bottom-0 left-0 right-0 z-50 lg:max-w-2xl lg:mx-auto animate-slide-up"
             style={{
               background: '#0c1b31',
-              borderRadius: '20px 20px 0 0',
+              borderRadius: 0,
               paddingBottom: 'env(safe-area-inset-bottom)',
               maxHeight: '88dvh',
               overflow: 'hidden',
@@ -253,85 +262,96 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
               flexDirection: 'column',
             }}
           >
-            {/* Gradient header */}
+            {/* Header */}
             <div
               className="relative px-6 pt-6 pb-5 flex-shrink-0"
               style={{ background: 'linear-gradient(180deg, #142a40 0%, #0c1b31 100%)', borderBottom: '1px solid rgba(255,255,255,0.13)' }}
             >
               <button
                 onClick={() => setShowSheet(false)}
-                className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white text-base"
+                className="absolute top-5 right-5 w-9 h-9 bg-white/10 flex items-center justify-center text-white text-base"
               >✕</button>
               <div className="text-zinc-500 text-[11px] uppercase tracking-widest mb-1.5">2026 Season</div>
               <div className="font-display text-[32px] font-800 text-white uppercase leading-none tracking-tight">
                 {leagueId.toUpperCase()}
               </div>
-              <div className="text-zinc-500 text-[13px] mt-2">Tap a phase to learn more · scroll to track progress</div>
             </div>
 
-            {/* Vertical chevron chain */}
-            <div className="overflow-y-auto px-5 pt-5 pb-8">
+            {/* Vertical chevron chain — SVG per block with downward arrows */}
+            <div className="overflow-y-auto pt-4 pb-10 px-5">
               <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {/* Render in REVERSE order so idx=0 is on top (position:relative + z-index) */}
                 {phases.map((phase, idx) => {
                   const isActive = idx === activeIdx
                   const isPast   = idx < activeIdx
+                  const bh       = isActive ? BODY_H_ACTIVE : BODY_H_INACTIVE
+                  const total    = bh + vArrowDepth
+                  const bg       = getBg(idx)
                   const isFirst  = idx === 0
                   const isLast   = idx === N - 1
-                  const bh       = isActive ? BH_ACTIVE : BH_INACTIVE
-                  const bg       = isActive ? ACTIVE_BG : isPast ? PAST_BG : FUTURE_BG
-                  const zv       = N + 2 - idx
-                  const total    = bh + VA
 
                   return (
                     <div
                       key={phase.key}
                       style={{
-                        width:      '100%',
-                        height:     total,
-                        marginTop:  isFirst ? 0 : -VA,
-                        zIndex:     zv,
                         position:   'relative',
-                        background: bg,
-                        clipPath:   vClip(isFirst, isLast, bh),
-                        display:    'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        paddingTop:    isFirst ? 16 : VA + 12,
-                        paddingBottom: isLast  ? 16 : VA + 8,
-                        paddingLeft:   24,
-                        paddingRight:  24,
+                        zIndex:     N - idx,   // first block on top
+                        height:     total,
+                        marginTop:  isFirst ? 0 : -vArrowDepth,
+                        width:      '100%',
                       }}
                     >
-                      <div className="flex items-center gap-3">
+                      {/* SVG shape */}
+                      <svg
+                        viewBox={`0 0 ${POPUP_SVG_W} ${total}`}
+                        preserveAspectRatio="none"
+                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }}
+                      >
+                        <path d={vPath(idx, bh)} fill={bg} />
+                      </svg>
+
+                      {/* Text content — positioned above SVG */}
+                      <div
+                        style={{
+                          position:    'relative',
+                          zIndex:      1,
+                          paddingTop:  isFirst ? 18 : vArrowDepth + 10,
+                          paddingBottom: 12,
+                          paddingLeft: 28,
+                          paddingRight: 28,
+                          height:      total,
+                          display:     'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                        }}
+                      >
                         <span
                           className="font-display font-800 uppercase tracking-wide leading-none"
                           style={{
-                            fontSize: isActive ? '20px' : '15px',
+                            fontSize: isActive ? '22px' : '15px',
                             color:    isActive ? '#ffffff' : isPast ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.30)',
                           }}
                         >
                           {phase.label}
                         </span>
-                        {isActive && (
-                          <span className="text-[10px] font-bold uppercase tracking-widest bg-white/20 text-white px-2 py-0.5 rounded-full">
-                            NOW
-                          </span>
+                        {phase.dateRange && phase.dateRange !== '—' && (
+                          <div
+                            style={{
+                              marginTop: 5,
+                              fontSize:  '13px',
+                              color:     isActive ? 'rgba(255,255,255,0.8)' : isPast ? 'rgba(255,255,255,0.38)' : 'rgba(255,255,255,0.22)',
+                            }}
+                          >
+                            {phase.dateRange}
+                          </div>
                         )}
                       </div>
-                      {phase.dateRange && phase.dateRange !== '—' && (
-                        <div
-                          className="mt-1.5 text-[13px]"
-                          style={{ color: isActive ? 'rgba(255,255,255,0.75)' : isPast ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.20)' }}
-                        >
-                          {phase.dateRange}
-                        </div>
-                      )}
                     </div>
                   )
                 })}
               </div>
               {s?.tbd && (
-                <p className="text-[11px] text-zinc-700 text-right pt-3">* Dates approximate</p>
+                <p className="text-[11px] text-zinc-700 text-right pt-3 pr-2">* Dates approximate</p>
               )}
             </div>
           </div>
@@ -340,7 +360,6 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
     </>
   )
 }
-
 // Alias — call sites unchanged
 const SeasonBanner = ({ leagueId }: { season: SeasonInfo; leagueId: string }) =>
   <SeasonProgressChevrons leagueId={leagueId} />
