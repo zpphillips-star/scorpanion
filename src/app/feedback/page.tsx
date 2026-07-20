@@ -163,16 +163,19 @@ export default function FeedbackPage() {
   return (
     <div style={{ minHeight: '100dvh', background: '#0c1b31', color: 'white', paddingBottom: '5rem' }}>
 
-      {/* Header */}
-      <div className="sticky top-0 z-20 flex items-center px-4 py-3"
-        style={{ background: 'rgba(12,27,49,0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.06)', position: 'relative' }}>
+      {/* Header — height driven by invisible 90px spacer to match PageHeader */}
+      <div className="sticky top-0 z-20 relative flex items-center px-4 pt-2 pb-3"
+        style={{ background: 'rgba(12,27,49,0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        {/* Back button — vertically centered by flex items-center */}
         <Link href="/home" className="flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0"
           style={{ color: '#a1a1aa', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </Link>
-        {/* Logo — absolutely centered in the header, matching site-wide size */}
+        {/* Invisible spacer — forces header to 90px tall so logo fits */}
+        <div style={{ flex: 1, height: 90, pointerEvents: 'none' }} />
+        {/* Logo — absolutely centered over the full header */}
         <div style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
           <div style={{ overflow: 'hidden', height: 90, display: 'flex', alignItems: 'center' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -181,7 +184,7 @@ export default function FeedbackPage() {
               onError={(e) => { (e.target as HTMLImageElement).src = '/scorpanion-full.png' }}/>
           </div>
         </div>
-        <div style={{ flex: 1 }} />
+        {/* Suggest button — vertically centered by flex items-center */}
         <button onClick={() => setShowForm(v => !v)}
           className="flex-shrink-0 font-display uppercase tracking-widest transition-opacity active:opacity-70"
           style={{ height: 34, paddingLeft: 14, paddingRight: 14, background: showForm ? 'rgba(217,92,23,0.15)' : '#D95C17',
