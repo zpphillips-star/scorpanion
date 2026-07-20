@@ -178,6 +178,15 @@ function GolfTodayCard({ tournament, label, accentColor }: {
   const isLive = tournament.status === 'live'
   const isFt   = tournament.status === 'completed'
 
+  // "Round 3" → "Day 3 of 4"
+  const roundMatch = tournament.roundLabel.match(/\d+/)
+  const roundNum   = roundMatch ? parseInt(roundMatch[0]) : null
+  const dayLabel   = roundNum ? `Day ${roundNum} of 4` : tournament.roundLabel
+
+  const logoUrl = label === 'LPGA'
+    ? 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/lpga.png'
+    : 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/pga.png'
+
   function scoreColor(s: string) {
     if (s.startsWith('-')) return '#4ade80'
     if (s.startsWith('+')) return '#f87171'
@@ -193,7 +202,7 @@ function GolfTodayCard({ tournament, label, accentColor }: {
           paddingLeft: isLive ? "13px" : "16px",
           opacity: isFt ? 0.82 : 1,
         }}>
-          {/* Header — identical to TodayGameCard header */}
+          {/* Header — same as TodayGameCard */}
           <div className="flex items-center justify-between pr-4 pt-4 pb-1">
             <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
               {label}
@@ -204,29 +213,39 @@ function GolfTodayCard({ tournament, label, accentColor }: {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
                 </span>
-                <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider">{tournament.roundLabel}</span>
+                <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider">Live</span>
               </div>
+            ) : isFt ? (
+              <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>Final</span>
             ) : (
               <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">{tournament.roundLabel}</span>
             )}
           </div>
 
-          {/* Tournament name */}
-          <div className="pt-1 pb-2 pr-4">
-            <div className="text-[15px] font-bold text-white leading-tight">{tournament.shortName || tournament.name}</div>
-            {tournament.course && <div className="text-[11px] text-zinc-600 mt-0.5">{tournament.course}</div>}
-          </div>
+          {/* Body: Day X of 4  |  Logo  |  Tournament name */}
+          <div className="flex items-center pr-4 py-5">
+            {/* Left: day label */}
+            <div className="flex-1 flex items-center justify-center">
+              <span className="text-[13px] font-bold text-center leading-tight" style={{ color: "#f0f0f8" }}>{dayLabel}</span>
+            </div>
 
-          {/* Top 5 leaderboard */}
-          <div className="pb-3 pr-4">
-            {tournament.leaders.slice(0, 5).map((p, i) => (
-              <div key={i} className="flex items-center gap-3 py-1.5 border-t border-white/5">
-                <span className="w-5 text-[11px] tabular-nums text-zinc-500 text-center flex-shrink-0">{p.position}</span>
-                <span className="flex-1 text-[13px] font-semibold text-white truncate">{p.shortName || p.name}</span>
-                <span className="text-[13px] font-bold tabular-nums flex-shrink-0" style={{ color: scoreColor(p.totalScore) }}>{p.totalScore}</span>
-                <span className="text-[11px] text-zinc-600 tabular-nums w-7 text-right flex-shrink-0">{p.thru}</span>
-              </div>
-            ))}
+            {/* Center: tour logo */}
+            <div className="flex items-center justify-center" style={{ width: 56 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={logoUrl}
+                alt={label}
+                style={{ width: 48, height: 48, objectFit: 'contain' }}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+              />
+            </div>
+
+            {/* Right: tournament name */}
+            <div className="flex-1 flex items-center justify-center">
+              <span className="text-[13px] font-bold text-center leading-tight" style={{ color: "#f0f0f8" }}>
+                {tournament.shortName || tournament.name}
+              </span>
+            </div>
           </div>
         </div>
       </button>
