@@ -945,22 +945,41 @@ export default function HomeClient() {
                 )
               })}
               {/* ── Golf tournament rows in this date bucket ── */}
-              {(golfUpcomingByDate[ds] ?? []).map(({ tournament: t, label, accentColor }) => (
-                <div key={`golf-${t.id}`} className="py-3 border-b border-white/5">
-                  <div className="pl-6 mb-1.5 flex items-center gap-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: accentColor }}>{label}</span>
-                    {t.course && <span className="text-[10px] text-zinc-600">{t.course}</span>}
+              {(golfUpcomingByDate[ds] ?? []).map(({ tournament: t, label, accentColor }) => {
+                const golfLogoUrl = label === 'LPGA'
+                  ? 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/lpga.png'
+                  : 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/pgatour.png'
+                const dateRange = (() => {
+                  const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                  if (t.endDate && t.endDate !== t.startDate) return `${fmt(t.startDate)} – ${fmt(t.endDate)}`
+                  return fmt(t.startDate)
+                })()
+                return (
+                  <div key={`golf-${t.id}`} className="py-3 border-b border-white/5">
+                    {/* Sub-header: date range (matches time row of team games) */}
+                    <div className="pl-6 mb-1.5 flex items-center gap-2">
+                      <span className="text-[11px] text-zinc-500 font-normal uppercase tracking-wide tabular-nums">{dateRange}</span>
+                      {t.course && <span className="text-[10px] text-zinc-600">{t.course}</span>}
+                    </div>
+                    {/* Content row: label · logo · tournament name (matches team vs row) */}
+                    <div className="grid items-center px-4" style={{ gridTemplateColumns: "1fr 2rem 1fr" }}>
+                      {/* Left: league label */}
+                      <div className="flex items-center justify-end">
+                        <span className="text-[14px] font-semibold truncate leading-tight" style={{ color: accentColor }}>{label}</span>
+                      </div>
+                      {/* Center: league logo */}
+                      <div className="flex items-center justify-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={golfLogoUrl} alt={label} width={28} height={28} className="object-contain" />
+                      </div>
+                      {/* Right: tournament name */}
+                      <div className="flex items-center justify-start">
+                        <span className="text-[14px] font-semibold text-white truncate leading-tight">{t.shortName || t.name}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="px-4 flex items-center justify-between gap-2">
-                    <span className="text-[14px] font-semibold text-white truncate flex-1 leading-tight">{t.shortName || t.name}</span>
-                    {t.endDate && t.endDate !== t.startDate && (
-                      <span className="text-[12px] text-zinc-500 flex-shrink-0">
-                        – {new Date(t.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           ))}
         </div>
