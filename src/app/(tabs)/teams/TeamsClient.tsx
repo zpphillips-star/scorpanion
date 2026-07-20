@@ -188,6 +188,9 @@ export default function TeamsClient() {
     }
   }
 
+  // League display order for the ALL grouped view
+  const LEAGUE_ORDER = ['NFL', 'NBA', 'MLB', 'NHL', 'MLS', 'NWSL', 'WNBA']
+
   // Filter + sort teams: followed first, then Seattle, then alphabetical
   const filteredTeams = useMemo(() => {
     let base = activeTab === 'ALL'
@@ -211,6 +214,23 @@ export default function TeamsClient() {
       if (aS !== bS) return aS ? -1 : 1
       return a.name.localeCompare(b.name)
     })
+  }, [activeTab, effectivelyFollowedProIds, searchQuery])
+
+  // Grouped view for ALL tab (no search): followed section first, then each league A→Z
+  const groupedTeams = useMemo(() => {
+    if (activeTab !== 'ALL' || searchQuery.trim()) return null
+    const followed = ALL_PRO_TEAMS
+      .filter(t => effectivelyFollowedProIds.has(t.id))
+      .sort((a, b) => a.name.localeCompare(b.name))
+    const groups: { league: string; teams: ProTeam[] }[] = []
+    if (followed.length > 0) groups.push({ league: '★ Following', teams: followed })
+    for (const league of LEAGUE_ORDER) {
+      const teams = ALL_PRO_TEAMS
+        .filter(t => t.league === league)
+        .sort((a, b) => a.name.localeCompare(b.name))
+      if (teams.length > 0) groups.push({ league, teams })
+    }
+    return groups
   }, [activeTab, effectivelyFollowedProIds, searchQuery])
 
   // Count of pro teams in the ALL_PRO_TEAMS list that the user follows
@@ -561,23 +581,56 @@ export default function TeamsClient() {
       {/* ── Pro teams grid (hidden on Golf tab) ── */}
       {activeTab !== 'GOLF' && (
         <div className="px-4 mt-3">
-          {proFollowedCount > 0 && (
-            <p className="font-display text-[10px] font-700 text-zinc-500 uppercase tracking-widest mb-2">
-              ★ Following ({proFollowedCount})
-            </p>
-          )}
           {selectedMapState && !searchQuery && (
             <p className="text-[10px] text-amber-400/70 mb-2">
               ✦ Highlighted = {STATE_NAMES[selectedMapState] ?? selectedMapState} teams
             </p>
           )}
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2.5">
-            {filteredTeams.map(team => (
-              <ProTeamCard key={team.id} team={team} />
-            ))}
-          </div>
-          {filteredTeams.length === 0 && (
-            <p className="text-zinc-600 text-sm text-center py-8">No teams found</p>
+
+          {/* ALL tab with no search → grouped by league with section headers */}
+          {groupedTeams ? (
+            <div className="space-y-5">
+              {groupedTeams.map(({ league, teams }) => (
+                <div key={league}>
+                  {/* Section header */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      className="font-display text-[11px] font-800 uppercase tracking-widest"
+                      style={{ color: league === '★ Following' ? '#D95C17' : (LEAGUE_BADGE[league] ? '#ffffff' : '#9ca3af') }}
+                    >
+                      {league}
+                    </span>
+                    {league !== '★ Following' && (
+                      <div
+                        className="flex-1 h-px"
+                        style={{ background: 'rgba(255,255,255,0.08)' }}
+                      />
+                    )}
+                    <span className="text-[10px] text-zinc-600">{teams.length}</span>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2.5">
+                    {teams.map(team => <ProTeamCard key={team.id} team={team} />)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* Single-league tabs or search results → flat grid */
+            <>
+              {proFollowedCount > 0 && activeTab !== 'ALL' && (
+                <p className="font-display text-[10px] font-700 text-zinc-500 uppercase tracking-widest mb-2">
+                  ★ Following ({proFollowedCount})
+                </p>
+              )}
+              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2.5">
+                {filteredTeams.map(team => (
+                  <ProTeamCard key={team.id} team={team} />
+                ))}
+              </div>
+              {filteredTeams.length === 0 && (
+                <p className="text-zinc-600 text-sm text-center py-8">No teams found</p>
+              )}
+            </>
           )}
         </div>
       )}
