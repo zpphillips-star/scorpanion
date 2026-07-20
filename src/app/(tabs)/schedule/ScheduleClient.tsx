@@ -479,7 +479,10 @@ export default function ScheduleClient() {
     if (!el) return
     const main = el.closest('main')
     if (main) {
-      main.scrollTo({ top: el.offsetTop - 120, behavior: 'smooth' })
+      const elTop = el.getBoundingClientRect().top
+      const mainTop = main.getBoundingClientRect().top
+      const offset = main.scrollTop + (elTop - mainTop) - 120
+      main.scrollTo({ top: offset, behavior: 'smooth' })
     }
   }
 
