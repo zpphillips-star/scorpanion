@@ -96,69 +96,126 @@ function SeasonBanner({ season, leagueId }: { season: SeasonInfo; leagueId: stri
   const info = LEAGUE_INFO[leagueId]
   const accentColor = info?.color || "#00d4ff"
   const s = LEAGUE_SEASON[leagueId]
+  const currentYear = new Date().getFullYear()
 
-  if (season.status === "offseason") {
-    return (
-      <div className="mx-3 mt-3 px-4 py-4 rounded-2xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-        <div className="font-display text-[14px] font-700 text-zinc-300 uppercase tracking-widest mb-1">Off-Season</div>
-        <div className="font-display text-[12px] text-zinc-600">{season.label} · Regular season complete</div>
-        {s && (
-          <div className="font-display text-[11px] text-zinc-500 mt-1">
-            Season ran <span className="text-zinc-300">{fmtShort(s.regularStart)} – {fmtShort(s.regularEnd)}</span>
-            {' · '}Playoffs <span className="text-zinc-300">{fmtShort(s.playoffStart)} – {fmtShort(s.playoffEnd)}</span>
-          </div>
-        )}
-        {season.nextStartApprox && (
-          <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
-            <span className="font-display text-[11px] text-zinc-400">Next season starts <span className="text-white font-700">{season.nextStartApprox}</span></span>
-          </div>
-        )}
-      </div>
-    )
+  /** Format date; append year when it differs from the current calendar year */
+  const fmtD = (iso: string): string => {
+    const year = parseInt(iso.split('-')[0], 10)
+    const short = fmtShort(iso)
+    return year !== currentYear ? `${short}, ${year}` : short
   }
 
-  if (season.status === "playoffs") {
-    // Playoff banner is handled by PlayoffSection — just return null here
-    return null
+  type PhaseStatus = 'current' | 'past' | 'future'
+  interface PhaseRow { key: string; name: string; dateRange: string; phaseStatus: PhaseStatus; isTbd?: boolean }
+  const phases: PhaseRow[] = []
+
+  if (s) {
+    // Preseason (optional)
+    if (s.preseasonStart && s.preseasonEnd) {
+      const ps: PhaseStatus =
+        season.status === 'preseason' ? 'current' :
+        ['regular', 'playoffs', 'offseason'].includes(season.status) ? 'past' : 'future'
+      phases.push({ key: 'pre', name: 'Preseason',
+        dateRange: `${fmtD(s.preseasonStart)} – ${fmtD(s.preseasonEnd)}`, phaseStatus: ps })
+    }
+
+    // Regular season
+    const rs: PhaseStatus =
+      season.status === 'regular' ? 'current' :
+      ['playoffs', 'offseason'].includes(season.status) ? 'past' : 'future'
+    phases.push({ key: 'reg', name: 'Regular Season',
+      dateRange: `${fmtD(s.regularStart)} – ${fmtD(s.regularEnd)}`, phaseStatus: rs })
+
+    // Playoffs
+    const pls: PhaseStatus =
+      season.status === 'playoffs' ? 'current' :
+      season.status === 'offseason' ? 'past' : 'future'
+    phases.push({ key: 'playoff', name: s.playoffLabel || 'Playoffs',
+      dateRange: `${fmtD(s.playoffStart)} – ${fmtD(s.playoffEnd)}`, phaseStatus: pls, isTbd: s.tbd })
   }
 
-  if (season.status === "preseason") {
-    return (
-      <div className="mx-3 mt-3 px-4 py-3 rounded-2xl"
-        style={{ background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.2)" }}>
-        <div className="font-display text-[12px] font-700 text-purple-400 uppercase tracking-widest">Preseason</div>
-        <div className="font-display text-[11px] text-zinc-500 mt-0.5">{season.label}</div>
-        {s && (
-          <div className="font-display text-[11px] text-zinc-400 mt-1.5 space-y-0.5">
-            <div>Regular season <span className="text-white font-700">{fmtShort(s.regularStart)} – {fmtShort(s.regularEnd)}</span></div>
-            <div>Playoffs <span className="text-white font-700">{fmtShort(s.playoffStart)} – {fmtShort(s.playoffEnd)}</span>{s.tbd && <span className="text-zinc-600"> (dates TBD)</span>}</div>
-            <div className="text-zinc-600">{s.championship}</div>
-          </div>
-        )}
-      </div>
-    )
+  // Next milestone line
+  let nextMilestone: string | null = null
+  if (s) {
+    if (season.status === 'preseason')       nextMilestone = `Regular season starts ${fmtD(s.regularStart)}`
+    else if (season.status === 'regular')    nextMilestone = `Playoffs start ${fmtD(s.playoffStart)}`
+    else if (season.status === 'playoffs')   nextMilestone = `Championship: ${s.championship}`
+    else if (season.status === 'offseason' && season.nextStartApprox)
+      nextMilestone = `Next season starts ${season.nextStartApprox}`
+  } else if (season.status === 'offseason' && season.nextStartApprox) {
+    nextMilestone = `Next season starts ${season.nextStartApprox}`
   }
 
-  // Regular season
+  const isRegular = season.status === 'regular'
+
   return (
-    <div className="mx-3 mt-3 px-4 py-3 rounded-2xl flex items-start gap-3"
-      style={{ background: `${accentColor}10`, border: `1px solid ${accentColor}28` }}>
-      <span className="relative flex h-2.5 w-2.5 flex-shrink-0 mt-1">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ backgroundColor: accentColor }} />
-        <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ backgroundColor: accentColor }} />
-      </span>
-      <div>
-        <div className="font-display text-[12px] font-700 uppercase tracking-widest" style={{ color: accentColor }}>Regular Season</div>
-        {s ? (
-          <div className="font-display text-[11px] text-zinc-500 mt-0.5 space-y-0.5">
-            <div>{fmtShort(s.regularStart)} – {fmtShort(s.regularEnd)}</div>
-            <div>Playoffs: {fmtShort(s.playoffStart)} – {fmtShort(s.playoffEnd)}{s.tbd && <span className="text-zinc-600"> (dates TBD)</span>}</div>
-            <div className="text-zinc-600">{s.championship}</div>
+    <div className="mx-3 mt-3 px-4 py-4 rounded-2xl"
+      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+
+      {/* Full phase timeline */}
+      {phases.length > 0 && (
+        <div className="space-y-2.5">
+          {phases.map(phase => {
+            const isCurrent = phase.phaseStatus === 'current'
+            const isPast    = phase.phaseStatus === 'past'
+            return (
+              <div key={phase.key} className="flex items-center gap-2.5">
+                {/* Dot */}
+                <div className="w-3.5 flex items-center justify-center flex-shrink-0">
+                  {isCurrent ? (
+                    isRegular ? (
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ backgroundColor: accentColor }} />
+                        <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: accentColor }} />
+                      </span>
+                    ) : (
+                      <span className="inline-flex rounded-full h-2 w-2 flex-shrink-0" style={{ backgroundColor: accentColor }} />
+                    )
+                  ) : isPast ? (
+                    <span className="inline-flex rounded-full h-1.5 w-1.5 bg-zinc-700 flex-shrink-0" />
+                  ) : (
+                    <span className="inline-flex rounded-full h-1.5 w-1.5 bg-zinc-800 border border-zinc-700 flex-shrink-0" />
+                  )}
+                </div>
+
+                {/* Phase label */}
+                <span
+                  className={`font-display text-[11px] uppercase tracking-widest flex-shrink-0 w-28 ${isCurrent ? 'font-700' : 'font-500 text-zinc-600'}`}
+                  style={isCurrent ? { color: accentColor } : undefined}
+                >
+                  {phase.name}
+                </span>
+
+                {/* Date range */}
+                <span className={`font-display text-[11px] ${isCurrent ? 'text-zinc-300' : isPast ? 'text-zinc-700' : 'text-zinc-600'}`}>
+                  {phase.dateRange}
+                  {phase.isTbd && <span className="text-zinc-700 ml-1">(TBD)</span>}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Fallback: no LEAGUE_SEASON entry */}
+      {phases.length === 0 && (
+        <>
+          <div className="font-display text-[13px] font-700 uppercase tracking-widest" style={{ color: accentColor }}>
+            {season.status === 'offseason' ? 'Off-Season'
+              : season.status === 'preseason' ? 'Preseason'
+              : season.status === 'regular'   ? 'Regular Season'
+              : 'Playoffs'}
           </div>
-        ) : (
-          <div className="font-display text-[11px] text-zinc-500 mt-0.5">{season.label} · In progress</div>
-        )}
-      </div>
+          <div className="font-display text-[11px] text-zinc-500 mt-0.5">{season.label}</div>
+        </>
+      )}
+
+      {/* Next milestone */}
+      {nextMilestone && (
+        <div className="mt-3 pt-2.5 border-t border-white/[0.05]">
+          <span className="font-display text-[12px] font-600" style={{ color: accentColor }}>{nextMilestone}</span>
+        </div>
+      )}
     </div>
   )
 }
@@ -826,12 +883,12 @@ export default function StandingsClient() {
 
       {data && !loading && activeLeague && SUPPORTED_STANDINGS.has(activeLeague) && (
         <>
-          {/* Season status banner (offseason / preseason / regular) */}
-          {data.season && data.season.status !== 'playoffs' && (
+          {/* Season timeline banner — all statuses */}
+          {data.season && (
             <SeasonBanner season={data.season} leagueId={activeLeague} />
           )}
 
-          {/* PLAYOFFS — show bracket prominently first */}
+          {/* PLAYOFFS — show bracket below timeline */}
           {data.season?.status === 'playoffs' && (
             <PlayoffSection leagueId={activeLeague} accentColor={accentColor} followedAbbrs={followedAbbrs} />
           )}

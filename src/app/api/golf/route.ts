@@ -136,6 +136,66 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // Rankings mode: FedEx Cup (PGA) or Race to CME Globe (LPGA) standings
+  if (mode === 'rankings') {
+    try {
+      const url = `https://site.api.espn.com/apis/site/v2/sports/golf/${slug}/standings`
+      const res = await fetch(url, { next: { revalidate: 3600 } })
+      if (!res.ok) return Response.json([], { status: 200 })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: any = await res.json()
+
+      // ESPN standings shape varies; try several known paths
+      const entries: any[] =
+        data?.standings?.entries ??
+        data?.content?.standings?.entries ??
+        data?.standings?.groups?.[0]?.entries ??
+        data?.entries ??
+        []
+
+      if (entries.length === 0) return Response.json([])
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rankings = entries.slice(0, 50).map((entry: any, idx: number) => {
+        const athlete = entry.athlete ?? entry.competitor ?? entry.team ?? {}
+        const stats: any[] = entry.stats ?? entry.statistics ?? []
+
+        // Rank — prefer an explicit stat, fallback to array index
+        const rankStat = stats.find((s: any) =>
+          s.name === 'rank' || s.name === 'position' || s.shortDisplayName === 'RK'
+        )
+        const rank = rankStat
+          ? (parseInt(rankStat.displayValue, 10) || idx + 1)
+          : idx + 1
+
+        // Points — FedEx or CME Globe points
+        const pointsStat = stats.find((s: any) =>
+          ['fedexPts', 'fedexPoints', 'points', 'raceToCMEPoints',
+           'raceToGlobePoints', 'cmePts', 'seasonPoints'].includes(s.name)
+        ) ?? stats.find((s: any) => s.displayValue && s.displayValue !== '0')
+          ?? stats[0]
+
+        // Optional earnings
+        const earningStat = stats.find((s: any) =>
+          ['earnings', 'totalEarnings', 'money', 'officialMoney'].includes(s.name)
+        )
+
+        return {
+          rank,
+          name: athlete.displayName ?? athlete.fullName ?? 'Unknown',
+          country: athlete.flag?.alt ?? athlete.nationality ?? '',
+          points: pointsStat?.displayValue ?? '',
+          earnings: earningStat?.displayValue ?? undefined,
+        }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }).filter((p: any) => p.name && p.name !== 'Unknown')
+
+      return Response.json(rankings)
+    } catch {
+      return Response.json([])
+    }
+  }
+
   const result = await fetchTour(slug)
   if (!result) return Response.json({ error: 'No active tournament' }, { status: 404 })
   return Response.json(result)

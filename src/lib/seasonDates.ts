@@ -26,11 +26,15 @@ export interface LeagueSeason {
   playoffLabel:    string
   championship:    string
   tbd?:            boolean
+  preseasonStart?: string   // YYYY-MM-DD
+  preseasonEnd?:   string   // YYYY-MM-DD
 }
 
 export const LEAGUE_SEASON: Record<string, LeagueSeason> = {
   // ── MLB 2026 ──────────────────────────────────────────────────────────────
   mlb: {
+    preseasonStart: '2026-02-12',  // Spring Training opens
+    preseasonEnd:   '2026-03-25',
     regularStart:  '2026-03-26',
     regularEnd:    '2026-09-28',
     playoffStart:  '2026-10-01',   // Wild Card
@@ -41,6 +45,8 @@ export const LEAGUE_SEASON: Record<string, LeagueSeason> = {
 
   // ── NFL 2026-27 ───────────────────────────────────────────────────────────
   nfl: {
+    preseasonStart: '2026-07-22',  // Training camp opens
+    preseasonEnd:   '2026-09-08',
     regularStart:  '2026-09-10',
     regularEnd:    '2027-01-04',   // end of Week 18
     playoffStart:  '2027-01-10',   // Wild Card Weekend
@@ -51,6 +57,8 @@ export const LEAGUE_SEASON: Record<string, LeagueSeason> = {
 
   // ── NBA 2026-27 ───────────────────────────────────────────────────────────
   nba: {
+    preseasonStart: '2026-09-29',  // Training camp opens
+    preseasonEnd:   '2026-10-21',
     regularStart:  '2026-10-22',
     regularEnd:    '2027-04-13',   // approx — TBD
     playoffStart:  '2027-04-19',   // approx — TBD
@@ -62,6 +70,8 @@ export const LEAGUE_SEASON: Record<string, LeagueSeason> = {
 
   // ── NHL 2026-27 ───────────────────────────────────────────────────────────
   nhl: {
+    preseasonStart: '2026-09-18',  // Training camp opens
+    preseasonEnd:   '2026-10-07',
     regularStart:  '2026-10-08',
     regularEnd:    '2027-04-18',   // approx — TBD
     playoffStart:  '2027-04-19',   // approx — TBD
@@ -73,6 +83,8 @@ export const LEAGUE_SEASON: Record<string, LeagueSeason> = {
 
   // ── MLS 2026 ──────────────────────────────────────────────────────────────
   'usa.1': {
+    preseasonStart: '2026-02-01',
+    preseasonEnd:   '2026-02-27',
     regularStart:  '2026-02-28',
     regularEnd:    '2026-10-18',
     playoffStart:  '2026-11-01',
@@ -83,6 +95,8 @@ export const LEAGUE_SEASON: Record<string, LeagueSeason> = {
 
   // ── WNBA 2026 ─────────────────────────────────────────────────────────────
   wnba: {
+    preseasonStart: '2026-05-01',
+    preseasonEnd:   '2026-05-15',
     regularStart:  '2026-05-16',
     regularEnd:    '2026-09-14',
     playoffStart:  '2026-09-17',
@@ -93,6 +107,8 @@ export const LEAGUE_SEASON: Record<string, LeagueSeason> = {
 
   // ── NWSL 2026 ─────────────────────────────────────────────────────────────
   'usa.nwsl': {
+    preseasonStart: '2026-02-15',
+    preseasonEnd:   '2026-03-13',
     regularStart:  '2026-03-14',
     regularEnd:    '2026-10-25',
     playoffStart:  '2026-11-07',
@@ -121,6 +137,26 @@ export const LEAGUE_SEASON: Record<string, LeagueSeason> = {
     playoffLabel:  'PWHL Playoffs',
     championship:  'PWHL Championship',
     tbd:           true,
+  },
+
+  // ── PGA Tour 2025-26 ──────────────────────────────────────────────────────
+  pga: {
+    regularStart:  '2025-09-04',   // PGA Tour season starts early Sep
+    regularEnd:    '2026-08-16',   // Regular season ends at Tour Championship
+    playoffStart:  '2026-08-20',   // FedEx Cup Playoffs
+    playoffEnd:    '2026-09-07',   // Tour Championship ends
+    playoffLabel:  'FedEx Cup Playoffs',
+    championship:  'FedEx Cup',
+  },
+
+  // ── LPGA Tour 2026 ────────────────────────────────────────────────────────
+  lpga: {
+    regularStart:  '2026-01-22',
+    regularEnd:    '2026-10-25',
+    playoffStart:  '2026-10-22',   // CME Group Tour Championship
+    playoffEnd:    '2026-11-22',
+    playoffLabel:  'Race to CME Globe',
+    championship:  'CME Group Tour Championship',
   },
 }
 
