@@ -283,13 +283,17 @@ function GolfRecentCard({ tournament, label, accentColor }: {
     : winner.totalScore.startsWith('-') ? '#4ade80'
     : winner.totalScore.startsWith('+') ? '#f87171' : '#e4e4e7'
 
-  // Shorten tournament name to a compact abbrev-like label (≤ ~8 chars)
+  // Shorten tournament name — keep "The" prefix, use first 2 words
   const shortTourneyName = (() => {
-    const base = (tournament.shortName || tournament.name).replace(/^The /, '')
+    const base = tournament.shortName || tournament.name
     const words = base.split(' ')
-    // If first word alone is long enough to stand alone (e.g. "Open"), use first 2 words; else first word
     return words.slice(0, 2).join(' ')
   })()
+
+  // Winner's last name (last word of name)
+  const winnerLastName = winner
+    ? (winner.name || '').split(' ').pop() ?? ''
+    : ''
 
   return (
     <>
@@ -311,12 +315,17 @@ function GolfRecentCard({ tournament, label, accentColor }: {
             <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0.5 truncate max-w-[100px] text-center">
               {shortTourneyName}
             </span>
-            <span
-              className="font-display text-[17px] font-800 tabular-nums leading-none mt-1.5"
-              style={{ color: scoreColor }}
-            >
-              {winner ? winner.totalScore : '–'}
-            </span>
+            <div className="flex items-baseline gap-1 mt-1.5">
+              {winnerLastName ? (
+                <span className="text-[10px] text-zinc-400 font-medium truncate max-w-[52px]">{winnerLastName}</span>
+              ) : null}
+              <span
+                className="font-display text-[17px] font-800 tabular-nums leading-none"
+                style={{ color: scoreColor }}
+              >
+                {winner ? winner.totalScore : '–'}
+              </span>
+            </div>
           </div>
         </div>
       </button>
