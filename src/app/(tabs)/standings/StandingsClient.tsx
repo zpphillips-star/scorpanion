@@ -157,19 +157,26 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
 
   const getBg = (idx: number) => idx === activeIdx ? ACTIVE_BG : idx < activeIdx ? PAST_BG : FUTURE_BG
 
-  // ── Horizontal bar constants ─────────────────────────────────────────────
-  const H_BAR   = 44   // bar height in px
-  const H_ARROW = 15   // arrow tip depth in px
+  // ── Horizontal bar — single SVG, paths rendered in reverse order ─────────
+  // Each segment = full rectangle + right-pointing arrow that extends D units
+  // into the next segment. First segment rendered LAST in SVG = visually on top.
+  // Segment N's arrow overlaps segment N+1; since N is on top, N's arrow color shows
+  // cleanly with N+1's color filling the corner areas. Zero clip-path, zero gaps.
+  const SVG_W = 1000
+  const SVG_H = 56
+  const H_BAR = 44   // DOM px
+  const segW  = SVG_W / N
+  const D     = 28   // arrow depth in SVG units (~2.8% of total width)
 
-  // clip-path for right-pointing arrow in horizontal bar
-  const hClip = (idx: number): string => {
-    const A = H_ARROW
-    const isFirst = idx === 0
-    const isLast  = idx === N - 1
-    if (N === 1) return 'none'
-    if (isFirst) return `polygon(0 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, 0 100%)`
-    if (isLast)  return `polygon(${A}px 0, 100% 0, 100% 100%, ${A}px 100%, 0 50%)`
-    return `polygon(${A}px 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, ${A}px 100%, 0 50%)`
+  // arrow padding as % of each segment's DOM width (used for text centering)
+  const arrowPadPct = `${(D / segW * 100).toFixed(1)}%`
+
+  const barPath = (idx: number): string => {
+    const x0 = idx * segW
+    const x1 = (idx + 1) * segW
+    const isLast = idx === N - 1
+    if (isLast) return `M${x0},0 L${x1},0 L${x1},${SVG_H} L${x0},${SVG_H} Z`
+    return `M${x0},0 L${x1},0 L${x1+D},${SVG_H/2} L${x1},${SVG_H} L${x0},${SVG_H} Z`
   }
 
   // ── Popup constants ──────────────────────────────────────────────────────
@@ -183,44 +190,49 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
 
   return (
     <>
-      {/* ── Horizontal chevron bar ── */}
+      {/* ── Horizontal chevron bar — single SVG + HTML text overlay ── */}
       <button
-        className="w-full mt-3 mb-5 flex"
-        style={{ height: H_BAR, position: 'relative' }}
+        className="w-full mt-3 mb-5 block relative"
+        style={{ height: H_BAR }}
         onClick={() => setShowSheet(true)}
         aria-label="View season schedule"
       >
-        {phases.map((phase, idx) => {
-          const isActive = idx === activeIdx
-          const isPast   = idx < activeIdx
-          return (
-            <div
-              key={phase.key}
-              style={{
-                flex:            1,
-                height:          H_BAR,
-                background:      getBg(idx),
-                clipPath:        hClip(idx),
-                marginLeft:      idx === 0 ? 0 : -H_ARROW,
-                zIndex:          N - idx,
-                position:        'relative',
-                display:         'flex',
-                alignItems:      'center',
-                justifyContent:  'center',
-                paddingLeft:     idx === 0      ? 6 : H_ARROW + 4,
-                paddingRight:    idx === N - 1  ? 6 : H_ARROW + 4,
-                overflow:        'hidden',
-              }}
-            >
-              <span
-                className="font-display font-800 uppercase tracking-wide text-white text-center truncate leading-none"
-                style={{ fontSize: '10px', opacity: isActive ? 1 : isPast ? 0.65 : 0.4 }}
+        {/* Render paths in REVERSE so segment 0 (last rendered) is visually on top */}
+        <svg
+          viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+          preserveAspectRatio="none"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }}
+        >
+          {[...Array(N)].map((_, ri) => {
+            const idx = N - 1 - ri  // render N-1 first, 0 last
+            return <path key={phases[idx].key} d={barPath(idx)} fill={getBg(idx)} />
+          })}
+        </svg>
+
+        {/* HTML text labels — flex divs aligned to segment widths */}
+        <div className="absolute inset-0 flex pointer-events-none">
+          {phases.map((phase, idx) => {
+            const isActive = idx === activeIdx
+            const isPast   = idx < activeIdx
+            return (
+              <div
+                key={phase.key}
+                className="flex-1 flex items-center justify-center overflow-hidden"
+                style={{
+                  paddingLeft:  idx === 0     ? '4%' : arrowPadPct,
+                  paddingRight: idx === N - 1 ? '4%' : arrowPadPct,
+                }}
               >
-                {phase.label}
-              </span>
-            </div>
-          )
-        })}
+                <span
+                  className="font-display font-800 uppercase tracking-wide text-white text-center truncate leading-none"
+                  style={{ fontSize: '10px', opacity: isActive ? 1 : isPast ? 0.65 : 0.4 }}
+                >
+                  {phase.label}
+                </span>
+              </div>
+            )
+          })}
+        </div>
       </button>
 
       {/* ── Season Schedule Sheet ── */}
