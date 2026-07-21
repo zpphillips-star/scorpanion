@@ -426,20 +426,8 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
         {/* ── SCROLLABLE BODY ── */}
         <div className="overflow-y-auto flex-1 px-5 pt-5 pb-12">
 
-          {/* Baseball inline line score */}
-          {canShowBoxScore && game.sport === "baseball" && (
-            <SectionBox label="Line Score" color={seattleColor}>
-              <CompactBaseballLineScore
-                gameId={game.id}
-                league={game.league}
-                seattleTeamId={game.seattleTeam.espnId || game.seattleTeam.id}
-                isLive={isLive}
-              />
-            </SectionBox>
-          )}
-
-          {/* Full box score for other sports */}
-          {canShowBoxScore && game.sport !== "baseball" && (
+          {/* Full box score — all sports including baseball */}
+          {canShowBoxScore && (
             <SectionBox label="" color={seattleColor}>
               <BoxScore
                 eventId={game.id.includes("|") ? game.id.split("|").at(-1)! : game.id}
