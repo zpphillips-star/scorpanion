@@ -260,10 +260,10 @@ export async function GET(req: Request) {
         }
       })
 
-      // Soccer leagues (MLS, NWSL) may have mid-season breaks (e.g. World Cup).
-      // The /schedule endpoint only returns the pre-break chunk. Fall back to scanning
-      // the scoreboard 4 weeks ahead to find the team's next games.
-      if (upcomingGames.length === 0 && sportPath.startsWith("soccer/")) {
+      // If the schedule endpoint came up empty for upcoming games, scan the scoreboard
+      // forward day-by-day for all leagues. This handles mid-season breaks, World Cup
+      // pauses, ESPN season-chunk boundaries, etc. — if a team plays, it shows up here.
+      if (upcomingGames.length === 0) {
         try {
           const now = new Date()
           const dateStrings: string[] = []
