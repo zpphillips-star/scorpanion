@@ -657,16 +657,20 @@ export default function HomeClient() {
     upcomingByDate[d].push(g)
   }
 
-  // Integrate golf upcoming into the same date buckets — spans all tournament days
-  type GolfUpcomingItem = { tournament: PGATournament; label: string; accentColor: string }
+  // Integrate golf upcoming into the same date buckets — per-round when available
+  type GolfUpcomingItem = { tournament: PGATournament; label: string; accentColor: string; roundLabel?: string; teeTime?: string }
   const golfUpcomingByDate: Record<string, GolfUpcomingItem[]> = {}
   const addGolfToDate = (t: PGATournament, label: string, accentColor: string) => {
-    if (!t.startDate) return
-    const start = new Date(t.startDate)
-    const end   = t.endDate ? new Date(t.endDate) : start
-    // Iterate every day the tournament runs (Thu → Sun for a 4-day event)
-    for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
-      const ds = dateStr(dt)
+    if (t.rounds && t.rounds.length > 0) {
+      // Per-round: one row per round, placed on its specific date bucket
+      for (const round of t.rounds) {
+        if (!golfUpcomingByDate[round.date]) golfUpcomingByDate[round.date] = []
+        golfUpcomingByDate[round.date].push({ tournament: t, label, accentColor, roundLabel: round.label, teeTime: round.teeTime })
+      }
+    } else {
+      // Fallback: show once on start date (no rounds data available)
+      if (!t.startDate) return
+      const ds = dateStr(new Date(t.startDate))
       if (!golfUpcomingByDate[ds]) golfUpcomingByDate[ds] = []
       golfUpcomingByDate[ds].push({ tournament: t, label, accentColor })
     }
@@ -674,22 +678,8 @@ export default function HomeClient() {
   pgaUpcoming.forEach(t => addGolfToDate(t, 'PGA Tour', '#CBA135'))
   lpgaUpcoming.forEach(t => addGolfToDate(t, 'LPGA', '#C084FC'))
 
-  // Deduplicate golf: each tournament shows only on its FIRST date in the upcoming range
-  const golfSeenIds = new Set<string>()
-  const golfUpcomingByDateDeduped: Record<string, GolfUpcomingItem[]> = {}
-  const sortedGolfDates = Object.keys(golfUpcomingByDate).sort()
-  for (const ds of sortedGolfDates) {
-    for (const item of golfUpcomingByDate[ds]) {
-      if (!golfSeenIds.has(item.tournament.id)) {
-        golfSeenIds.add(item.tournament.id)
-        if (!golfUpcomingByDateDeduped[ds]) golfUpcomingByDateDeduped[ds] = []
-        golfUpcomingByDateDeduped[ds].push(item)
-      }
-    }
-  }
-
   // All upcoming dates — team games + golf, sorted
-  const allUpcomingDates = [...new Set([...Object.keys(upcomingByDate), ...Object.keys(golfUpcomingByDateDeduped)])].sort()
+  const allUpcomingDates = [...new Set([...Object.keys(upcomingByDate), ...Object.keys(golfUpcomingByDate)])].sort()
   const upcomingDates = allUpcomingDates
 
   const hasAnyLive = liveGames.length > 0
@@ -946,24 +936,41 @@ export default function HomeClient() {
                   </div>
                 )
                 })}
-                {/* ── Golf tournament rows — shown once at first occurrence, tap for details ── */}
-                {(golfUpcomingByDateDeduped[ds] ?? [])
-                  .map(({ tournament: t, label, accentColor }) => {
+                {/* ── Golf tournament rows — one per round (or one per tournament as fallback) ── */}
+                {(golfUpcomingByDate[ds] ?? [])
+                  .map(({ tournament: t, label, accentColor, roundLabel, teeTime }) => {
+                  const teeTimeForRow = teeTime ?? t.firstTeeTime
                   const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                   const dateRange = t.endDate && t.endDate !== t.startDate
                     ? `${fmt(t.startDate)} – ${fmt(t.endDate)}`
                     : fmt(t.startDate)
                   return (
                     <button
-                      key={`golf-${t.id}-${ds}`}
-                      className="w-full text-center flex flex-col items-center py-4 px-4 active:opacity-70 transition-opacity gap-0.5"
+                      key={`golf-${t.id}-${ds}-${roundLabel ?? 'all'}`}
+                      className="w-full flex items-center py-3 px-4 hover:bg-white/[0.03] active:opacity-70 transition-opacity"
                       onClick={() => setSelectedGolfUpcoming({ tournament: t, label, accentColor })}
                     >
-                      <span className="text-[14px] font-semibold text-white leading-tight">{t.shortName || t.name}</span>
-                      <span className="text-[11px] text-zinc-500">
-                        {label}
-                        {t.firstTeeTime ? ` · Tee ${fmtTime(t.firstTeeTime)}` : ` · ${dateRange}`}
-                      </span>
+                      <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr 88px 1fr" }}>
+                        {/* Left: league label */}
+                        <div className="flex items-center justify-end">
+                          <span className="text-[12px] font-bold uppercase tracking-wide" style={{ color: accentColor }}>{label}</span>
+                        </div>
+                        {/* Center: tee time (or date range fallback) */}
+                        <div className="flex flex-col items-center justify-center">
+                          {teeTimeForRow ? (
+                            <span className="text-[13px] font-semibold text-white tabular-nums">{fmtTime(teeTimeForRow)}</span>
+                          ) : (
+                            <span className="text-[11px] text-zinc-400">{dateRange}</span>
+                          )}
+                        </div>
+                        {/* Right: tournament name + round label */}
+                        <div className="flex items-center justify-start gap-2 min-w-0">
+                          <span className="text-[13px] font-normal text-zinc-300 truncate">{t.shortName || t.name}</span>
+                          {roundLabel && (
+                            <span className="text-[11px] text-zinc-500 font-medium flex-shrink-0">{roundLabel}</span>
+                          )}
+                        </div>
+                      </div>
                     </button>
                   )
                 })}

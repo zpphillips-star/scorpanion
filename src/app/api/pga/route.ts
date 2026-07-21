@@ -7,10 +7,17 @@ export const runtime = 'edge'
 const PGA_GQL_URL = 'https://orchestrator.pgatour.com/graphql'
 const PGA_GQL_KEY = 'da2-gsrx5bibzbb4njvhl7t37wqyl4' // public key used by pgatour.com
 
-/** Return the earliest Round 1 tee-time ISO string for the PGA Tour tournament
- *  whose schedule start date falls within ±2 days of `espnEventDateISO`.
- *  Returns undefined on any error or when tee times haven't been posted yet. */
-async function fetchPGATourFirstTeeTime(espnEventDateISO: string): Promise<string | undefined> {
+/** Fetch per-round tee times for a PGA Tour tournament whose schedule start date
+ *  falls within ±2 days of `espnEventDateISO`.  Returns an array of 4 round objects
+ *  (R1–R4) where `teeTime` is the earliest tee time ISO string for that round when
+ *  available, and `date` is the YYYY-MM-DD UTC date for that round.
+ *  Returns undefined on any error or when the tournament cannot be matched. */
+async function fetchPGATourAllRounds(espnEventDateISO: string): Promise<{
+  roundNumber: number
+  label: string
+  teeTime?: string
+  date: string
+}[] | undefined> {
   if (!espnEventDateISO) return undefined
   const year = espnEventDateISO.slice(0, 4)
   const eventDateMs = new Date(espnEventDateISO.slice(0, 10)).getTime()
@@ -43,7 +50,7 @@ async function fetchPGATourFirstTeeTime(espnEventDateISO: string): Promise<strin
     })
     if (!match?.id) return undefined
 
-    // Step 2: fetch tee times for the matched tournament ID
+    // Step 2: fetch tee times for ALL rounds of the matched tournament
     const ttRes = await fetch(PGA_GQL_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': PGA_GQL_KEY },
@@ -56,15 +63,40 @@ async function fetchPGATourFirstTeeTime(espnEventDateISO: string): Promise<strin
     })
     if (!ttRes.ok) return undefined
     const ttData = await ttRes.json()
-    const rounds: any[] = ttData?.data?.teeTimesV2?.rounds ?? []
-    const r1 = rounds.find((r: any) => r.roundInt === 1)
-    if (!r1?.groups?.length) return undefined
+    const gqlRounds: any[] = ttData?.data?.teeTimesV2?.rounds ?? []
+    if (gqlRounds.length === 0) return undefined
 
-    const earliest: number = r1.groups
-      .map((g: any) => (typeof g.teeTime === 'number' ? g.teeTime : 0))
-      .filter((t: number) => t > 0)
-      .sort((a: number, b: number) => a - b)[0]
-    return earliest ? new Date(earliest).toISOString() : undefined
+    // Derive R1 date from the earliest R1 tee time (handles Pro-Am Wed vs Thu offset)
+    const r1Gql = gqlRounds.find((r: any) => r.roundInt === 1)
+    let r1DateMs: number
+    if (r1Gql?.groups?.length) {
+      const earliest: number = r1Gql.groups
+        .map((g: any) => (typeof g.teeTime === 'number' ? g.teeTime : 0))
+        .filter((t: number) => t > 0)
+        .sort((a: number, b: number) => a - b)[0] ?? 0
+      r1DateMs = earliest || (typeof match.startDate === 'number' ? match.startDate : parseInt(match.startDate ?? '0'))
+    } else {
+      r1DateMs = typeof match.startDate === 'number' ? match.startDate : parseInt(match.startDate ?? '0')
+    }
+    const r1DateStr = new Date(r1DateMs).toISOString().slice(0, 10)
+
+    // Build rounds 1–4; teeTime is set only when GraphQL data is available for that round
+    return [1, 2, 3, 4].map(n => {
+      const roundDateMs = new Date(r1DateStr).getTime() + (n - 1) * 86_400_000
+      const date = new Date(roundDateMs).toISOString().slice(0, 10)
+
+      const gqlRound = gqlRounds.find((r: any) => r.roundInt === n)
+      let teeTime: string | undefined
+      if (gqlRound?.groups?.length) {
+        const earliest: number = gqlRound.groups
+          .map((g: any) => (typeof g.teeTime === 'number' ? g.teeTime : 0))
+          .filter((t: number) => t > 0)
+          .sort((a: number, b: number) => a - b)[0] ?? 0
+        if (earliest) teeTime = new Date(earliest).toISOString()
+      }
+
+      return { roundNumber: n, label: `R${n}`, teeTime, date }
+    })
   } catch {
     return undefined
   }
@@ -98,6 +130,16 @@ export interface PGATournament {
    *  Set from ESPN when timeValid === true, or from PGA Tour GraphQL (teeTimesV2)
    *  as a fallback when ESPN still has a midnight-UTC placeholder. */
   firstTeeTime?: string
+  /** Per-round tee times for upcoming tournaments (R1–R4).
+   *  Populated from PGA Tour GraphQL teeTimesV2 when status === 'upcoming'.
+   *  teeTime is the earliest tee time ISO string for that round (may be undefined
+   *  if tee times haven't been posted yet for that round). */
+  rounds?: {
+    roundNumber: number  // 1, 2, 3, 4
+    label: string        // "R1", "R2", "R3", "R4"
+    teeTime?: string     // ISO string of first tee time for that round
+    date: string         // YYYY-MM-DD UTC date for that round
+  }[]
 }
 
 function parsePar(raw: string | undefined | null): string {
@@ -177,7 +219,13 @@ async function parseScoreboardEvent(event: any): Promise<PGATournament | null> {
     return posA - posB
   })
 
-  return {
+    // When status is upcoming, fetch per-round tee times from PGA Tour GraphQL.
+    // This gives us R1–R4 each with their exact date and earliest tee time.
+    const pgaRounds = status === 'upcoming'
+      ? await fetchPGATourAllRounds(event.date ?? '')
+      : undefined
+
+    return {
     id: event.id,
     name: event.name,
     shortName: event.shortName ?? event.name,
@@ -190,12 +238,11 @@ async function parseScoreboardEvent(event: any): Promise<PGATournament | null> {
     purse: event.prize ?? event.purse,
     leaders: leaders.slice(0, 50),
     cutLine: comp.notes?.[0]?.headline,
-    // When ESPN's timeValid is true it provides the real competition start time.
-    // When timeValid is false ESPN stores a midnight-UTC placeholder — fall back to
-    // the PGA Tour GraphQL API which publishes actual tee times 2-3 days in advance.
+    // firstTeeTime: prefer ESPN when timeValid (real competition start), else R1 tee time from GraphQL
     firstTeeTime: comp.timeValid === true
       ? (comp.startDate ?? comp.date ?? undefined)
-      : (status === 'upcoming' ? await fetchPGATourFirstTeeTime(event.date ?? '') : undefined),
+      : pgaRounds?.[0]?.teeTime,
+    rounds: pgaRounds,
   }
 }
 
@@ -284,6 +331,8 @@ export async function GET() {
           const { course, location } = await fetchVenueInfo(nextEntry.id)
           // ESPN calendar dates include Pro-Am day (Wed); shift +1 to show actual rounds (Thu–Sun)
           const shiftDay = (iso: string) => { const d = new Date(iso); d.setUTCDate(d.getUTCDate() + 1); return d.toISOString() }
+          const shiftedStart = shiftDay(nextEntry.startDate)
+          const pgaRounds = await fetchPGATourAllRounds(shiftedStart)
           tournaments.push({
             id: nextEntry.id,
             name: nextEntry.label,
@@ -292,9 +341,11 @@ export async function GET() {
             location,
             roundLabel: 'Upcoming',
             status: 'upcoming',
-            startDate: shiftDay(nextEntry.startDate),
+            startDate: shiftedStart,
             endDate: shiftDay(nextEntry.endDate),
             leaders: [],
+            firstTeeTime: pgaRounds?.[0]?.teeTime,
+            rounds: pgaRounds,
           })
         }
       }
