@@ -91,10 +91,8 @@ export default function UpcomingScheduleSection({ game }: Props) {
       {/* Section title */}
       <div className="text-[12px] font-bold uppercase tracking-widest text-zinc-400 px-3 mb-3">Upcoming Schedule</div>
       {/* Two-column layout: away (left) | home (right) — matches card layout */}
-      <div className="grid grid-cols-2">
-        <div className="border-r-2 border-zinc-700/50">
-          <ScheduleCol games={awayGames} />
-        </div>
+      <div className="grid grid-cols-2 gap-x-4">
+        <ScheduleCol games={awayGames} />
         <ScheduleCol games={homeGames} />
       </div>
     </div>
