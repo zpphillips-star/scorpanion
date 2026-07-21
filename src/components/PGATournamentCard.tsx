@@ -3,9 +3,8 @@ import { useState, useEffect } from "react"
 import type { PGATournament, PGAPlayer } from "@/app/api/pga/route"
 
 function ScoreBadge({ score }: { score: string }) {
-  const isUnder = score.startsWith("-")
   const isOver  = score.startsWith("+")
-  const color = isUnder ? "#22c55e" : isOver ? "#f87171" : "#f0f0f8"
+  const color = isOver ? "#f87171" : "#f0f0f8"
   return (
     <span className="font-display text-[15px] font-800 tabular-nums" style={{ color }}>{score}</span>
   )
