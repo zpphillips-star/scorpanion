@@ -88,12 +88,8 @@ export default function UpcomingScheduleSection({ game }: Props) {
 
   return (
     <div className="pt-3 pb-2">
-      {/* Section title — hairline-flanked, matches BoxScore style */}
-      <div className="flex items-center gap-2 px-3 mb-3">
-        <div className="flex-1 h-px bg-zinc-700/50" />
-        <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Upcoming Schedule</span>
-        <div className="flex-1 h-px bg-zinc-700/50" />
-      </div>
+      {/* Section title */}
+      <div className="text-[11px] font-bold uppercase tracking-widest text-zinc-500 px-3 mb-3">Upcoming Schedule</div>
       {/* Two-column layout: away (left) | home (right) — matches card layout */}
       <div className="grid grid-cols-2 gap-x-4">
         <ScheduleCol games={awayGames} />

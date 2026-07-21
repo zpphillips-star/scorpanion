@@ -67,14 +67,10 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
             opacity: isFt ? 0.82 : 1,
           }}
         >
-          {/* Header row — league left · status/time centered · broadcast right */}
+          {/* Header row — status/time centered · broadcast right */}
           <div className="grid items-center pr-4 pt-4 pb-1" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
-            {/* Left: league badge */}
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
-                {game.league}
-              </span>
-            </div>
+            {/* Left: empty */}
+            <div />
             {/* Center: time / live status / final */}
             <div className="flex items-center justify-center gap-1.5">
               {isLive ? (

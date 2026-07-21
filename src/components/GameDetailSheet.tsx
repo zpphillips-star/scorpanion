@@ -84,20 +84,8 @@ interface TeamDetail {
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 /** Colored section container with accent-tinted background, border, and uppercase label */
-function SectionBox({ label, color, children }: { label: string; color: string; children: ReactNode }) {
-  return (
-    <div
-      className="rounded-xl p-4 mb-3"
-      style={{ background: color + "14", border: `1px solid ${color}30` }}
-    >
-      {label && (
-        <div className="text-[12px] font-bold uppercase tracking-widest mb-3" style={{ color }}>
-          {label}
-        </div>
-      )}
-      {children}
-    </div>
-  )
+function SectionBox({ children }: { label: string; color: string; children: ReactNode }) {
+  return <div className="mb-4">{children}</div>
 }
 
 /** W/L/T form dots */
@@ -285,14 +273,11 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
             <div className="w-9 h-1 rounded-full bg-white/20" />
           </div>
 
-          {/* Close + league row */}
+          {/* Close + week label row */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
-              <span className="font-display text-[12px] font-bold uppercase tracking-[0.18em] text-zinc-500">
-                {game.league}
-              </span>
               {game.weekLabel && (
-                <span className="text-[11px] text-zinc-600">· {game.weekLabel}</span>
+                <span className="text-[11px] text-zinc-600">{game.weekLabel}</span>
               )}
             </div>
             <button
@@ -498,10 +483,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
           )}
 
           {/* Upcoming schedule */}
-          <div
-            className="rounded-xl overflow-hidden mb-3 [&:empty]:hidden"
-            style={{ background: seattleColor + "14", border: `1px solid ${seattleColor}30` }}
-          >
+          <div className="mb-4 [&:empty]:hidden">
             <UpcomingScheduleSection game={game} />
           </div>
 
