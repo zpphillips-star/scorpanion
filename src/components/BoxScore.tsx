@@ -283,7 +283,7 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
             <SectionHeader label="Pitching" />
             <div className="px-3 grid grid-cols-2 gap-x-4 pb-2">
               {/* Away pitchers */}
-              <div className="min-w-0">
+              <div className="min-w-0 overflow-hidden">
                 <PitchHeader />
                 {awayPitchers.map((p, idx) => (
                   <div key={idx} className="flex items-center py-2.5 min-w-0">
@@ -296,7 +296,7 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
                 ))}
               </div>
               {/* Home pitchers */}
-              <div className="min-w-0">
+              <div className="min-w-0 overflow-hidden">
                 <PitchHeader />
                 {homePitchers.map((p, idx) => (
                   <div key={idx} className="flex items-center py-2.5 min-w-0">
