@@ -791,27 +791,6 @@ export default function HomeClient() {
         </div>
       </PageHeader>
 
-      {/* ── Hero header ─────────────────────────────────────────────────── */}
-      <div className="px-4 pt-5 pb-2 flex items-end justify-between">
-        <div>
-          <div className="font-display text-[11px] font-700 uppercase tracking-widest text-zinc-500">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long' })} · {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-          </div>
-          <div className="font-display text-[28px] font-800 text-white uppercase leading-none tracking-tight mt-0.5">
-            {hasAnyLive ? "Live Now" : todayGames.length > 0 ? "Today's Games" : "Game Center"}
-          </div>
-        </div>
-        {hasAnyLive && (
-          <div className="flex items-center gap-1.5 pb-1">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
-            </span>
-            <span className="text-[12px] font-bold uppercase tracking-widest text-red-400">{liveCount} Live</span>
-          </div>
-        )}
-      </div>
-
       {/* ── Recent results (horizontal scroll, tappable) ─────────────────── */}
       {(recent.length > 0 || pgaRecent.length > 0 || lpgaRecent.length > 0) && (
         <div className="mt-10">
@@ -864,30 +843,7 @@ export default function HomeClient() {
 
             {/* Team sport game cards + golf — divide-y between cards only, no top or trailing border */}
             <div className="divide-y divide-white/[0.13]">
-              {todayGames.length > 0 && (() => {
-                // Featured = live game first, then earliest kickoff
-                const sorted = [...todayGames].sort((a, b) => {
-                  if (a.status === 'live' && b.status !== 'live') return -1
-                  if (b.status === 'live' && a.status !== 'live') return 1
-                  return parseKickoff(a.kickoff).getTime() - parseKickoff(b.kickoff).getTime()
-                })
-                const [featuredGame, ...restGames] = sorted
-                const teamColor = featuredGame.seattleTeam.primaryColor
-                return (
-                  <>
-                    {/* Featured card — first today game gets hero treatment with team color glow */}
-                    <div className="relative">
-                      <div
-                        className="absolute inset-0 opacity-20 blur-2xl pointer-events-none"
-                        style={{ background: `radial-gradient(ellipse at center, ${teamColor}, transparent 70%)` }}
-                      />
-                      <TodayGameCard key={featuredGame.id} game={featuredGame} featured={true} />
-                    </div>
-                    {/* Remaining today games — normal size */}
-                    {restGames.map(g => <TodayGameCard key={g.id} game={g} />)}
-                  </>
-                )
-              })()}
+              {todayGames.map(g => <TodayGameCard key={g.id} game={g} />)}
               {pgaToday.map(t => (
                 <GolfTodayCard key={`pga-today-${t.id}`} tournament={t} label="PGA Tour" accentColor="#CBA135" />
               ))}
