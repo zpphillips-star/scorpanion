@@ -281,7 +281,7 @@ export default function CalendarClient() {
           {/* Day of week headers */}
           <div className="flex-shrink-0 grid grid-cols-7 px-2 pb-1">
             {DOW.map(d => (
-              <div key={d} className="text-center font-display text-[11px] font-700 uppercase tracking-widest text-zinc-600 py-1">{d}</div>
+              <div key={d} className="text-center font-display text-[12px] font-700 uppercase tracking-widest text-zinc-600 py-1">{d}</div>
             ))}
           </div>
 
@@ -323,7 +323,7 @@ export default function CalendarClient() {
                     </div>
                   )}
                   {hasGames && entry!.count > 1 && (
-                    <span className="font-display text-[9px] font-700 text-zinc-500 mt-0.5">{entry!.count}</span>
+                    <span className="font-display text-[10px] font-700 text-zinc-500 mt-0.5">{entry!.count}</span>
                   )}
                 </button>
               )

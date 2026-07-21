@@ -80,7 +80,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
 
             {/* Name + record */}
             <div className="flex-1 min-w-0">
-              <div className="font-display text-[11px] font-700 uppercase tracking-widest mb-0.5" style={{ color }}>
+              <div className="font-display text-[12px] font-700 uppercase tracking-widest mb-0.5" style={{ color }}>
                 {loading ? "Loading…" : (data?.location ?? "")}
               </div>
               <div className="font-display text-[26px] font-800 text-white uppercase leading-tight truncate">
@@ -96,7 +96,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
         {data && !loading && data.recentForm.length > 0 && (
           <div className="px-4 pt-5 pb-4 border-t border-white/[0.15]">
             <div className="flex items-center gap-2 mb-3">
-              <div className="font-display text-[11px] font-800 uppercase tracking-widest text-zinc-400">Last 3 Games</div>
+              <div className="font-display text-[12px] font-800 uppercase tracking-widest text-zinc-400">Last 3 Games</div>
               <div className="flex-1 h-px bg-white/5" />
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -136,8 +136,8 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                     </div>
                     {/* Footer */}
                     <div className="flex items-center justify-between px-2.5 py-1 border-t border-white/[0.15]" style={{ background: "rgba(0,0,0,0.25)" }}>
-                      <span className="font-display text-[10px] font-800 uppercase" style={{ color: rc }}>{win ? "W" : loss ? "L" : "T"}</span>
-                      <span className="font-display text-[9px] text-zinc-600">{fmtShortDate(g.date)}</span>
+                      <span className="font-display text-[11px] font-800 uppercase" style={{ color: rc }}>{win ? "W" : loss ? "L" : "T"}</span>
+                      <span className="font-display text-[11px] text-zinc-600">{fmtShortDate(g.date)}</span>
                     </div>
                   </div>
                 )
@@ -150,7 +150,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
         {data && !loading && data.upcomingGames.length > 0 && (
           <div className="px-4 pt-5 pb-4 border-t border-white/[0.15]">
             <div className="flex items-center gap-2 mb-3">
-              <div className="font-display text-[11px] font-800 uppercase tracking-widest text-zinc-400">Next 3 Games</div>
+              <div className="font-display text-[12px] font-800 uppercase tracking-widest text-zinc-400">Next 3 Games</div>
               <div className="flex-1 h-px bg-white/5" />
             </div>
             <div className="space-y-2">
@@ -165,17 +165,17 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                     : <div className="w-9 h-9 rounded-full bg-white/8 flex-shrink-0 flex items-center justify-center font-display text-[10px] text-zinc-500">{g.opponent.slice(0,3)}</div>
                   }
                   <div className="flex-1 min-w-0">
-                    <div className="font-display text-[15px] font-700 text-white leading-tight">
+                    <div className="font-display text-[14px] font-700 text-white leading-tight">
                       {g.isHome ? "vs" : "@"} {g.opponent}
                     </div>
                     <div className="font-display text-[11px] text-zinc-500 mt-0.5">{fmtDay(g.date)}</div>
                   </div>
                   <div className="flex-shrink-0 text-right">
-                    <div className="font-display text-[13px] font-700 text-zinc-200">
+                    <div className="font-display text-[14px] font-700 text-zinc-200">
                       {new Date(g.time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
                     </div>
                     <div
-                      className="font-display text-[9px] font-700 uppercase tracking-wide mt-0.5 px-1.5 py-0.5 rounded-full inline-block"
+                      className="font-display text-[11px] font-700 uppercase tracking-wide mt-0.5 px-1.5 py-0.5 rounded-full inline-block"
                       style={{ color: g.isHome ? color : "var(--text-muted)", background: g.isHome ? `${color}18` : "transparent" }}
                     >{g.isHome ? "Home" : "Away"}</div>
                   </div>
@@ -189,7 +189,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
         {data && !loading && data.divisionStandings.length > 0 && (
           <div className="px-4 pt-5 pb-5 border-t border-white/[0.15]">
             <div className="flex items-center gap-2 mb-3">
-              <div className="font-display text-[11px] font-800 uppercase tracking-widest text-zinc-400">
+              <div className="font-display text-[12px] font-800 uppercase tracking-widest text-zinc-400">
                 {data.divisionName || "Division"}
               </div>
               <div className="flex-1 h-px bg-white/5" />
@@ -197,11 +197,11 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
 
             {/* Header row */}
             <div className="flex items-center px-3 mb-1.5">
-              <div className="w-6 font-display text-[9px] text-zinc-600 text-center">#</div>
+              <div className="w-6 font-display text-[10px] text-zinc-600 text-center">#</div>
               <div className="flex-1" />
-              <div className="w-8 font-display text-[9px] text-zinc-600 text-center">W</div>
-              <div className="w-8 font-display text-[9px] text-zinc-600 text-center">L</div>
-              <div className="w-12 font-display text-[9px] text-zinc-600 text-right">PCT</div>
+              <div className="w-8 font-display text-[10px] text-zinc-600 text-center">W</div>
+              <div className="w-8 font-display text-[10px] text-zinc-600 text-center">L</div>
+              <div className="w-12 font-display text-[10px] text-zinc-600 text-right">PCT</div>
             </div>
 
             <div className="space-y-1">

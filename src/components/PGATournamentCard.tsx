@@ -6,7 +6,7 @@ function ScoreBadge({ score }: { score: string }) {
   const isOver  = score.startsWith("+")
   const color = isOver ? "#f87171" : "#f0f0f8"
   return (
-    <span className="font-display text-[15px] font-800 tabular-nums" style={{ color }}>{score}</span>
+    <span className="font-display text-[16px] font-800 tabular-nums" style={{ color }}>{score}</span>
   )
 }
 
@@ -23,7 +23,7 @@ function PlayerRow({ player, isLast, showRounds }: { player: PGAPlayer; isLast: 
       <span className="text-[11px] font-semibold tabular-nums" style={{ color: isTied ? "#6b7280" : "#f0f0f8" }}>
         {player.position}
       </span>
-      <span className="text-[13px] font-semibold truncate pr-2" style={{ color: "#f0f0f8" }}>
+      <span className="text-[14px] font-semibold truncate pr-2" style={{ color: "#f0f0f8" }}>
         {player.shortName}
       </span>
       <div className="text-right"><ScoreBadge score={player.totalScore} /></div>
@@ -65,10 +65,10 @@ function TournamentDetailSheet({ tournament, onClose }: { tournament: PGATournam
             {isLive ? (
               <>
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500" style={{ animation: "liveDotPulse 1.8s ease-in-out infinite" }} />
-                <span className="text-[10px] tracking-widest uppercase font-bold text-green-400">{tournament.roundLabel}</span>
+                <span className="text-[11px] tracking-widest uppercase font-bold text-green-400">{tournament.roundLabel}</span>
               </>
             ) : (
-              <span className="text-[10px] tracking-widest uppercase font-semibold" style={{ color: "#3a5070" }}>
+              <span className="text-[11px] tracking-widest uppercase font-semibold" style={{ color: "#3a5070" }}>
                 {isCompleted ? "Final" : tournament.roundLabel}
               </span>
             )}
@@ -96,10 +96,10 @@ function TournamentDetailSheet({ tournament, onClose }: { tournament: PGATournam
             borderBottom: "1px solid rgba(255,255,255,0.16)"
           }}>
             <span />
-            <span className="text-[9px] tracking-widest uppercase font-semibold" style={{ color: "#374151" }}>Player</span>
-            <span className="text-[9px] tracking-widest uppercase font-semibold text-right" style={{ color: "#374151" }}>Total</span>
-            <span className="text-[9px] tracking-widest uppercase font-semibold text-right" style={{ color: "#374151" }}>Rd</span>
-            <span className="text-[9px] tracking-widest uppercase font-semibold text-right" style={{ color: "#374151" }}>Thru</span>
+            <span className="text-[10px] tracking-widest uppercase font-semibold" style={{ color: "#374151" }}>Player</span>
+            <span className="text-[10px] tracking-widest uppercase font-semibold text-right" style={{ color: "#374151" }}>Total</span>
+            <span className="text-[10px] tracking-widest uppercase font-semibold text-right" style={{ color: "#374151" }}>Rd</span>
+            <span className="text-[10px] tracking-widest uppercase font-semibold text-right" style={{ color: "#374151" }}>Thru</span>
           </div>
           {tournament.leaders.map((p, i) => (
             <PlayerRow key={`${p.name}-${i}`} player={p} isLast={i === tournament.leaders.length - 1} />
@@ -149,16 +149,16 @@ export function TournamentCard({ tournament }: { tournament: PGATournament }) {
                   <>
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"
                           style={{ animation: "liveDotPulse 1.8s ease-in-out infinite" }} />
-                    <span className="text-[10px] tracking-widest uppercase font-bold text-green-400">{tournament.roundLabel}</span>
+                    <span className="text-[11px] tracking-widest uppercase font-bold text-green-400">{tournament.roundLabel}</span>
                   </>
                 ) : (
-                  <span className="text-[10px] tracking-widest uppercase font-semibold" style={{ color: "#3a5070" }}>
+                  <span className="text-[11px] tracking-widest uppercase font-semibold" style={{ color: "#3a5070" }}>
                     {isCompleted ? "Final" : tournament.roundLabel}
                   </span>
                 )}
               </div>
               {hasLeaderboard && (
-                <span className="text-[10px] font-semibold" style={{ color: "#3a5070" }}>View all →</span>
+                <span className="text-[11px] font-semibold" style={{ color: "#3a5070" }}>View all →</span>
               )}
             </div>
             <div className="text-[16px] font-bold leading-tight" style={{ color: "#f0f0f8" }}>
@@ -183,10 +183,10 @@ export function TournamentCard({ tournament }: { tournament: PGATournament }) {
                 borderBottom: "1px solid rgba(255,255,255,0.15)"
               }}>
                 <span />
-                <span className="text-[9px] tracking-widest uppercase font-semibold" style={{ color: "#2d4a6b" }}>Player</span>
-                <span className="text-[9px] tracking-widest uppercase font-semibold text-right" style={{ color: "#2d4a6b" }}>Total</span>
-                <span className="text-[9px] tracking-widest uppercase font-semibold text-right" style={{ color: "#2d4a6b" }}>Rd</span>
-                <span className="text-[9px] tracking-widest uppercase font-semibold text-right" style={{ color: "#2d4a6b" }}>Thru</span>
+                <span className="text-[10px] tracking-widest uppercase font-semibold" style={{ color: "#2d4a6b" }}>Player</span>
+                <span className="text-[10px] tracking-widest uppercase font-semibold text-right" style={{ color: "#2d4a6b" }}>Total</span>
+                <span className="text-[10px] tracking-widest uppercase font-semibold text-right" style={{ color: "#2d4a6b" }}>Rd</span>
+                <span className="text-[10px] tracking-widest uppercase font-semibold text-right" style={{ color: "#2d4a6b" }}>Thru</span>
               </div>
               {previewPlayers.map((p, i) => (
                 <PlayerRow key={`${p.name}-${i}`} player={p} isLast={i === previewPlayers.length - 1} />

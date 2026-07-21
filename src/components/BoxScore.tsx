@@ -120,7 +120,7 @@ function SectionHeader({ label, first = false }: { label: string; first?: boolea
   return (
     <div className={`flex items-center gap-2 ${first ? "pt-1" : "pt-6"} pb-3 px-1`}>
       <div className="flex-1 h-px bg-zinc-700/50" />
-      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{label}</span>
+      <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">{label}</span>
       <div className="flex-1 h-px bg-zinc-700/50" />
     </div>
   )
@@ -247,7 +247,7 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
                   <th key={i} className={`${HDR} ${isCur ? "text-red-400" : ""}`}>{lbl}</th>
                 )
               })}
-              <th className="pb-2 pl-4 font-display text-[13px] font-700 text-zinc-200 uppercase border-l-2 border-zinc-700 text-center">T</th>
+              <th className="pb-2 pl-4 font-display text-[14px] font-700 text-zinc-200 uppercase border-l-2 border-zinc-700 text-center">T</th>
             </tr>
           </thead>
           <tbody>
@@ -309,8 +309,8 @@ function BasketballScoreboard({ data, seattleTeamId, color }: { data: BoxScoreDa
                   )}
                   {teamScorers.map((s, idx) => (
                     <div key={idx} className="relative flex items-center py-2.5">
-                      <span className="flex-1 text-[13px] font-semibold text-zinc-200 truncate">{s.name}</span>
-                      <div className="flex gap-3 text-[13px] font-bold tabular-nums">
+                      <span className="flex-1 text-[14px] font-semibold text-zinc-200 truncate">{s.name}</span>
+                      <div className="flex gap-3 text-[14px] font-bold tabular-nums">
                         <span className="w-8 text-center text-zinc-200">{s.pts}</span>
                         <span className="w-8 text-center text-zinc-400">{s.reb}</span>
                         <span className="w-8 text-center text-zinc-400">{s.ast}</span>
@@ -354,9 +354,9 @@ function HockeyScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattle
                   <th key={i} className={`${HDR} ${isCur ? "text-red-400" : ""}`}>{lbl}</th>
                 )
               })}
-              <th className="pb-2 pl-4 font-display text-[13px] font-700 text-zinc-200 uppercase border-l-2 border-zinc-700 text-center">T</th>
+              <th className="pb-2 pl-4 font-display text-[14px] font-700 text-zinc-200 uppercase border-l-2 border-zinc-700 text-center">T</th>
               {shotsOnGoal.length > 0 && (
-                <th className="pb-2 pl-3 font-display text-[13px] font-600 text-zinc-500 uppercase text-center">SOG</th>
+                <th className="pb-2 pl-3 font-display text-[14px] font-600 text-zinc-500 uppercase text-center">SOG</th>
               )}
             </tr>
           </thead>
@@ -413,7 +413,7 @@ function FootballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
                   <th key={i} className={`${HDR} ${isCur ? "text-red-400" : ""}`}>{lbl}</th>
                 )
               })}
-              <th className="pb-2 pl-4 font-display text-[13px] font-700 text-zinc-200 uppercase border-l-2 border-zinc-700 text-center">T</th>
+              <th className="pb-2 pl-4 font-display text-[14px] font-700 text-zinc-200 uppercase border-l-2 border-zinc-700 text-center">T</th>
             </tr>
           </thead>
           <tbody>
@@ -548,7 +548,7 @@ function GenericScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattl
                   <th key={i} className={`${HDR} ${isCur ? "text-red-400" : ""}`}>{lbl}</th>
                 )
               })}
-              <th className="pb-2 pl-4 font-display text-[13px] font-700 text-zinc-200 uppercase border-l-2 border-zinc-700 text-center">T</th>
+              <th className="pb-2 pl-4 font-display text-[14px] font-700 text-zinc-200 uppercase border-l-2 border-zinc-700 text-center">T</th>
             </tr>
           </thead>
           <tbody>

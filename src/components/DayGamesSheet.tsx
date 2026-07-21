@@ -143,13 +143,13 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5"
                       style={{ backgroundColor: "#FFB400" }} />
               </span>
-              <span className="text-[11px] font-bold uppercase tracking-wide"
+              <span className="text-[12px] font-bold uppercase tracking-wide"
                     style={{ color: "#FFB400" }}>Live</span>
             </div>
           ) : isFt ? (
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Final</span>
+            <span className="text-[12px] font-semibold uppercase tracking-wide text-zinc-500">Final</span>
           ) : (
-            <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">
+            <span className="text-[12px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">
               {formatTime(game.kickoff)}
             </span>
           )}
@@ -180,7 +180,7 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
           {/* Score / vs */}
           <div className="flex items-center justify-center">
             {hasScore ? (
-              <span className="font-display text-[15px] font-800 tabular-nums text-white">
+              <span className="font-display text-[16px] font-800 tabular-nums text-white">
                 {awayScore}<span className="text-zinc-600 mx-0.5">–</span>{homeScore}
               </span>
             ) : (
@@ -255,14 +255,14 @@ function GolfDayCard({ tournament, label, accentColor, onTap }: {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-yellow-400" />
               </span>
-              <span className="text-[11px] font-bold uppercase tracking-wide text-yellow-400">Live</span>
+              <span className="text-[12px] font-bold uppercase tracking-wide text-yellow-400">Live</span>
             </div>
           ) : isCompleted ? (
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Final</span>
+            <span className="text-[12px] font-semibold uppercase tracking-wide text-zinc-500">Final</span>
           ) : (
-            <span className="text-[11px] text-zinc-400">{dateRange}</span>
+            <span className="text-[12px] text-zinc-400">{dateRange}</span>
           )}
-          <span className="text-[10px] text-zinc-600 uppercase tracking-wider">{label}</span>
+          <span className="text-[11px] text-zinc-600 uppercase tracking-wider">{label}</span>
         </div>
 
         {/* Logo + name */}
@@ -297,7 +297,7 @@ function LeagueSectionHeader({ label }: { label: string }) {
       <div className="flex items-center gap-1.5 flex-shrink-0">
         <span className="text-[13px] leading-none">{emoji}</span>
         <span
-          className="font-display text-[11px] font-800 uppercase tracking-[0.2em] leading-none"
+          className="font-display text-[12px] font-800 uppercase tracking-[0.2em] leading-none"
           style={{ color: "var(--text-faint)" }}
         >
           {label}
@@ -392,7 +392,7 @@ export default function DayGamesSheet({ date, games, golfTournaments = [], onClo
                     </span>
                   )}
                   <span
-                    className="text-[10px] font-bold uppercase tracking-widest leading-none"
+                    className="text-[11px] font-bold uppercase tracking-widest leading-none"
                     style={{ color: hasLive ? "#FFB400" : "var(--accent)" }}
                   >
                     {hasLive ? "Live Now" : "Today"}
@@ -468,7 +468,7 @@ export default function DayGamesSheet({ date, games, golfTournaments = [], onClo
                 <>
                   {games.length > 0 && (
                     <div className="px-4 py-2 flex items-center gap-3">
-                      <span className="font-display text-[11px] font-700 uppercase tracking-widest text-zinc-500">Golf</span>
+                      <span className="font-display text-[12px] font-700 uppercase tracking-widest text-zinc-500">Golf</span>
                       <div className="flex-1 h-px bg-zinc-700/50" />
                     </div>
                   )}

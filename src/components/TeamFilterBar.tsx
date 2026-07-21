@@ -58,7 +58,7 @@ function CollegeSportPicker({
         <div className="p-2.5 flex flex-wrap gap-1.5">
           <button
             onClick={onSelectAll}
-            className="px-3 py-1.5 rounded-full text-[11px] font-700 font-display uppercase tracking-wide transition-all"
+            className="px-3 py-1.5 rounded-full text-[12px] font-700 font-display uppercase tracking-wide transition-all"
             style={{
               background: allActive ? "var(--accent)" : "var(--surface-2)",
               color: allActive ? "#08080f" : "#9ca3af",
@@ -73,7 +73,7 @@ function CollegeSportPicker({
               <button
                 key={team.id}
                 onClick={() => onSelect(team.id)}
-                className="px-3 py-1.5 rounded-full text-[11px] font-700 font-display uppercase tracking-wide transition-all"
+                className="px-3 py-1.5 rounded-full text-[12px] font-700 font-display uppercase tracking-wide transition-all"
                 style={{
                   background: active ? team.primaryColor : "var(--surface-2)",
                   color: active ? "#fff" : "#9ca3af",
@@ -153,7 +153,7 @@ export default function TeamFilterBar({
               boxShadow: activeFilter === "all" ? "0 0 10px rgba(217,92,23,0.35)" : "none",
             }}
           >
-            <span className="font-display text-[11px] font-800 uppercase" style={{ color: "#ffffff" }}>All</span>
+            <span className="font-display text-[12px] font-800 uppercase" style={{ color: "#ffffff" }}>All</span>
           </div>
         </button>
 

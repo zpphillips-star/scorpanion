@@ -88,7 +88,7 @@ function SectionLabel({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 mb-3">
       <div className="flex-1 h-px bg-zinc-700/50" />
-      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex-shrink-0">
+      <span className="text-[12px] font-bold uppercase tracking-widest text-zinc-500 flex-shrink-0">
         {label}
       </span>
       <div className="flex-1 h-px bg-zinc-700/50" />
@@ -140,14 +140,14 @@ function TeamContextCard({
       <div className="flex items-center gap-2.5">
         <TeamLogo src={logo} emoji={emoji} abbr={abbr} size={26} />
         <div className="flex-1 min-w-0">
-          <div className="font-display text-[13px] font-bold text-white truncate leading-tight">{name}</div>
+          <div className="font-display text-[14px] font-bold text-white truncate leading-tight">{name}</div>
         </div>
       </div>
 
       {/* Last 5 form */}
       {form.length > 0 && (
         <div className="flex items-center gap-2">
-          <span className="font-display text-[10px] uppercase tracking-wider text-zinc-600 w-12 flex-shrink-0">Last 5</span>
+          <span className="font-display text-[11px] uppercase tracking-wider text-zinc-600 w-12 flex-shrink-0">Last 5</span>
           <RecentFormDots form={form} />
         </div>
       )}
@@ -155,7 +155,7 @@ function TeamContextCard({
       {/* Division standings mini-table */}
       {standings.length > 0 && (
         <div>
-          <div className="font-display text-[10px] uppercase tracking-wider text-zinc-600 mb-1.5">{divName || "Division"}</div>
+          <div className="font-display text-[11px] uppercase tracking-wider text-zinc-600 mb-1.5">{divName || "Division"}</div>
           <div className="space-y-0.5">
             {standings.map((row, i) => (
               <div
@@ -287,7 +287,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
           {/* Close + league row */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
-              <span className="font-display text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">
+              <span className="font-display text-[12px] font-bold uppercase tracking-[0.18em] text-zinc-500">
                 {game.league}
               </span>
               {game.weekLabel && (
@@ -322,7 +322,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                 <div className={`font-display text-[15px] font-bold leading-tight truncate ${hasScore && homeWon ? "text-zinc-600" : "text-white"}`}>
                   {awayName}
                 </div>
-                <div className="font-display text-[9px] uppercase tracking-[0.14em] text-zinc-600 mt-0.5">{awayAbbr}</div>
+                <div className="font-display text-[11px] uppercase tracking-[0.14em] text-zinc-600 mt-0.5">{awayAbbr}</div>
                 {(awayRecord || awayDetail) && (
                   <div className="text-[11px] text-zinc-500 mt-0.5">
                     {awayRecord ? formatRecord(awayRecord) : awayDetail ? `${awayDetail.wins}–${awayDetail.losses}` : ""}
@@ -369,13 +369,13 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
                           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
                         </span>
-                        <span className="font-display text-[11px] font-bold uppercase tracking-[0.14em] text-red-400">Live</span>
+                        <span className="font-display text-[12px] font-bold uppercase tracking-[0.14em] text-red-400">Live</span>
                         {liveDetail && (
-                          <span className="font-display text-[11px] text-zinc-400">· {liveDetail}</span>
+                          <span className="font-display text-[12px] text-zinc-400">· {liveDetail}</span>
                         )}
                       </>
                     ) : (
-                      <span className="font-display text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Final</span>
+                      <span className="font-display text-[12px] font-bold uppercase tracking-[0.18em] text-zinc-500">Final</span>
                     )}
                   </div>
                 </>
@@ -410,7 +410,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                 <div className={`font-display text-[15px] font-bold leading-tight truncate ${hasScore && awayWon ? "text-zinc-600" : "text-white"}`}>
                   {homeName}
                 </div>
-                <div className="font-display text-[9px] uppercase tracking-[0.14em] text-zinc-600 mt-0.5">{homeAbbr}</div>
+                <div className="font-display text-[11px] uppercase tracking-[0.14em] text-zinc-600 mt-0.5">{homeAbbr}</div>
                 {(homeRecord || homeDetail) && (
                   <div className="text-[11px] text-zinc-500 mt-0.5">
                     {homeRecord ? formatRecord(homeRecord) : homeDetail ? `${homeDetail.wins}–${homeDetail.losses}` : ""}
