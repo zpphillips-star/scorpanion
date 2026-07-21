@@ -30,6 +30,15 @@ interface TopScorer {
   ast: string
 }
 
+interface TopBatter {
+  teamId: string
+  name: string
+  ab: string
+  h: string
+  hr: string
+  rbi: string
+}
+
 interface GoalScorer {
   teamId: string
   name: string
@@ -50,6 +59,7 @@ interface BoxScoreData {
     saving:  { name: string; line: string } | null
   } | null
   topScorers: TopScorer[]
+  topBatters?: TopBatter[]
   shotsOnGoal: { teamId: string; abbr: string; value: string }[]
   isShootout: boolean
   goalScorers: GoalScorer[]
@@ -133,12 +143,7 @@ function SectionHeader({ label, first = false }: { label: string; first?: boolea
 // ─── Baseball ─────────────────────────────────────────────────────────────────
 
 function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattleTeamId?: string }) {
-  const { linescores, periodLabels, currentPeriod, stats, pitchers } = data
-
-  const getTeamStat = (teamId: string, statName: string) => {
-    const t = stats.find(s => s.teamId === teamId)
-    return t?.statistics.find(s => s.name === statName || s.label?.toLowerCase().includes(statName.toLowerCase()))?.displayValue ?? "–"
-  }
+  const { linescores, periodLabels, currentPeriod, pitchers, topBatters } = data
 
   return (
     <>
@@ -190,6 +195,71 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
           </tbody>
         </table>
       </div>
+
+      {/* Top Performers */}
+      {topBatters && topBatters.length > 0 && (() => {
+        const awayId = linescores[0]?.teamId
+        const homeId = linescores[1]?.teamId
+        const awayBatters = topBatters.filter(b => b.teamId === awayId)
+        const homeBatters = topBatters.filter(b => b.teamId === homeId)
+        const maxRows = Math.max(awayBatters.length, homeBatters.length)
+        if (maxRows === 0) return null
+        return (
+          <>
+            <SectionHeader label="Top Performers" />
+            <div className="relative px-3">
+              {/* Away team logo watermark — left column center */}
+              {linescores[0]?.logo && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={linescores[0].logo} alt="" aria-hidden
+                  className="absolute left-1/4 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 object-contain opacity-[0.06] pointer-events-none select-none" />
+              )}
+              {/* Home team logo watermark — right column center */}
+              {linescores[1]?.logo && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={linescores[1].logo} alt="" aria-hidden
+                  className="absolute left-3/4 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 object-contain opacity-[0.06] pointer-events-none select-none" />
+              )}
+              {/* Header row */}
+              <div className="grid grid-cols-2 border-b border-zinc-800 pb-1 mb-1">
+                <div className="flex justify-end gap-4 pr-1">
+                  {["H","HR","RBI"].map(s => <span key={s} className="text-[11px] font-bold text-zinc-500 w-7 text-right">{s}</span>)}
+                </div>
+                <div className="flex justify-start gap-4 pl-1">
+                  {["H","HR","RBI"].map(s => <span key={s} className="text-[11px] font-bold text-zinc-500 w-7 text-right">{s}</span>)}
+                </div>
+              </div>
+              {/* Player rows */}
+              {Array.from({ length: maxRows }).map((_, i) => {
+                const ab = awayBatters[i]
+                const hb = homeBatters[i]
+                return (
+                  <div key={i} className={`grid grid-cols-2 py-1.5 ${i < maxRows - 1 ? "border-b border-zinc-800/60" : ""}`}>
+                    {/* Away batter */}
+                    <div className="flex items-center justify-between pr-1">
+                      <span className={`font-display text-[13px] font-semibold truncate ${ab?.teamId === seattleTeamId ? "text-white" : "text-zinc-400"}`}>{ab?.name ?? ""}</span>
+                      <div className="flex gap-4">
+                        {[ab?.h, ab?.hr, ab?.rbi].map((v, j) => (
+                          <span key={j} className={`text-[13px] font-bold tabular-nums w-7 text-right ${ab?.teamId === seattleTeamId ? "text-white" : "text-zinc-400"}`}>{v ?? ""}</span>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Home batter */}
+                    <div className="flex items-center justify-between pl-1">
+                      <span className={`font-display text-[13px] font-semibold truncate ${hb?.teamId === seattleTeamId ? "text-white" : "text-zinc-400"}`}>{hb?.name ?? ""}</span>
+                      <div className="flex gap-4">
+                        {[hb?.h, hb?.hr, hb?.rbi].map((v, j) => (
+                          <span key={j} className={`text-[13px] font-bold tabular-nums w-7 text-right ${hb?.teamId === seattleTeamId ? "text-white" : "text-zinc-400"}`}>{v ?? ""}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
+        )
+      })()}
 
       {/* Pitcher Info */}
       {pitchers && (pitchers.winning || pitchers.losing || pitchers.saving) && (

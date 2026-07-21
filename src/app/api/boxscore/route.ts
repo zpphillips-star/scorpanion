@@ -215,22 +215,24 @@ async function fetchMLBBoxScore(gamePk: string): Promise<Record<string, unknown>
     },
   ]
 
-  // Stats: inject hits and errors as labelled statistics so BoxScore can display them
+  // Stats: inject hits, errors, and LOB as labelled statistics so BoxScore can display them
   const stats = [
     {
       teamId: String(awayTeam.id),
       abbr: awayTeam.abbreviation,
       statistics: [
-        { name: "hits",   label: "H", displayValue: String(awayTotals.hits   ?? 0) },
-        { name: "errors", label: "E", displayValue: String(awayTotals.errors ?? 0) },
+        { name: "hits",        label: "H",   displayValue: String(awayTotals.hits        ?? 0) },
+        { name: "errors",      label: "E",   displayValue: String(awayTotals.errors      ?? 0) },
+        { name: "leftOnBase",  label: "LOB", displayValue: String(awayTotals.leftOnBase  ?? "–") },
       ],
     },
     {
       teamId: String(homeTeam.id),
       abbr: homeTeam.abbreviation,
       statistics: [
-        { name: "hits",   label: "H", displayValue: String(homeTotals.hits   ?? 0) },
-        { name: "errors", label: "E", displayValue: String(homeTotals.errors ?? 0) },
+        { name: "hits",        label: "H",   displayValue: String(homeTotals.hits        ?? 0) },
+        { name: "errors",      label: "E",   displayValue: String(homeTotals.errors      ?? 0) },
+        { name: "leftOnBase",  label: "LOB", displayValue: String(homeTotals.leftOnBase  ?? "–") },
       ],
     },
   ]
@@ -261,6 +263,37 @@ async function fetchMLBBoxScore(gamePk: string): Promise<Record<string, unknown>
     ? { winning: wp, losing: lp, saving: sp }
     : null
 
+  // Top batters — pull from liveData.boxscore, filter AB > 0, top 2 per team by hits then RBI
+  const extractBatters = (teamPlayers: any, teamId: string) => {
+    if (!teamPlayers || typeof teamPlayers !== "object") return []
+    return Object.values(teamPlayers as Record<string, any>)
+      .filter((p: any) => (p?.stats?.batting?.atBats ?? 0) > 0)
+      .sort((a: any, b: any) => {
+        const hDiff = (b.stats.batting.hits ?? 0) - (a.stats.batting.hits ?? 0)
+        if (hDiff !== 0) return hDiff
+        return (b.stats.batting.rbi ?? 0) - (a.stats.batting.rbi ?? 0)
+      })
+      .slice(0, 2)
+      .map((p: any) => {
+        const fullName: string = p.playerInfo?.fullName ?? ""
+        const lastName = fullName.trim().split(" ").pop() ?? fullName
+        return {
+          teamId,
+          name: lastName,
+          ab:  String(p.stats.batting.atBats    ?? 0),
+          h:   String(p.stats.batting.hits       ?? 0),
+          hr:  String(p.stats.batting.homeRuns   ?? 0),
+          rbi: String(p.stats.batting.rbi        ?? 0),
+        }
+      })
+  }
+
+  const boxscoreTeams = liveData.boxscore?.teams ?? {}
+  const topBatters = [
+    ...extractBatters(boxscoreTeams.away?.players, String(awayTeam.id)),
+    ...extractBatters(boxscoreTeams.home?.players, String(homeTeam.id)),
+  ]
+
   return {
     sportType: "baseball",
     periodLabels,
@@ -269,6 +302,7 @@ async function fetchMLBBoxScore(gamePk: string): Promise<Record<string, unknown>
     keyPlays: [],
     currentPeriod,
     pitchers,
+    topBatters,
     topScorers: [],
     shotsOnGoal: [],
     isShootout: false,
