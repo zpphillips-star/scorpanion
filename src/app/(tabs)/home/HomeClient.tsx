@@ -953,7 +953,7 @@ export default function HomeClient() {
                       <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr 88px 1fr" }}>
                         {/* Left: league label */}
                         <div className="flex items-center justify-end">
-                          <span className="text-[12px] font-bold uppercase tracking-wide" style={{ color: accentColor }}>{label}</span>
+                          <span className="text-[13px] font-normal text-zinc-300 whitespace-nowrap">{label}</span>
                         </div>
                         {/* Center: tee time (or date range fallback) */}
                         <div className="flex flex-col items-center justify-center">
