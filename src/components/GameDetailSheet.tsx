@@ -470,9 +470,9 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
           {showTeamContext && (
             <SectionBox label="" color={seattleColor}>
               <div
-                className="grid grid-cols-2 divide-x divide-zinc-800/60 -mx-4 -mb-4 mt-1"
+                className="grid grid-cols-2 -mx-4 -mb-4 mt-1"
               >
-                <div className="p-4">
+                <div className="p-4 border-r-2 border-zinc-700/50">
                   <TeamContextCard
                     name={awayName}
                     logo={awayLogo}
