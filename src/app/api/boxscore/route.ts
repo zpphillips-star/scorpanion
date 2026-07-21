@@ -477,13 +477,18 @@ async function fetchESPNBoxScore(
     const totalInnings = Math.max(9, maxPeriods)
     periodLabels = Array.from({ length: totalInnings }, (_, i) => String(i + 1))
   } else if (sportType === "football") {
-    periodLabels = ["Q1", "Q2", "Q3", "Q4", "OT", "OT2"].slice(0, maxPeriods)
+    // Always show all 4 quarters even mid-game — ESPN only returns completed periods
+    // in linescores arrays, so maxPeriods mid-game could be 1 or 2. Floor at 4.
+    const totalQtrs = Math.max(4, maxPeriods)
+    periodLabels = ["Q1", "Q2", "Q3", "Q4", "OT", "OT2"].slice(0, totalQtrs)
   } else if (sportType === "hockey") {
-    periodLabels = ["P1", "P2", "P3", "OT", "SO"].slice(0, maxPeriods)
+    periodLabels = ["P1", "P2", "P3", "OT", "SO"].slice(0, Math.max(3, maxPeriods))
   } else if (sportType === "basketball") {
-    periodLabels = ["Q1", "Q2", "Q3", "Q4", "OT", "OT2", "OT3"].slice(0, maxPeriods)
+    // Always show all 4 quarters even mid-game — same ESPN linescore issue as football
+    const totalQtrs = Math.max(4, maxPeriods)
+    periodLabels = ["Q1", "Q2", "Q3", "Q4", "OT", "OT2", "OT3"].slice(0, totalQtrs)
   } else if (sportType === "soccer") {
-    periodLabels = ["1H", "2H", "ET1", "ET2"].slice(0, maxPeriods)
+    periodLabels = ["1H", "2H", "ET1", "ET2"].slice(0, Math.max(2, maxPeriods))
   } else {
     periodLabels = Array.from({ length: maxPeriods }, (_, i) => String(i + 1))
   }
