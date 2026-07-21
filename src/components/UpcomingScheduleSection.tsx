@@ -1,8 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
 import { Game } from "@/lib/types"
-import { getTeamLogoUrl } from "@/lib/teams"
-import TeamLogo from "./TeamLogo"
 
 interface UpcomingGame {
   opponent: string
@@ -63,90 +61,39 @@ export default function UpcomingScheduleSection({ game }: Props) {
 
   if (seaGames.length === 0 && oppGames.length === 0) return null
 
-  const seaLogoUrl = getTeamLogoUrl(game.seattleTeam)
-  const color = game.seattleTeam.primaryColor
+  // Match column order to the game card: away on left, home on right.
+  // game.isHome = true means Seattle is the home team (right column).
+  const awayGames  = game.isHome ? oppGames  : seaGames
+  const homeGames  = game.isHome ? seaGames  : oppGames
 
-  const GameRow = ({ g }: { g: UpcomingGame }) => (
-    <div className="flex items-center gap-3 py-3.5 border-b border-zinc-500/60 last:border-0">
-      <span className="font-display text-[12px] font-600 text-zinc-500 w-5 text-center flex-shrink-0">
-        {g.isHome ? "vs" : "@"}
-      </span>
-      {g.oppLogo
-        // eslint-disable-next-line @next/next/no-img-element
-        ? <img src={g.oppLogo} alt={g.opponent} width={20} height={20} className="object-contain flex-shrink-0" />
-        : <div className="w-5 h-5 flex-shrink-0" />}
-      <span className="font-display text-[14px] font-600 text-zinc-200 flex-1 truncate">{g.opponent}</span>
-      <span className="font-display text-[12px] text-zinc-500 flex-shrink-0">{fmtShortDate(g.date)}</span>
+  const ScheduleCol = ({ games }: { games: UpcomingGame[] }) => (
+    <div className="px-3 py-3">
+      {games.length === 0 ? (
+        <div className="text-[12px] text-zinc-600 py-1">No upcoming games</div>
+      ) : (
+        games.map((g, i) => (
+          <div key={i} className={`py-2.5 ${i < games.length - 1 ? "border-b border-zinc-500/40" : ""}`}>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-[11px] text-zinc-500 flex-shrink-0 w-4">{g.isHome ? "vs" : "@"}</span>
+              {g.oppLogo
+                ? <img src={g.oppLogo} alt={g.opponent} width={18} height={18} className="object-contain flex-shrink-0" />
+                : null
+              }
+              <span className="text-[12px] font-semibold text-white truncate">{g.opponent}</span>
+            </div>
+            <div className="text-[11px] text-zinc-500 mt-0.5 pl-5">{fmtShortDate(g.date)}</div>
+          </div>
+        ))
+      )}
     </div>
   )
 
   return (
-    <div className="mt-6 pb-6">
-      {/* Section header — WC style */}
-      <div className="flex items-center gap-2 mb-5">
-        <div className="flex-1 h-px bg-zinc-700/50" />
-        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Upcoming Schedule</span>
-        <div className="flex-1 h-px bg-zinc-700/50" />
-      </div>
-
-      {/* Two-column layout: Seattle | Opponent */}
+    <div className="pt-2 pb-2">
+      {/* Two-column layout: away (left) | home (right) — matches card layout */}
       <div className="grid grid-cols-2 divide-x divide-zinc-800/60">
-        {/* Seattle column */}
-        <div>
-          <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-zinc-700/60">
-            <TeamLogo src={seaLogoUrl} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={18} />
-            <span className="text-[12px] font-semibold text-white truncate">{game.seattleTeam.shortName}</span>
-          </div>
-          {seaGames.length === 0 ? (
-            <div className="text-[12px] text-zinc-600 py-2">No upcoming games</div>
-          ) : (
-            <div>
-              {seaGames.map((g, i) => (
-                <div key={i} className={`py-2.5 ${i < seaGames.length - 1 ? "border-b border-zinc-500/60" : ""}`}>
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="text-[11px] text-zinc-500 flex-shrink-0 w-4">{g.isHome ? "vs" : "@"}</span>
-                    {g.oppLogo
-                      ? <img src={g.oppLogo} alt={g.opponent} width={20} height={20} className="object-contain flex-shrink-0" />
-                      : null
-                    }
-                    <span className="text-[12px] font-semibold text-white truncate">{g.opponent}</span>
-                  </div>
-                  <div className="text-[11px] text-zinc-500 mt-0.5 pl-5">{fmtShortDate(g.date)}</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Opponent column */}
-        <div>
-          <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-zinc-700/60">
-            {game.opponent.logo
-              ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={18} height={18} className="object-contain" />
-              : <div className="w-4 h-4 rounded-full bg-white/10" />
-            }
-            <span className="text-[12px] font-semibold text-white truncate">{game.opponent.shortName || game.opponent.name}</span>
-          </div>
-          {oppGames.length === 0 ? (
-            <div className="text-[12px] text-zinc-600 py-2">No upcoming games</div>
-          ) : (
-            <div>
-              {oppGames.map((g, i) => (
-                <div key={i} className={`py-2.5 ${i < oppGames.length - 1 ? "border-b border-zinc-500/60" : ""}`}>
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="text-[11px] text-zinc-500 flex-shrink-0 w-4">{g.isHome ? "vs" : "@"}</span>
-                    {g.oppLogo
-                      ? <img src={g.oppLogo} alt={g.opponent} width={20} height={20} className="object-contain flex-shrink-0" />
-                      : null
-                    }
-                    <span className="text-[12px] font-semibold text-white truncate">{g.opponent}</span>
-                  </div>
-                  <div className="text-[11px] text-zinc-500 mt-0.5 pl-5">{fmtShortDate(g.date)}</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <ScheduleCol games={awayGames} />
+        <ScheduleCol games={homeGames} />
       </div>
     </div>
   )

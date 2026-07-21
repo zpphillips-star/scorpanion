@@ -458,7 +458,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
           {/* Full box score for other sports */}
           {canShowBoxScore && game.sport !== "baseball" && (
-            <SectionBox label="Box Score" color={seattleColor}>
+            <SectionBox label="" color={seattleColor}>
               <BoxScore
                 eventId={game.id.includes("|") ? game.id.split("|").at(-1)! : game.id}
                 league={game.league}
@@ -470,7 +470,7 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
           {/* Team context — two-column card */}
           {showTeamContext && (
-            <SectionBox label="Teams" color={seattleColor}>
+            <SectionBox label="" color={seattleColor}>
               <div
                 className="grid grid-cols-2 divide-x divide-zinc-800/60 -mx-4 -mb-4 mt-1"
               >
