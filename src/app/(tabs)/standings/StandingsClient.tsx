@@ -369,32 +369,21 @@ const SeasonBanner = ({ leagueId }: { season: SeasonInfo; leagueId: string }) =>
 
 
 function ScopePicker({
-  scope, setScope, hasDivision, hasConference, followedDivisionNames, followedConferenceNames,
+  scope, setScope, hasDivision, hasConference,
 }: {
   scope: Scope; setScope: (s: Scope) => void
   hasDivision: boolean; hasConference: boolean
   followedDivisionNames: string[]; followedConferenceNames: string[]
 }) {
-  const divSublabel = followedDivisionNames.length === 1
-    ? followedDivisionNames[0]
-    : followedDivisionNames.length > 1
-      ? `${followedDivisionNames.length} divisions`
-      : undefined
-  const confSublabel = followedConferenceNames.length === 1
-    ? followedConferenceNames[0]
-    : followedConferenceNames.length > 1
-      ? `${followedConferenceNames.length} conferences`
-      : undefined
-
-  const options: { id: Scope; label: string; sublabel?: string }[] = []
-  if (hasDivision) options.push({ id: "division", label: "Division", sublabel: divSublabel })
-  if (hasConference) options.push({ id: "conference", label: "Conference", sublabel: confSublabel })
+  const options: { id: Scope; label: string }[] = []
+  if (hasDivision) options.push({ id: "division", label: "Division" })
+  if (hasConference) options.push({ id: "conference", label: "Conference" })
   options.push({ id: "league", label: "All Divisions" })
 
   if (options.length <= 1) return null
 
   return (
-    <div className="mx-3 mt-2 flex gap-2">
+    <div className="mx-3 mt-2 mb-4 flex gap-2">
       {options.map(opt => {
         const active = scope === opt.id
         return (
@@ -411,11 +400,6 @@ function ScopePicker({
             <div className={`font-display text-[12px] font-700 uppercase tracking-wide ${active ? "text-white" : "text-zinc-400"}`}>
               {opt.label}
             </div>
-            {opt.sublabel && (
-              <div className={`font-display text-[9px] mt-0.5 truncate ${active ? "text-white/70" : "text-zinc-600"}`}>
-                {opt.sublabel}
-              </div>
-            )}
           </button>
         )
       })}
