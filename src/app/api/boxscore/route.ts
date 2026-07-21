@@ -294,6 +294,34 @@ async function fetchMLBBoxScore(gamePk: string): Promise<Record<string, unknown>
     ...extractBatters(boxscoreTeams.home?.players, String(homeTeam.id)),
   ]
 
+  // Extract all pitchers per team with IP and game ERA
+  function parseIP(ipStr: string): number {
+    const [whole, frac] = String(ipStr ?? "0").split(".")
+    return Number(whole) + (Number(frac ?? 0) / 3)
+  }
+
+  const extractPitcherList = (teamBox: any, teamId: string) => {
+    const pitcherIds: string[] = teamBox?.pitchers ?? []
+    return pitcherIds.map((id: string) => {
+      const p = teamBox?.players?.[`ID${id}`] ?? teamBox?.players?.[id]
+      const stats = p?.stats?.pitching ?? {}
+      const name = p?.person?.fullName ?? p?.person?.lastName ?? String(id)
+      const lastName = name.split(" ").at(-1) ?? name
+      const ipRaw = stats.inningsPitched ?? "0"
+      const ipNum = parseIP(ipRaw)
+      const er = Number(stats.earnedRuns ?? 0)
+      const era = ipNum > 0 ? ((er / ipNum) * 9).toFixed(2) : (er > 0 ? "∞" : "0.00")
+      return { teamId, name: lastName, ip: String(ipRaw), era }
+    }).filter((p: { ip: string }) => parseIP(p.ip) > 0)
+  }
+
+  const awayBox = liveData.boxscore?.teams?.away
+  const homeBox = liveData.boxscore?.teams?.home
+  const pitcherList = [
+    ...extractPitcherList(awayBox, String(awayTeam.id)),
+    ...extractPitcherList(homeBox, String(homeTeam.id)),
+  ]
+
   return {
     sportType: "baseball",
     periodLabels,
@@ -303,6 +331,7 @@ async function fetchMLBBoxScore(gamePk: string): Promise<Record<string, unknown>
     currentPeriod,
     pitchers,
     topBatters,
+    pitcherList,
     topScorers: [],
     shotsOnGoal: [],
     isShootout: false,

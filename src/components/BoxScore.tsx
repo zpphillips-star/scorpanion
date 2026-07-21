@@ -63,11 +63,12 @@ interface BoxScoreData {
   shotsOnGoal: { teamId: string; abbr: string; value: string }[]
   isShootout: boolean
   goalScorers: GoalScorer[]
+  pitcherList?: { teamId: string; name: string; ip: string; era: string }[]
 }
 
 // ─── Stat highlight keys per sport ────────────────────────────────────────────
 
-const BASEBALL_STATS    = ["runs", "hits", "errors"]
+const BASEBALL_STATS: string[] = []
 const FOOTBALL_STATS    = ["passingYards", "rushingYards", "totalYards", "turnovers"]
 const HOCKEY_STATS      = ["goals", "powerPlayGoals", "penaltyMinutes"]
 const BASKETBALL_STATS  = ["fieldGoalsAttempted", "threePointFieldGoalsMade", "rebounds", "assists", "turnovers"]
@@ -143,7 +144,7 @@ function SectionHeader({ label, first = false }: { label: string; first?: boolea
 // ─── Baseball ─────────────────────────────────────────────────────────────────
 
 function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattleTeamId?: string }) {
-  const { linescores, periodLabels, currentPeriod, pitchers, topBatters } = data
+  const { linescores, periodLabels, currentPeriod, topBatters, pitcherList } = data
 
   return (
     <>
@@ -196,97 +197,130 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
         </table>
       </div>
 
-      {/* Top Performers */}
+      {/* Top Performers — WNBA-style two independent halves */}
       {topBatters && topBatters.length > 0 && (() => {
         const awayId = linescores[0]?.teamId
         const homeId = linescores[1]?.teamId
         const awayBatters = topBatters.filter(b => b.teamId === awayId)
         const homeBatters = topBatters.filter(b => b.teamId === homeId)
-        const maxRows = Math.max(awayBatters.length, homeBatters.length)
-        if (maxRows === 0) return null
+        if (awayBatters.length === 0 && homeBatters.length === 0) return null
+        const HalfHeader = () => (
+          <div className="flex items-center pb-1.5 mb-1 border-b border-zinc-500/65">
+            <div className="flex-1" />
+            <div className="flex gap-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest tabular-nums">
+              <span className="w-8 text-center">H</span>
+              <span className="w-8 text-center">HR</span>
+              <span className="w-8 text-center">RBI</span>
+            </div>
+          </div>
+        )
         return (
           <>
             <SectionHeader label="Top Performers" />
-            <div className="relative px-3">
-              {/* Away team logo watermark — left column center */}
-              {linescores[0]?.logo && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={linescores[0].logo} alt="" aria-hidden
-                  className="absolute left-1/4 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 object-contain opacity-[0.06] pointer-events-none select-none" />
-              )}
-              {/* Home team logo watermark — right column center */}
-              {linescores[1]?.logo && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={linescores[1].logo} alt="" aria-hidden
-                  className="absolute left-3/4 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 object-contain opacity-[0.06] pointer-events-none select-none" />
-              )}
-              {/* Header row */}
-              <div className="grid grid-cols-2 border-b border-zinc-800 pb-1 mb-1">
-                <div className="flex justify-end gap-4 pr-1">
-                  {["H","HR","RBI"].map(s => <span key={s} className="text-[11px] font-bold text-zinc-500 w-7 text-right">{s}</span>)}
-                </div>
-                <div className="flex justify-start gap-4 pl-1">
-                  {["H","HR","RBI"].map(s => <span key={s} className="text-[11px] font-bold text-zinc-500 w-7 text-right">{s}</span>)}
-                </div>
-              </div>
-              {/* Player rows */}
-              {Array.from({ length: maxRows }).map((_, i) => {
-                const ab = awayBatters[i]
-                const hb = homeBatters[i]
-                return (
-                  <div key={i} className={`grid grid-cols-2 py-1.5 ${i < maxRows - 1 ? "border-b border-zinc-800/60" : ""}`}>
-                    {/* Away batter */}
-                    <div className="flex items-center justify-between pr-1">
-                      <span className={`font-display text-[13px] font-semibold truncate ${ab?.teamId === seattleTeamId ? "text-white" : "text-zinc-400"}`}>{ab?.name ?? ""}</span>
-                      <div className="flex gap-4">
-                        {[ab?.h, ab?.hr, ab?.rbi].map((v, j) => (
-                          <span key={j} className={`text-[13px] font-bold tabular-nums w-7 text-right ${ab?.teamId === seattleTeamId ? "text-white" : "text-zinc-400"}`}>{v ?? ""}</span>
-                        ))}
-                      </div>
-                    </div>
-                    {/* Home batter */}
-                    <div className="flex items-center justify-between pl-1">
-                      <span className={`font-display text-[13px] font-semibold truncate ${hb?.teamId === seattleTeamId ? "text-white" : "text-zinc-400"}`}>{hb?.name ?? ""}</span>
-                      <div className="flex gap-4">
-                        {[hb?.h, hb?.hr, hb?.rbi].map((v, j) => (
-                          <span key={j} className={`text-[13px] font-bold tabular-nums w-7 text-right ${hb?.teamId === seattleTeamId ? "text-white" : "text-zinc-400"}`}>{v ?? ""}</span>
-                        ))}
-                      </div>
+            <div className="px-3 grid grid-cols-2 gap-x-4 pb-2">
+              {/* Away half */}
+              <div className="relative overflow-hidden">
+                {linescores[0]?.logo && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={linescores[0].logo} alt="" aria-hidden className="absolute pointer-events-none select-none"
+                    style={{ width: 64, height: 64, opacity: 0.06, objectFit: "contain", top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />
+                )}
+                <HalfHeader />
+                {awayBatters.map((b, idx) => (
+                  <div key={idx} className="relative flex items-center py-2.5">
+                    <span className={`flex-1 text-[14px] font-semibold truncate ${b.teamId === seattleTeamId ? "text-white" : "text-zinc-200"}`}>{b.name}</span>
+                    <div className="flex gap-3 text-[14px] font-bold tabular-nums">
+                      <span className={`w-8 text-center ${b.teamId === seattleTeamId ? "text-white" : "text-zinc-200"}`}>{b.h}</span>
+                      <span className="w-8 text-center text-zinc-400">{b.hr}</span>
+                      <span className="w-8 text-center text-zinc-400">{b.rbi}</span>
                     </div>
                   </div>
-                )
-              })}
+                ))}
+              </div>
+              {/* Home half */}
+              <div className="relative overflow-hidden">
+                {linescores[1]?.logo && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={linescores[1].logo} alt="" aria-hidden className="absolute pointer-events-none select-none"
+                    style={{ width: 64, height: 64, opacity: 0.06, objectFit: "contain", top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />
+                )}
+                <HalfHeader />
+                {homeBatters.map((b, idx) => (
+                  <div key={idx} className="relative flex items-center py-2.5">
+                    <span className={`flex-1 text-[14px] font-semibold truncate ${b.teamId === seattleTeamId ? "text-white" : "text-zinc-200"}`}>{b.name}</span>
+                    <div className="flex gap-3 text-[14px] font-bold tabular-nums">
+                      <span className={`w-8 text-center ${b.teamId === seattleTeamId ? "text-white" : "text-zinc-200"}`}>{b.h}</span>
+                      <span className="w-8 text-center text-zinc-400">{b.hr}</span>
+                      <span className="w-8 text-center text-zinc-400">{b.rbi}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </>
         )
       })()}
 
-      {/* Pitcher Info */}
-      {pitchers && (pitchers.winning || pitchers.losing || pitchers.saving) && (
-        <div className="px-4 mt-3 flex flex-wrap gap-x-5 gap-y-1.5 pb-1">
-          {pitchers.winning && (
-            <div className="text-[12px]">
-              <span className="text-zinc-500 uppercase tracking-wider">W </span>
-              <span className="text-zinc-200 font-600">{pitchers.winning.name}</span>
-              {pitchers.winning.line && <span className="text-zinc-500"> · {pitchers.winning.line}</span>}
+      {/* Pitching — full pitcher list with IP / game ERA */}
+      {pitcherList && pitcherList.length > 0 && (() => {
+        const awayId = linescores[0]?.teamId
+        const homeId = linescores[1]?.teamId
+        const awayPitchers = pitcherList.filter(p => p.teamId === awayId)
+        const homePitchers = pitcherList.filter(p => p.teamId === homeId)
+        if (awayPitchers.length === 0 && homePitchers.length === 0) return null
+        const PitchHeader = () => (
+          <div className="flex items-center pb-1.5 mb-1 border-b border-zinc-500/65">
+            <div className="flex-1" />
+            <div className="flex gap-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest tabular-nums">
+              <span className="w-8 text-center">IP</span>
+              <span className="w-8 text-center">ERA</span>
             </div>
-          )}
-          {pitchers.losing && (
-            <div className="text-[12px]">
-              <span className="text-zinc-500 uppercase tracking-wider">L </span>
-              <span className="text-zinc-200 font-600">{pitchers.losing.name}</span>
-              {pitchers.losing.line && <span className="text-zinc-500"> · {pitchers.losing.line}</span>}
+          </div>
+        )
+        return (
+          <>
+            <SectionHeader label="Pitching" />
+            <div className="px-3 grid grid-cols-2 gap-x-4 pb-2">
+              {/* Away pitchers */}
+              <div className="relative overflow-hidden">
+                {linescores[0]?.logo && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={linescores[0].logo} alt="" aria-hidden className="absolute pointer-events-none select-none"
+                    style={{ width: 64, height: 64, opacity: 0.06, objectFit: "contain", top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />
+                )}
+                <PitchHeader />
+                {awayPitchers.map((p, idx) => (
+                  <div key={idx} className="relative flex items-center py-2.5">
+                    <span className="flex-1 text-[14px] font-semibold text-zinc-200 truncate">{p.name}</span>
+                    <div className="flex gap-3 text-[14px] font-bold tabular-nums">
+                      <span className="w-8 text-center text-zinc-400">{p.ip}</span>
+                      <span className="w-8 text-center text-zinc-400">{p.era}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Home pitchers */}
+              <div className="relative overflow-hidden">
+                {linescores[1]?.logo && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={linescores[1].logo} alt="" aria-hidden className="absolute pointer-events-none select-none"
+                    style={{ width: 64, height: 64, opacity: 0.06, objectFit: "contain", top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />
+                )}
+                <PitchHeader />
+                {homePitchers.map((p, idx) => (
+                  <div key={idx} className="relative flex items-center py-2.5">
+                    <span className="flex-1 text-[14px] font-semibold text-zinc-200 truncate">{p.name}</span>
+                    <div className="flex gap-3 text-[14px] font-bold tabular-nums">
+                      <span className="w-8 text-center text-zinc-400">{p.ip}</span>
+                      <span className="w-8 text-center text-zinc-400">{p.era}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          )}
-          {pitchers.saving && (
-            <div className="text-[12px]">
-              <span className="text-zinc-500 uppercase tracking-wider">SV </span>
-              <span className="text-zinc-200 font-600">{pitchers.saving.name}</span>
-              {pitchers.saving.line && <span className="text-zinc-500"> · {pitchers.saving.line}</span>}
-            </div>
-          )}
-        </div>
-      )}
+          </>
+        )
+      })()}
     </>
   )
 }
