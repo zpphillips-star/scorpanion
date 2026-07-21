@@ -359,6 +359,39 @@ export async function GET() {
       }
     }
 
+    // If no completed tournament was captured from the current scoreboard window,
+    // look back at the most recently completed calendar entry so the home-screen
+    // "Recent" section always has data (completed events roll off data.events
+    // once ESPN moves to the next tournament week).
+    const hasCompleted = tournaments.some(t => t.status === 'completed')
+    if (!hasCompleted) {
+      const now = new Date()
+      const lastEntry = calendarEntries
+        .filter(e => e.endDate && new Date(e.endDate) < now)
+        .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime())[0]
+
+      if (lastEntry) {
+        const yyyymmdd = new Date(lastEntry.endDate).toISOString().slice(0, 10).replace(/-/g, '')
+        try {
+          const prevRes = await fetch(
+            `https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard?dates=${yyyymmdd}`,
+            { cache: 'no-store' }
+          )
+          if (prevRes.ok) {
+            const prevData = await prevRes.json()
+            const prevEvent = (prevData.events ?? []).find((e: any) =>
+              e.competitions?.[0]?.status?.type?.name === 'STATUS_FINAL' ||
+              e.competitions?.[0]?.status?.type?.completed === true
+            )
+            if (prevEvent) {
+              const t = await parseScoreboardEvent(prevEvent)
+              if (t) tournaments.push(t)
+            }
+          }
+        } catch { /* skip — upcoming-only is still functional */ }
+      }
+    }
+
     return Response.json(tournaments)
   } catch (e) {
     return Response.json(

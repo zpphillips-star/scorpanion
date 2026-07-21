@@ -668,9 +668,12 @@ export default function HomeClient() {
         golfUpcomingByDate[round.date].push({ tournament: t, label, accentColor, roundLabel: round.label, teeTime: round.teeTime })
       }
     } else {
-      // Fallback: show once on start date (no rounds data available)
+      // Fallback: show once on start date (no rounds data available).
+      // Use UTC date string (.toISOString().slice(0,10)) so the key format is
+      // consistent with round.date — avoids a timezone-driven off-by-one day
+      // (e.g. "2026-07-23T04:00Z" → local PDT gives "2026-07-22", wrong).
       if (!t.startDate) return
-      const ds = dateStr(new Date(t.startDate))
+      const ds = new Date(t.startDate).toISOString().slice(0, 10)
       if (!golfUpcomingByDate[ds]) golfUpcomingByDate[ds] = []
       golfUpcomingByDate[ds].push({ tournament: t, label, accentColor })
     }
@@ -678,8 +681,12 @@ export default function HomeClient() {
   pgaUpcoming.forEach(t => addGolfToDate(t, 'PGA Tour', '#CBA135'))
   lpgaUpcoming.forEach(t => addGolfToDate(t, 'LPGA', '#C084FC'))
 
-  // All upcoming dates — team games + golf, sorted
-  const allUpcomingDates = [...new Set([...Object.keys(upcomingByDate), ...Object.keys(golfUpcomingByDate)])].sort()
+  // All upcoming dates — team games + golf, sorted.
+  // Filter to ds > today so golf rounds that fall on or before today
+  // don't bleed into the Upcoming section (today's golf lives in pgaToday).
+  const allUpcomingDates = [...new Set([...Object.keys(upcomingByDate), ...Object.keys(golfUpcomingByDate)])]
+    .filter(ds => ds > today)
+    .sort()
   const upcomingDates = allUpcomingDates
 
   const hasAnyLive = liveGames.length > 0
@@ -951,9 +958,19 @@ export default function HomeClient() {
                       onClick={() => setSelectedGolfUpcoming({ tournament: t, label, accentColor, roundLabel })}
                     >
                       <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr 88px 1fr" }}>
-                        {/* Left: league label */}
-                        <div className="flex items-center justify-end">
+                        {/* Left: logo + label */}
+                        <div className="flex items-center justify-end gap-2 min-w-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <span className="text-[13px] font-normal text-zinc-300 whitespace-nowrap">{label}</span>
+                          <img
+                            src={label === 'LPGA'
+                              ? 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/lpga.png&w=28&h=28'
+                              : 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/pgatour.png&w=28&h=28'}
+                            alt={label}
+                            width={28}
+                            height={28}
+                            className="object-contain flex-shrink-0"
+                          />
                         </div>
                         {/* Center: tee time (or date range fallback) */}
                         <div className="flex flex-col items-center justify-center">
