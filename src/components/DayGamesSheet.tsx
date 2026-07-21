@@ -174,14 +174,16 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
               )}
             </div>
             <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={32}
-              className={`flex-shrink-0${isFt && homeWon ? " opacity-25" : ""}`} />
+              className="flex-shrink-0" />
           </div>
 
           {/* Score / vs */}
           <div className="flex items-center justify-center">
             {hasScore ? (
-              <span className="font-display text-[16px] font-800 tabular-nums text-white">
-                {awayScore}<span className="text-zinc-600 mx-0.5">–</span>{homeScore}
+              <span className="font-display text-[16px] font-800 tabular-nums">
+                <span style={{ color: isLive ? "#FFB400" : (isFt && homeWon ? "#3a5070" : "#f0f0f8") }}>{awayScore}</span>
+                <span className="text-zinc-600 mx-0.5">–</span>
+                <span style={{ color: isLive ? "#FFB400" : (isFt && awayWon ? "#3a5070" : "#f0f0f8") }}>{homeScore}</span>
               </span>
             ) : (
               <span className="text-zinc-600 text-[13px]">·</span>
@@ -191,7 +193,7 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
           {/* Home */}
           <div className="flex items-center justify-start gap-2 min-w-0">
             <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={32}
-              className={`flex-shrink-0${isFt && awayWon ? " opacity-25" : ""}`} />
+              className="flex-shrink-0" />
             <div className="min-w-0">
               <div className={`text-[14px] font-semibold leading-tight truncate ${isFt && awayWon ? "text-zinc-500" : "text-white"}`}>
                 {homeName}

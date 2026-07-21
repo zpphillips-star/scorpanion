@@ -109,7 +109,7 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
             {/* Away team */}
             <div className="flex-1 flex flex-col items-center justify-center gap-2">
               <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={logoSize}
-                className={`rounded-xl${isFt && !awayWon && homeWon ? " opacity-30" : ""}`} />
+                className="rounded-xl" />
               <div className="text-center">
                 <div className="text-[13px] font-bold leading-tight"
                      style={{ color: isFt && !awayWon && homeWon ? "#3a5070" : "#f0f0f8" }}>
@@ -125,12 +125,12 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
                 <>
                   <div className="flex items-baseline gap-1 tabular-nums leading-none">
                     <span className="font-display font-800"
-                          style={{ fontSize: featured ? "56px" : "36px", color: isFt && awayWon === false && homeWon ? "#1e3050" : "#f0f0f8" }}>
+                          style={{ fontSize: featured ? "56px" : "36px", color: isFt && awayWon === false && homeWon ? "#3a5070" : "#f0f0f8" }}>
                       {awayScore}
                     </span>
                     <span className="font-display font-800" style={{ fontSize: featured ? "24px" : "20px", color: "#1e3050" }}>–</span>
                     <span className="font-display font-800"
-                          style={{ fontSize: featured ? "56px" : "36px", color: isFt && homeWon === false && awayWon ? "#1e3050" : "#f0f0f8" }}>
+                          style={{ fontSize: featured ? "56px" : "36px", color: isFt && homeWon === false && awayWon ? "#3a5070" : "#f0f0f8" }}>
                       {homeScore}
                     </span>
                   </div>
@@ -147,7 +147,7 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
             {/* Home team */}
             <div className="flex-1 flex flex-col items-center justify-center gap-2">
               <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={logoSize}
-                className={`rounded-xl${isFt && !homeWon && awayWon ? " opacity-30" : ""}`} />
+                className="rounded-xl" />
               <div className="text-center">
                 <div className="text-[13px] font-bold leading-tight"
                      style={{ color: isFt && !homeWon && awayWon ? "#3a5070" : "#f0f0f8" }}>

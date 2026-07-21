@@ -108,14 +108,16 @@ export default function GameCard({ game }: GameCardProps) {
               {gcAwayName}
             </span>
             <TeamLogo src={gcAwayLogo} emoji={gcAwayEmoji} abbr={gcAwayAbbr} size={26}
-              className={`flex-shrink-0 transition-opacity${isFt && gcHomeWon ? " opacity-40" : ""}`} />
+              className="flex-shrink-0" />
           </div>
 
           {/* Score / vs — center */}
           <div className="w-14 flex-shrink-0 text-center">
             {hasScore && gcAwayScore !== undefined && gcHomeScore !== undefined ? (
-              <span className={`text-[16px] font-bold tabular-nums ${isLive ? "text-red-300" : "text-white"}`}>
-                {gcAwayScore}–{gcHomeScore}
+              <span className="text-[16px] font-bold tabular-nums">
+                <span style={{ color: isLive ? "#f87171" : (isFt && gcHomeWon ? "#3a5070" : "#f0f0f8") }}>{gcAwayScore}</span>
+                <span className="text-zinc-600 mx-0.5">–</span>
+                <span style={{ color: isLive ? "#f87171" : (isFt && gcAwayWon ? "#3a5070" : "#f0f0f8") }}>{gcHomeScore}</span>
               </span>
             ) : (
               <span className="text-[12px] text-zinc-600">vs</span>
@@ -125,7 +127,7 @@ export default function GameCard({ game }: GameCardProps) {
           {/* Home team (left-aligned) */}
           <div className="flex-1 flex items-center gap-2 min-w-0">
             <TeamLogo src={gcHomeLogo} emoji={gcHomeEmoji} abbr={gcHomeAbbr} size={26}
-              className={`flex-shrink-0 transition-opacity${isFt && gcAwayWon ? " opacity-40" : ""}`} />
+              className="flex-shrink-0" />
             <span className={`text-[14px] font-semibold truncate leading-tight ${isFt && gcAwayWon ? "text-zinc-500" : "text-white"}`}>
               {gcHomeName}
             </span>

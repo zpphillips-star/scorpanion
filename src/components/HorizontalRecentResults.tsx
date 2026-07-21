@@ -49,14 +49,16 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
               <div className="flex items-center justify-between gap-1.5">
                 <div className="flex flex-col items-center gap-1 flex-1">
                   <TeamLogo src={leftLogo} emoji={leftEmoji} abbr={leftAbbr} size={26} />
-                  <span className={`font-display text-[18px] font-800 tabular-nums ${leftDimmed ? "text-zinc-500" : "text-white"}`}>
+                  <span className={`font-display text-[18px] font-800 tabular-nums`}
+                    style={{ color: leftDimmed ? "#3a5070" : "#ffffff" }}>
                     {leftScore ?? "–"}
                   </span>
                 </div>
                 <span className="font-display text-[10px] text-zinc-700 font-600 self-center pb-3">–</span>
                 <div className="flex flex-col items-center gap-1 flex-1">
                   <TeamLogo src={rightLogo} emoji={rightEmoji} abbr={rightAbbr} size={26} />
-                  <span className={`font-display text-[18px] font-800 tabular-nums ${rightDimmed ? "text-zinc-500" : "text-white"}`}>
+                  <span className={`font-display text-[18px] font-800 tabular-nums`}
+                    style={{ color: rightDimmed ? "#3a5070" : "#ffffff" }}>
                     {rightScore ?? "–"}
                   </span>
                 </div>
