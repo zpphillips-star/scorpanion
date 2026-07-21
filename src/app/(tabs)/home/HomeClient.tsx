@@ -951,9 +951,16 @@ export default function HomeClient() {
                       className="w-full text-left flex items-center py-3 px-4 active:opacity-70 transition-opacity gap-3"
                       onClick={() => setSelectedGolfUpcoming({ tournament: t, label, accentColor })}
                     >
-                      {/* Left: date range only — no course */}
-                      <div className="w-16 flex-shrink-0">
-                        <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{dateRange}</span>
+                      {/* Left: tee time when ESPN has a valid time; otherwise date range */}
+                      <div className="w-16 flex-shrink-0 flex flex-col gap-0.5">
+                        {t.firstTeeTime ? (
+                          <>
+                            <span className="text-[10px] font-medium text-zinc-500 leading-tight">Tee time</span>
+                            <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{fmtTime(t.firstTeeTime)}</span>
+                          </>
+                        ) : (
+                          <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{dateRange}</span>
+                        )}
                       </div>
                       {/* Matchup: label · logo · tournament name */}
                       <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr 2rem 1fr" }}>

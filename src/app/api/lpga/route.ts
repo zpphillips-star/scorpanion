@@ -25,6 +25,9 @@ export interface PGATournament {
   purse?: string
   leaders: PGAPlayer[]
   cutLine?: string
+  /** ISO string of the first tee time for the current/next round. Only set when ESPN's
+   *  competitions[0].timeValid === true (i.e. an actual scheduled start time exists). */
+  firstTeeTime?: string
 }
 
 function parsePar(raw: string | undefined | null): string {
@@ -141,6 +144,8 @@ export async function GET() {
         purse: event.prize ?? event.purse,
         leaders: leaders.slice(0, 10),
         cutLine: comp.notes?.[0]?.headline,
+        // Only include tee time when ESPN confirms the time is valid.
+        firstTeeTime: comp.timeValid === true ? (comp.startDate ?? comp.date ?? undefined) : undefined,
       })
     }
 
@@ -170,6 +175,7 @@ export async function GET() {
             })
             if (nextEvent) {
               const { course, location } = await fetchVenueInfo(nextEvent.id)
+              const nextComp = nextEvent.competitions?.[0]
               tournaments.push({
                 id: nextEvent.id,
                 name: nextEvent.name,
@@ -181,6 +187,7 @@ export async function GET() {
                 startDate: nextEvent.date ?? '',
                 endDate: nextEvent.endDate ?? '',
                 leaders: [],
+                firstTeeTime: nextComp?.timeValid === true ? (nextComp.startDate ?? nextComp.date ?? undefined) : undefined,
               })
               pushed = true
             }

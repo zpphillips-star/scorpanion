@@ -25,6 +25,9 @@ export interface PGATournament {
   purse?: string
   leaders: PGAPlayer[]
   cutLine?: string
+  /** ISO string of the first tee time for the current/next round. Only set when ESPN's
+   *  competitions[0].timeValid === true (i.e. an actual scheduled start time exists). */
+  firstTeeTime?: string
 }
 
 function parsePar(raw: string | undefined | null): string {
@@ -117,6 +120,9 @@ async function parseScoreboardEvent(event: any): Promise<PGATournament | null> {
     purse: event.prize ?? event.purse,
     leaders: leaders.slice(0, 50),
     cutLine: comp.notes?.[0]?.headline,
+    // Only include tee time when ESPN confirms the time is valid (timeValid === true).
+    // Pre-tournament stubs have timeValid: false with a midnight placeholder.
+    firstTeeTime: comp.timeValid === true ? (comp.startDate ?? comp.date ?? undefined) : undefined,
   }
 }
 
