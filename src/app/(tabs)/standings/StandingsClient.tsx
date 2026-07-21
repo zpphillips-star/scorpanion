@@ -544,7 +544,7 @@ function DivisionTable({ division, followedTeamColors, accentColor, leagueId }: 
                 <tr key={entry.teamId} style={{ borderTop: '1px solid var(--border)' }}>
                   {/* Sticky team cell */}
                   <td
-                    className="sticky left-0 z-10 px-4 py-2.5"
+                    className="sticky left-0 z-10 px-4 py-2"
                     style={{ background: stickyBg, minWidth: '160px' }}
                   >
                     <div className="relative flex items-center gap-2.5">
@@ -573,7 +573,7 @@ function DivisionTable({ division, followedTeamColors, accentColor, leagueId }: 
                           ? 'font-display tabular-nums text-[13px] font-500 text-zinc-400'
                           : 'font-display tabular-nums text-[14px] font-600 text-zinc-400'
                     return (
-                      <td key={col.key} className="px-3 py-2.5 text-center" style={{ background: rowBg }}>
+                      <td key={col.key} className="px-3 py-2 text-center" style={{ background: rowBg }}>
                         <span className={cls}>{val}</span>
                       </td>
                     )

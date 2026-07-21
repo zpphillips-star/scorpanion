@@ -94,7 +94,7 @@ function OffSeasonCards({ teams, nextGames }: {
         return (
           <div
             key={team.id}
-            className="flex items-center gap-3 px-4 py-3.5 border-b border-zinc-500/60"
+            className="flex items-center gap-3 px-4 py-3 border-b border-zinc-500/60"
           >
             {/* Team logo */}
             <TeamLogo src={logoUrl} emoji={team.emoji} abbr={team.abbr} size={32} />
@@ -794,7 +794,7 @@ export default function HomeClient() {
       {/* ── Recent results (horizontal scroll, tappable) ─────────────────── */}
       {(recent.length > 0 || pgaRecent.length > 0 || lpgaRecent.length > 0) && (
         <div className="mt-10">
-          <div className="flex items-center gap-3 px-4 mb-4">
+          <div className="flex items-center gap-3 px-4 mb-3">
             <span className="font-display text-[14px] font-700 text-white uppercase tracking-widest">Recent</span>
             <div className="flex-1 h-px bg-zinc-700/50" />
             <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">Last 7 days</span>
@@ -834,8 +834,8 @@ export default function HomeClient() {
         const dateLabel = todayDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
 
         return (
-          <div className="mt-28">
-            <div className="flex items-center gap-3 px-4 mb-4">
+          <div className="mt-8">
+            <div className="flex items-center gap-3 px-4 mb-3">
               <span className="font-display text-[14px] font-700 text-white uppercase tracking-widest">Today</span>
               <div className="flex-1 h-px bg-zinc-700/50" />
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{dateLabel}</span>
@@ -875,8 +875,8 @@ export default function HomeClient() {
 
       {/* ── Upcoming — WC compact rows ───────────────────────────────────── */}
       {upcomingDates.length > 0 && (
-        <div className="mt-28">
-          <div className="px-4 mb-4 flex items-center gap-3">
+        <div className="mt-8">
+          <div className="px-4 mb-3 flex items-center gap-3">
             <span className="font-display text-[14px] font-700 text-white uppercase tracking-widest">Upcoming</span>
             <div className="flex-1 h-px bg-zinc-700/50" />
             <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">

@@ -105,7 +105,7 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
           </div>
 
           {/* Main: away | score | home */}
-          <div className="flex items-stretch pr-4 gap-2" style={{ minHeight: 110 }}>
+          <div className="flex items-stretch pr-4 gap-2" style={{ minHeight: 96 }}>
             {/* Away team */}
             <div className="flex-1 flex flex-col items-center justify-center gap-2">
               <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={logoSize}

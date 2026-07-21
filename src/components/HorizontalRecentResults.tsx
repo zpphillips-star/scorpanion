@@ -23,7 +23,7 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
       style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
     >
       <div className="h-1" style={{ background: `linear-gradient(to right, ${color}, ${color}44)` }} />
-      <div className="px-3 pt-2.5 pb-3">
+      <div className="px-3 pt-2 pb-2">
         <div className="flex items-center justify-between mb-2.5">
           <span className="font-display text-[12px] font-800 uppercase tracking-wide px-2 py-0.5 rounded-full"
             style={{ color: resultColor, background: `${resultColor}33` }}>
