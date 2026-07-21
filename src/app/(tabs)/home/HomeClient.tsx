@@ -871,8 +871,10 @@ export default function HomeClient() {
         )
       })()}
 
-      {/* ── Off-season (no games anywhere) ──────────────────────────────── */}
-      {todayGames.length === 0 && !hasAnyLive && recent.length === 0 && allUpcoming.length === 0 && (
+      {/* ── Off-season (no games anywhere, including golf) ───────────────── */}
+      {todayGames.length === 0 && !hasAnyLive && recent.length === 0 && allUpcoming.length === 0
+        && pgaUpcoming.length === 0 && lpgaUpcoming.length === 0
+        && pgaToday.length === 0 && lpgaToday.length === 0 && (
         <>
           <div className="mt-14 px-4 mb-2 flex items-center gap-3">
             <span className="font-display text-[14px] font-700 text-zinc-400 uppercase tracking-widest">Off Season</span>
