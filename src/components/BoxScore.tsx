@@ -149,8 +149,8 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
   return (
     <>
       <SectionHeader label="Line Score" first />
-      <div className="px-3 overflow-x-auto no-scrollbar">
-        <table className="w-full min-w-max" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
+      <div className="px-3 overflow-x-auto">
+        <table className="min-w-max w-full" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
           <thead>
             <tr>
               <th className={`${HDR} text-left pr-3 w-14`}></th>
