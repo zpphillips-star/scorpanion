@@ -674,8 +674,22 @@ export default function HomeClient() {
   pgaUpcoming.forEach(t => addGolfToDate(t, 'PGA Tour', '#CBA135'))
   lpgaUpcoming.forEach(t => addGolfToDate(t, 'LPGA', '#C084FC'))
 
+  // Deduplicate golf: each tournament shows only on its FIRST date in the upcoming range
+  const golfSeenIds = new Set<string>()
+  const golfUpcomingByDateDeduped: Record<string, GolfUpcomingItem[]> = {}
+  const sortedGolfDates = Object.keys(golfUpcomingByDate).sort()
+  for (const ds of sortedGolfDates) {
+    for (const item of golfUpcomingByDate[ds]) {
+      if (!golfSeenIds.has(item.tournament.id)) {
+        golfSeenIds.add(item.tournament.id)
+        if (!golfUpcomingByDateDeduped[ds]) golfUpcomingByDateDeduped[ds] = []
+        golfUpcomingByDateDeduped[ds].push(item)
+      }
+    }
+  }
+
   // All upcoming dates — team games + golf, sorted
-  const allUpcomingDates = [...new Set([...Object.keys(upcomingByDate), ...Object.keys(golfUpcomingByDate)])].sort()
+  const allUpcomingDates = [...new Set([...Object.keys(upcomingByDate), ...Object.keys(golfUpcomingByDateDeduped)])].sort()
   const upcomingDates = allUpcomingDates
 
   const hasAnyLive = liveGames.length > 0
@@ -884,6 +898,7 @@ export default function HomeClient() {
             </span>
           </div>
 
+          {/* Track golf tournament IDs already shown — only render each once */}
           {upcomingDates.map((ds, idx) => (
             <div key={ds}>
               {idx > 0 && <div className="h-3" />}
@@ -910,62 +925,45 @@ export default function HomeClient() {
                 return (
                   <div
                     key={g.id}
-                    className="flex items-center py-3 px-4 hover:bg-white/[0.03] active:bg-white/[0.06] transition-colors cursor-pointer"
+                    className="flex items-center py-4 px-4 hover:bg-white/[0.03] active:bg-white/[0.06] transition-colors cursor-pointer"
                     onClick={() => setSelectedRecentGame(g)}
                   >
-                    {/* Matchup: away | time (center) | home */}
-                    <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
-                      <div className="flex items-center justify-end gap-2 min-w-0">
-                        <span className="text-[14px] font-semibold text-white whitespace-nowrap leading-tight truncate">{awayName}</span>
+                    {/* away | time (fixed center) | home */}
+                    <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr 88px 1fr" }}>
+                      <div className="flex items-center justify-end gap-2.5 min-w-0">
+                        <span className="text-[13px] font-normal text-zinc-300 whitespace-nowrap leading-tight truncate">{awayName}</span>
                         <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={28} className="flex-shrink-0" />
                       </div>
-                      <div className="flex flex-col items-center justify-center px-3">
-                        <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{fmtTime(g.kickoff)}</span>
-                        {g.broadcast && <span className="text-[10px] text-zinc-600">{g.broadcast}</span>}
+                      <div className="flex flex-col items-center justify-center">
+                        <span className="text-[13px] font-semibold text-white whitespace-nowrap tabular-nums">{fmtTime(g.kickoff)}</span>
+                        {g.broadcast && <span className="text-[10px] text-zinc-600 mt-0.5">{g.broadcast}</span>}
                       </div>
-                      <div className="flex items-center justify-start gap-2 min-w-0">
+                      <div className="flex items-center justify-start gap-2.5 min-w-0">
                         <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={28} className="flex-shrink-0" />
-                        <span className="text-[14px] font-semibold text-white whitespace-nowrap leading-tight truncate">{homeName}</span>
+                        <span className="text-[13px] font-normal text-zinc-300 whitespace-nowrap leading-tight truncate">{homeName}</span>
                       </div>
                     </div>
                   </div>
                 )
                 })}
-                {/* ── Golf tournament rows — no location, tap for details ── */}
-                {(golfUpcomingByDate[ds] ?? []).map(({ tournament: t, label, accentColor }) => {
-                  const golfLogoUrl = label === 'LPGA'
-                    ? 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/lpga.png'
-                    : 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/pgatour.png'
-                  const dateRange = (() => {
-                    const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                    if (t.endDate && t.endDate !== t.startDate) return `${fmt(t.startDate)} – ${fmt(t.endDate)}`
-                    return fmt(t.startDate)
-                  })()
+                {/* ── Golf tournament rows — shown once at first occurrence, tap for details ── */}
+                {(golfUpcomingByDateDeduped[ds] ?? [])
+                  .map(({ tournament: t, label, accentColor }) => {
+                  const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                  const dateRange = t.endDate && t.endDate !== t.startDate
+                    ? `${fmt(t.startDate)} – ${fmt(t.endDate)}`
+                    : fmt(t.startDate)
                   return (
                     <button
                       key={`golf-${t.id}-${ds}`}
-                      className="w-full text-left flex items-center py-3 px-4 active:opacity-70 transition-opacity"
+                      className="w-full text-center flex flex-col items-center py-4 px-4 active:opacity-70 transition-opacity gap-0.5"
                       onClick={() => setSelectedGolfUpcoming({ tournament: t, label, accentColor })}
                     >
-                      {/* label | tee time (center) | tournament name */}
-                      <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
-                        <div className="flex items-center justify-end">
-                          <span className="text-[12px] font-700 uppercase tracking-wide text-zinc-500 whitespace-nowrap">{label}</span>
-                        </div>
-                        <div className="flex flex-col items-center justify-center px-3">
-                          {t.firstTeeTime ? (
-                            <>
-                              <span className="text-[10px] font-medium text-zinc-500 whitespace-nowrap">Tee time</span>
-                              <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{fmtTime(t.firstTeeTime)}</span>
-                            </>
-                          ) : (
-                            <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{dateRange}</span>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-start">
-                          <span className="text-[14px] font-semibold text-white truncate leading-tight">{t.shortName || t.name}</span>
-                        </div>
-                      </div>
+                      <span className="text-[14px] font-semibold text-white leading-tight">{t.shortName || t.name}</span>
+                      <span className="text-[11px] text-zinc-500">
+                        {label}
+                        {t.firstTeeTime ? ` · Tee ${fmtTime(t.firstTeeTime)}` : ` · ${dateRange}`}
+                      </span>
                     </button>
                   )
                 })}
