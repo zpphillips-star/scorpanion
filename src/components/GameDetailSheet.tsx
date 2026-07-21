@@ -93,7 +93,7 @@ function RecentFormDots({ form }: { form: { result: "W" | "L" | "T" }[] }) {
   if (!form || form.length === 0) return null
   return (
     <div className="flex items-center gap-1.5">
-      {form.slice(0, 5).map((f, i) => (
+      {[...form].reverse().slice(0, 5).map((f, i) => (
         <div
           key={i}
           className="rounded-full flex-shrink-0"
