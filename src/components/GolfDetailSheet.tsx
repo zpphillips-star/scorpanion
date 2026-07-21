@@ -290,7 +290,7 @@ export default function GolfDetailSheet({
     ? "Final"
     : isLive
     ? tournament.roundLabel
-    : tournament.roundLabel || "Upcoming"
+    : null  // don't show "Preview" or "Upcoming" in the header — status is already clear
 
   // The header date line — e.g. "THU, JUN 19 – SUN, JUN 22"
   const headerDate = fmtGolfDate(tournament.startDate)
