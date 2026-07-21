@@ -89,7 +89,7 @@ export default function UpcomingScheduleSection({ game }: Props) {
   return (
     <div className="pt-3 pb-2">
       {/* Section title */}
-      <div className="text-[12px] font-bold uppercase tracking-widest text-zinc-400 px-3 mb-3">Upcoming Schedule</div>
+      <div className="text-[12px] font-bold uppercase tracking-widest text-zinc-400 px-3 mb-3 text-center">Upcoming Schedule</div>
       {/* Two-column layout: away (left) | home (right) — matches card layout */}
       <div className="grid grid-cols-2 gap-x-4">
         <ScheduleCol games={awayGames} />
