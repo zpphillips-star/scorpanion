@@ -146,6 +146,8 @@ export async function GET() {
         cutLine: comp.notes?.[0]?.headline,
         // Only include tee time when ESPN confirms the time is valid.
         firstTeeTime: comp.timeValid === true ? (comp.startDate ?? comp.date ?? undefined) : undefined,
+        // Note: LPGA Tour does not publish tee times via a PGA Tour-style public GraphQL API.
+        // timeValid-false events correctly return undefined (no midnight-UTC placeholder leaks).
       })
     }
 

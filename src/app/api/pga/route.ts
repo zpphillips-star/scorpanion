@@ -1,6 +1,75 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const runtime = 'edge'
 
+// ---------------------------------------------------------------------------
+// PGA Tour GraphQL — real tee-time fallback when ESPN's timeValid is false
+// ---------------------------------------------------------------------------
+const PGA_GQL_URL = 'https://orchestrator.pgatour.com/graphql'
+const PGA_GQL_KEY = 'da2-gsrx5bibzbb4njvhl7t37wqyl4' // public key used by pgatour.com
+
+/** Return the earliest Round 1 tee-time ISO string for the PGA Tour tournament
+ *  whose schedule start date falls within ±2 days of `espnEventDateISO`.
+ *  Returns undefined on any error or when tee times haven't been posted yet. */
+async function fetchPGATourFirstTeeTime(espnEventDateISO: string): Promise<string | undefined> {
+  if (!espnEventDateISO) return undefined
+  const year = espnEventDateISO.slice(0, 4)
+  const eventDateMs = new Date(espnEventDateISO.slice(0, 10)).getTime()
+  if (!year || isNaN(eventDateMs)) return undefined
+
+  try {
+    // Step 1: fetch schedule to map date → PGA Tour tournament ID
+    const schedRes = await fetch(PGA_GQL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': PGA_GQL_KEY },
+      body: JSON.stringify({
+        query: `{ schedule(tourCode: "R", year: "${year}") {
+          upcoming { tournaments { id tournamentName startDate } }
+          completed { tournaments { id tournamentName startDate } }
+        } }`,
+      }),
+      cache: 'no-store',
+    })
+    if (!schedRes.ok) return undefined
+    const schedData = await schedRes.json()
+    const sched = schedData?.data?.schedule
+    const allTourneys: any[] = [
+      ...(sched?.upcoming?.flatMap((m: any) => m.tournaments ?? []) ?? []),
+      ...(sched?.completed?.flatMap((m: any) => m.tournaments ?? []) ?? []),
+    ]
+    // Match by start date within ±2 days (handles Wed Pro-Am vs Thu first round offset)
+    const match = allTourneys.find((t: any) => {
+      const ms = typeof t.startDate === 'number' ? t.startDate : parseInt(t.startDate ?? '0')
+      return Math.abs(ms - eventDateMs) < 2 * 86_400_000
+    })
+    if (!match?.id) return undefined
+
+    // Step 2: fetch tee times for the matched tournament ID
+    const ttRes = await fetch(PGA_GQL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': PGA_GQL_KEY },
+      body: JSON.stringify({
+        query: `{ teeTimesV2(id: "${match.id}") {
+          rounds { roundInt groups { teeTime } }
+        } }`,
+      }),
+      cache: 'no-store',
+    })
+    if (!ttRes.ok) return undefined
+    const ttData = await ttRes.json()
+    const rounds: any[] = ttData?.data?.teeTimesV2?.rounds ?? []
+    const r1 = rounds.find((r: any) => r.roundInt === 1)
+    if (!r1?.groups?.length) return undefined
+
+    const earliest: number = r1.groups
+      .map((g: any) => (typeof g.teeTime === 'number' ? g.teeTime : 0))
+      .filter((t: number) => t > 0)
+      .sort((a: number, b: number) => a - b)[0]
+    return earliest ? new Date(earliest).toISOString() : undefined
+  } catch {
+    return undefined
+  }
+}
+
 export interface PGAPlayer {
   position: string
   name: string
@@ -25,8 +94,9 @@ export interface PGATournament {
   purse?: string
   leaders: PGAPlayer[]
   cutLine?: string
-  /** ISO string of the first tee time for the current/next round. Only set when ESPN's
-   *  competitions[0].timeValid === true (i.e. an actual scheduled start time exists). */
+  /** ISO string of the first tee time for the current/next round.
+   *  Set from ESPN when timeValid === true, or from PGA Tour GraphQL (teeTimesV2)
+   *  as a fallback when ESPN still has a midnight-UTC placeholder. */
   firstTeeTime?: string
 }
 
@@ -120,9 +190,12 @@ async function parseScoreboardEvent(event: any): Promise<PGATournament | null> {
     purse: event.prize ?? event.purse,
     leaders: leaders.slice(0, 50),
     cutLine: comp.notes?.[0]?.headline,
-    // Only include tee time when ESPN confirms the time is valid (timeValid === true).
-    // Pre-tournament stubs have timeValid: false with a midnight placeholder.
-    firstTeeTime: comp.timeValid === true ? (comp.startDate ?? comp.date ?? undefined) : undefined,
+    // When ESPN's timeValid is true it provides the real competition start time.
+    // When timeValid is false ESPN stores a midnight-UTC placeholder — fall back to
+    // the PGA Tour GraphQL API which publishes actual tee times 2-3 days in advance.
+    firstTeeTime: comp.timeValid === true
+      ? (comp.startDate ?? comp.date ?? undefined)
+      : (status === 'upcoming' ? await fetchPGATourFirstTeeTime(event.date ?? '') : undefined),
   }
 }
 
