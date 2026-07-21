@@ -144,7 +144,7 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
   if (s) {
     phases.push({ key: 'regular',      label: 'Regular',                 dateRange: `${fmtD(s.regularStart)} – ${fmtD(s.regularEnd)}` })
     phases.push({ key: 'playoffs',     label: 'Playoffs',                dateRange: `${fmtD(s.playoffStart)} – ${fmtD(s.championshipStart)}${s.tbd ? '*' : ''}` })
-    phases.push({ key: 'championship', label: shortChamp(s.championship), dateRange: `${fmtD(s.championshipStart)} – ${fmtD(s.playoffEnd)}${s.tbd ? '*' : ''}` })
+    phases.push({ key: 'championship', label: shortChamp(s.championship), dateRange: s.championshipStart === s.playoffEnd ? `${fmtD(s.championshipStart)}${s.tbd ? '*' : ''}` : `${fmtD(s.championshipStart)} – ${fmtD(s.playoffEnd)}${s.tbd ? '*' : ''}` })
   } else {
     phases.push({ key: 'regular', label: 'Regular', dateRange: '—' })
     phases.push({ key: 'playoffs', label: 'Playoffs', dateRange: '—' })
