@@ -139,7 +139,6 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
               ) : (
                 <div className="flex flex-col items-center gap-0.5">
                   <span className="text-[20px] font-black" style={{ color: "#1e3050" }}>vs</span>
-                  <span className="text-[10px]" style={{ color: "#3a5070" }}>{game.isHome ? "Home" : "Away"}</span>
                 </div>
               )}
             </div>
