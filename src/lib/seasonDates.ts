@@ -29,6 +29,8 @@ export interface LeagueSeason {
   tbd?:              boolean
   preseasonStart?:   string
   preseasonEnd?:     string
+  wcBreakStart?:     string   // World Cup / international break start date (YYYY-MM-DD)
+  wcBreakEnd?:       string   // World Cup / international break end date (YYYY-MM-DD)
 }
 
 export const LEAGUE_SEASON: Record<string, LeagueSeason> = {
@@ -113,6 +115,8 @@ export const LEAGUE_SEASON: Record<string, LeagueSeason> = {
     playoffEnd:        '2026-12-18',
     playoffLabel:      'MLS Cup Playoffs',
     championship:      'MLS Cup',
+    wcBreakStart:      '2026-05-25',  // FIFA World Cup break begins (MLS pauses)
+    wcBreakEnd:        '2026-07-16',  // FIFA World Cup break ends (MLS resumes)
   },
   // alias — standings client uses 'mls'
   get mls() { return this['usa.1'] },

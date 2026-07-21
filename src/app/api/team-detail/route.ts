@@ -25,7 +25,10 @@ const WHL_ID_MAP: Record<string, string> = {
   silvertips:   "226",
 }
 const WHL_BASE = "https://cluster.leaguestat.com/feed/?feed=modulekit&key=41b145a848f4bd67&client_code=whl&fmt=json&lang=en"
-const WHL_SEASON_IDS = [293]
+// 293 = 2025-26 season (ends ~May 2026).
+// 294 = 2026-27 season (expected start Sep 18, 2026 — API returns empty until then, which is fine).
+// TODO: add 295 when the 2027-28 season ID is known (~Sep 2027).
+const WHL_SEASON_IDS = [293, 294]
 
 async function handleWHLTeamDetail(rawTeamId: string): Promise<Response> {
   // Map named ID → numeric; otherwise assume it's already numeric
@@ -98,7 +101,9 @@ const PWHL_ID_MAP: Record<string, string> = {
   torrent: "8",
 }
 const PWHL_BASE = "https://lscluster.hockeytech.com/feed/index.php?feed=modulekit&key=446521baf8c38984&client_code=pwhl&fmt=json"
-const PWHL_SEASON_IDS = [8, 9]
+// 8 = 2023-24, 9 = 2024-25, 10 = 2025-26 (current), 11 = 2026-27 (~Nov 2026 start).
+// TODO: add 11 when the 2026-27 season kicks off (~Nov 2026).
+const PWHL_SEASON_IDS = [8, 9, 10]
 
 async function handlePWHLTeamDetail(rawTeamId: string): Promise<Response> {
   const pwhlNumericId = PWHL_ID_MAP[rawTeamId] ?? rawTeamId

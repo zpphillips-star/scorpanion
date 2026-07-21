@@ -665,8 +665,8 @@ export default function HomeClient() {
     const start = new Date(t.startDate)
     const end   = t.endDate ? new Date(t.endDate) : start
     // Iterate every day the tournament runs (Thu → Sun for a 4-day event)
-    for (let dt = new Date(start); dt <= end; dt.setUTCDate(dt.getUTCDate() + 1)) {
-      const ds = dt.toISOString().split('T')[0]
+    for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
+      const ds = dateStr(dt)
       if (!golfUpcomingByDate[ds]) golfUpcomingByDate[ds] = []
       golfUpcomingByDate[ds].push({ tournament: t, label, accentColor })
     }

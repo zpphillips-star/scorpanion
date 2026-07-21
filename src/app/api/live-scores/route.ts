@@ -22,8 +22,9 @@ const MLB_MARINERS_TEAM_ID = 136
 const NHL_KRAKEN_ABBREV = 'SEA'
 
 // ── Fetch today's Mariners live score from statsapi.mlb.com ──────────────────
-async function fetchMLBLiveScores(today: string): Promise<Record<string, ScoreUpdate>> {
-  const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&teamId=${MLB_MARINERS_TEAM_ID}&date=${today}&hydrate=linescore,team`
+// Accepts a date range (yesterday..today in ET) so games running past midnight ET are included.
+async function fetchMLBLiveScores(today: string, yesterday: string): Promise<Record<string, ScoreUpdate>> {
+  const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&teamId=${MLB_MARINERS_TEAM_ID}&startDate=${yesterday}&endDate=${today}&hydrate=linescore,team`
   const res = await fetch(url, { cache: 'no-store' })
   if (!res.ok) return {}
 
@@ -142,15 +143,18 @@ export async function GET() {
 
   const updates: Record<string, ScoreUpdate> = {}
 
-  const today = new Date().toISOString().slice(0, 10)
+  // Use Eastern Time for MLB/NHL (schedules are organized by ET calendar date).
+  // Also bracket yesterday ET so games that ran past midnight ET are still picked up.
+  const etDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date())
+  const etYesterday = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(Date.now() - 86400000))
 
   // Run ESPN + MLB + NHL fetches in parallel
   await Promise.all([
-    // ── Official MLB live scores ───────────────────────────────────────────
-    fetchMLBLiveScores(today).then(r => Object.assign(updates, r)).catch(() => {}),
+    // ── Official MLB live scores (ET date + yesterday bracket) ────────────
+    fetchMLBLiveScores(etDate, etYesterday).then(r => Object.assign(updates, r)).catch(() => {}),
 
-    // ── Official NHL live scores ───────────────────────────────────────────
-    fetchNHLLiveScores(today).then(r => Object.assign(updates, r)).catch(() => {}),
+    // ── Official NHL live scores (ET date) ────────────────────────────────
+    fetchNHLLiveScores(etDate).then(r => Object.assign(updates, r)).catch(() => {}),
 
     // ── ESPN fallback for remaining leagues ───────────────────────────────
     ...sportLeagues.map(async (sl) => {

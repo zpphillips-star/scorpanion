@@ -56,116 +56,161 @@ async function fetchVenueInfo(eventId: string): Promise<{ course: string; locati
 
 export async function GET() {
   try {
-    const nextWeekDate = new Date()
-    nextWeekDate.setDate(nextWeekDate.getDate() + 7)
-    const nextWeekStr = nextWeekDate.toISOString().slice(0, 10).replace(/-/g, '')
+    const scoreboardRes = await fetch(
+      'https://site.api.espn.com/apis/site/v2/sports/golf/lpga/scoreboard',
+      { cache: 'no-store' }
+    )
 
-    const [scoreboardRes, nextWeekRes] = await Promise.allSettled([
-      fetch('https://site.api.espn.com/apis/site/v2/sports/golf/lpga/scoreboard', { cache: 'no-store' }),
-      fetch(`https://site.api.espn.com/apis/site/v2/sports/golf/lpga/scoreboard?dates=${nextWeekStr}`, { cache: 'no-store' }),
-    ])
-
-    const tournaments: PGATournament[] = []
-
-    if (scoreboardRes.status === 'fulfilled' && scoreboardRes.value.ok) {
-      const data = await scoreboardRes.value.json()
-
-      for (const event of (data.events ?? []).slice(0, 2)) {
-        const comp = event.competitions?.[0]
-        if (!comp) continue
-
-        const statusName: string = comp.status?.type?.name ?? event.status?.type?.name ?? ''
-        let status: 'upcoming' | 'live' | 'completed' = 'upcoming'
-        if (statusName === 'STATUS_IN_PROGRESS') status = 'live'
-        else if (statusName === 'STATUS_FINAL' || comp.status?.type?.completed) status = 'completed'
-
-        const period: number = comp.status?.period ?? 0
-        let roundLabel = 'Preview'
-        if (status === 'live') roundLabel = `Round ${period} — Live`
-        else if (status === 'completed') roundLabel = 'Final'
-        else if (period > 0) roundLabel = `Round ${period}`
-
-        // ESPN scoreboard has null venue — fetch from core API
-        const { course, location } = await fetchVenueInfo(event.id)
-
-        // Parse leaders — sorted by position
-        const rawPlayers: any[] = (comp.competitors ?? [])
-          .filter((c: any) => c.status !== 'cut' && c.status !== 'wd')
-          .slice(0, 15)
-
-        const leaders: PGAPlayer[] = rawPlayers.map((c: any) => {
-          const athlete = c.athlete ?? {}
-          // totalScore: c.score is total to par as string
-          const totalRaw = c.score ?? c.scoreToParTotal ?? ''
-          const todayRaw = c.linescores?.[period - 1]?.value ?? c.scoreToParToday ?? ''
-          const thru = c.status === 'active'
-            ? (comp.status?.displayClock ?? c.thru ?? '')
-            : (c.status === 'complete' ? 'F' : c.thru ?? '')
-
-          return {
-            position: c.status === 'cut' ? 'CUT' : (c.standing?.displayValue ?? c.position?.displayValue ?? '—'),
-            name: athlete.displayName ?? c.displayName ?? 'Unknown',
-            shortName: athlete.shortName ?? athlete.displayName ?? 'Unknown',
-            totalScore: parsePar(totalRaw),
-            todayScore: parsePar(todayRaw),
-            thru: thru || '—',
-            country: athlete.flag?.alt ?? athlete.countryFlag?.alt,
-          }
-        })
-
-        // Sort by position (numeric first, then ties, then —)
-        leaders.sort((a, b) => {
-          const posA = parseInt(a.position.replace(/\D/g, '')) || 999
-          const posB = parseInt(b.position.replace(/\D/g, '')) || 999
-          return posA - posB
-        })
-
-        tournaments.push({
-          id: event.id,
-          name: event.name,
-          shortName: event.shortName ?? event.name,
-          course,
-          location,
-          roundLabel,
-          status,
-          startDate: event.date ?? '',
-          endDate: event.endDate ?? '',
-          purse: event.prize ?? event.purse,
-          leaders: leaders.slice(0, 10),
-          cutLine: comp.notes?.[0]?.headline,
-        })
-      }
+    // Health-check: surface ESPN failure as a 502 instead of silently returning [].
+    if (!scoreboardRes.ok) {
+      return Response.json(
+        { error: `ESPN LPGA scoreboard returned ${scoreboardRes.status}`, tournaments: [] },
+        { status: 502 }
+      )
     }
 
-    // If no active or upcoming tourney found in the current scoreboard,
-    // look for the next scheduled event in the look-ahead scoreboard.
-    const hasActiveOrUpcoming = tournaments.some(t => t.status === 'live' || t.status === 'upcoming')
-    if (!hasActiveOrUpcoming && nextWeekRes.status === 'fulfilled' && nextWeekRes.value.ok) {
-      const nextData = await nextWeekRes.value.json()
-      const next = (nextData.events ?? []).find((e: any) => {
-        const comp = e.competitions?.[0]
-        const statusName: string = comp?.status?.type?.name ?? ''
-        return statusName !== 'STATUS_FINAL' && !comp?.status?.type?.completed
+    const data = await scoreboardRes.json()
+    const tournaments: PGATournament[] = []
+
+    // The season calendar in leagues[0].calendar has accurate startDate/endDate for every
+    // scheduled event — use it for the look-ahead so we are never limited by a fixed window.
+    const calendarEntries: { id: string; label: string; startDate: string; endDate: string }[] =
+      (data.leagues?.[0]?.calendar ?? []).map((e: any) => ({
+        id: e.id,
+        label: e.label ?? e.name ?? '',
+        startDate: e.startDate ?? '',
+        endDate: e.endDate ?? '',
+      }))
+
+    for (const event of (data.events ?? []).slice(0, 2)) {
+      const comp = event.competitions?.[0]
+      if (!comp) continue
+
+      const statusName: string = comp.status?.type?.name ?? event.status?.type?.name ?? ''
+      let status: 'upcoming' | 'live' | 'completed' = 'upcoming'
+      if (statusName === 'STATUS_IN_PROGRESS') status = 'live'
+      else if (statusName === 'STATUS_FINAL' || comp.status?.type?.completed) status = 'completed'
+
+      const period: number = comp.status?.period ?? 0
+      let roundLabel = 'Preview'
+      if (status === 'live') roundLabel = `Round ${period} — Live`
+      else if (status === 'completed') roundLabel = 'Final'
+      else if (period > 0) roundLabel = `Round ${period}`
+
+      const { course, location } = await fetchVenueInfo(event.id)
+
+      const rawPlayers: any[] = (comp.competitors ?? [])
+        .filter((c: any) => c.status !== 'cut' && c.status !== 'wd')
+        .slice(0, 15)
+
+      const leaders: PGAPlayer[] = rawPlayers.map((c: any) => {
+        const athlete = c.athlete ?? {}
+        const totalRaw = c.score ?? c.scoreToParTotal ?? ''
+        const todayRaw = c.linescores?.[period - 1]?.value ?? c.scoreToParToday ?? ''
+        const thru = c.status === 'active'
+          ? (comp.status?.displayClock ?? c.thru ?? '')
+          : (c.status === 'complete' ? 'F' : c.thru ?? '')
+
+        return {
+          position: c.status === 'cut' ? 'CUT' : (c.standing?.displayValue ?? c.position?.displayValue ?? '—'),
+          name: athlete.displayName ?? c.displayName ?? 'Unknown',
+          shortName: athlete.shortName ?? athlete.displayName ?? 'Unknown',
+          totalScore: parsePar(totalRaw),
+          todayScore: parsePar(todayRaw),
+          thru: thru || '—',
+          country: athlete.flag?.alt ?? athlete.countryFlag?.alt,
+        }
       })
-      if (next) {
-        const { course, location } = await fetchVenueInfo(next.id)
-        tournaments.push({
-          id: next.id,
-          name: next.name,
-          shortName: next.shortName ?? next.name,
-          course,
-          location,
-          roundLabel: 'Upcoming',
-          status: 'upcoming',
-          startDate: next.date ?? '',
-          endDate: next.endDate ?? '',
-          leaders: [],
-        })
+
+      leaders.sort((a, b) => {
+        const posA = parseInt(a.position.replace(/\D/g, '')) || 999
+        const posB = parseInt(b.position.replace(/\D/g, '')) || 999
+        return posA - posB
+      })
+
+      tournaments.push({
+        id: event.id,
+        name: event.name,
+        shortName: event.shortName ?? event.name,
+        course,
+        location,
+        roundLabel,
+        status,
+        startDate: event.date ?? '',
+        endDate: event.endDate ?? '',
+        purse: event.prize ?? event.purse,
+        leaders: leaders.slice(0, 10),
+        cutLine: comp.notes?.[0]?.headline,
+      })
+    }
+
+    // If no active or upcoming tourney in the current scoreboard, find the next
+    // scheduled event using the season calendar (not a fixed ±7-day window, which
+    // can miss events when LPGA has gaps > 7 days between tournaments).
+    const hasActiveOrUpcoming = tournaments.some(t => t.status === 'live' || t.status === 'upcoming')
+    if (!hasActiveOrUpcoming) {
+      const now = new Date()
+      const nextEntry = calendarEntries
+        .filter(e => e.startDate && new Date(e.startDate) > now)
+        .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())[0]
+
+      if (nextEntry) {
+        const dateStr = new Date(nextEntry.startDate).toISOString().slice(0, 10).replace(/-/g, '')
+        let pushed = false
+        try {
+          const nextRes = await fetch(
+            `https://site.api.espn.com/apis/site/v2/sports/golf/lpga/scoreboard?dates=${dateStr}`,
+            { cache: 'no-store' }
+          )
+          if (nextRes.ok) {
+            const nextData = await nextRes.json()
+            const nextEvent = (nextData.events ?? []).find((e: any) => {
+              const s: string = e.competitions?.[0]?.status?.type?.name ?? ''
+              return s !== 'STATUS_FINAL' && !e.competitions?.[0]?.status?.type?.completed
+            })
+            if (nextEvent) {
+              const { course, location } = await fetchVenueInfo(nextEvent.id)
+              tournaments.push({
+                id: nextEvent.id,
+                name: nextEvent.name,
+                shortName: nextEvent.shortName ?? nextEvent.name,
+                course,
+                location,
+                roundLabel: 'Upcoming',
+                status: 'upcoming',
+                startDate: nextEvent.date ?? '',
+                endDate: nextEvent.endDate ?? '',
+                leaders: [],
+              })
+              pushed = true
+            }
+          }
+        } catch { /* fall through to calendar stub */ }
+
+        // Fallback: ESPN doesn't have event details yet — surface a calendar stub
+        if (!pushed) {
+          const { course, location } = await fetchVenueInfo(nextEntry.id)
+          tournaments.push({
+            id: nextEntry.id,
+            name: nextEntry.label,
+            shortName: nextEntry.label,
+            course,
+            location,
+            roundLabel: 'Upcoming',
+            status: 'upcoming',
+            startDate: nextEntry.startDate,
+            endDate: nextEntry.endDate,
+            leaders: [],
+          })
+        }
       }
     }
 
     return Response.json(tournaments)
   } catch (e) {
-    return Response.json([], { status: 200 })
+    return Response.json(
+      { error: `LPGA fetch failed: ${String(e)}`, tournaments: [] },
+      { status: 500 }
+    )
   }
 }

@@ -8,16 +8,20 @@ const PWHL_BASE =
   'https://lscluster.hockeytech.com/feed/index.php?feed=modulekit&key=446521baf8c38984&client_code=pwhl&fmt=json'
 const TORRENT_TEAM_ID = '8'
 
-/** Parse HockeyTech's non-standard date "M/D/YYYY HH:MM:SS" into ISO-8601 */
+/** Parse HockeyTech's non-standard date "M/D/YYYY HH:MM:SS" (Eastern Time) into ISO-8601 with ET offset */
 function parseHockeyTechDate(raw: string): string {
-  // raw: "11/28/2025 13:00:00"
+  // raw: "11/28/2025 13:00:00" — HockeyTech times are Eastern (PWHL venues are all ET)
   const [datePart, timePart] = raw.split(' ')
   if (!datePart) return raw
   const [m, d, y] = datePart.split('/')
   if (!m || !d || !y) return raw
   const mm = m.padStart(2, '0')
   const dd = d.padStart(2, '0')
-  return `${y}-${mm}-${dd}T${timePart ?? '00:00:00'}`
+  const time = timePart ?? '00:00:00'
+  // Approximate DST: EDT (-04:00) Apr–Oct, EST (-05:00) Nov–Mar
+  const mo = parseInt(m, 10)
+  const etOffset = mo >= 4 && mo <= 10 ? '-04:00' : '-05:00'
+  return `${y}-${mm}-${dd}T${time}${etOffset}`
 }
 
 export async function GET() {
@@ -27,7 +31,9 @@ export async function GET() {
   const allGames: Game[] = []
   const seenIds = new Set<string>()
 
-  for (const seasonId of [8, 9]) {
+  // Season IDs: 8 = 2023-24, 9 = 2024-25, 10 = 2025-26 (current), 11 = 2026-27 (~Nov 2026 start).
+  // TODO: add 11 when the 2026-27 season kicks off (~Nov 2026).
+  for (const seasonId of [8, 9, 10]) {
     try {
       const url = `${PWHL_BASE}&view=schedule&season_id=${seasonId}`
       const res = await fetch(url, { next: { revalidate: 60 } })

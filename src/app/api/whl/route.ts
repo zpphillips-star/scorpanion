@@ -12,8 +12,11 @@ const WHL_TEAMS = [
   { teamId: 'silvertips',   whlId: '226' },
 ]
 
-// Season IDs to try in order (293 is the active 2025-26 season / playoffs)
-const WHL_SEASON_IDS = [293]
+// Season IDs to try in order.
+// 293 = 2025-26 season (ends ~May 2026).
+// 294 = 2026-27 season (expected start Sep 18, 2026 — API returns empty until then, which is fine).
+// TODO: add 295 when the 2027-28 season ID is known (~Sep 2027).
+const WHL_SEASON_IDS = [293, 294]
 
 export async function GET() {
   const allGames: Game[] = []

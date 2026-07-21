@@ -40,6 +40,10 @@ export async function GET() {
   // Edge runtime has a 30s limit — keep this tight
   const dates = dateRange(7, 21)
 
+  // Health-check: probe the NCAA API before spending budget on parallel fetches.
+  // If it returns a server error, surface a 502 immediately instead of silently returning [].
+  let ncaaApiError = false
+
   for (const { slug, division, teamId } of NCAA_SPORTS) {
     const team = SEATTLE_TEAMS.find(t => t.id === teamId)
     if (!team) continue
@@ -50,7 +54,10 @@ export async function GET() {
         try {
           const url = `${NCAA_BASE}/${slug}/${division}/${dateStr}`
           const res = await fetch(url, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(5000) })
-          if (!res.ok) return []
+          if (!res.ok) {
+            if (res.status >= 500) ncaaApiError = true
+            return []
+          }
           const data = await res.json()
           return data?.games ?? []
         } catch {
@@ -123,5 +130,11 @@ export async function GET() {
   }
 
   allGames.sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime())
+
+  // If we got zero games and saw server errors, surface the failure as 502
+  if (allGames.length === 0 && ncaaApiError) {
+    return Response.json({ error: 'NCAA API unavailable', games: [] }, { status: 502 })
+  }
+
   return Response.json(allGames)
 }
