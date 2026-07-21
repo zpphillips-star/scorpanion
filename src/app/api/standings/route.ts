@@ -146,8 +146,10 @@ interface StandingsResponse {
   season: SeasonInfo
   divisions: Division[]           // all divisions flat (for backward compat)
   conferences: ConferenceGroup[]  // grouped by conference
-  followedDivisionName: string | null
-  followedConferenceName: string | null
+  followedDivisionName: string | null   // first followed division (backward compat)
+  followedConferenceName: string | null // first followed conference (backward compat)
+  followedDivisionNames: string[]       // ALL followed division names (multi-team support)
+  followedConferenceNames: string[]     // ALL followed conference names (multi-team support)
 }
 
 function getStat(stats: any[], name: string): number {
@@ -497,13 +499,13 @@ async function fetchMLBStandings(highlightAbbrs: Set<string>): Promise<Standings
     divisions.push(...sortedDivs)
   }
 
-  let followedDivisionName: string | null = null
-  let followedConferenceName: string | null = null
+  const followedDivisionNames: string[] = []
+  const followedConferenceNames: string[] = []
   for (const conf of conferences) {
     for (const div of conf.divisions) {
       if (div.entries.some(e => e.isFollowed)) {
-        followedDivisionName = div.name
-        followedConferenceName = conf.name
+        if (!followedDivisionNames.includes(div.name)) followedDivisionNames.push(div.name)
+        if (!followedConferenceNames.includes(conf.name)) followedConferenceNames.push(conf.name)
       }
     }
   }
@@ -512,8 +514,10 @@ async function fetchMLBStandings(highlightAbbrs: Set<string>): Promise<Standings
     season: getSeasonStatusFromDate('mlb'),
     divisions,
     conferences,
-    followedDivisionName,
-    followedConferenceName,
+    followedDivisionName: followedDivisionNames[0] ?? null,
+    followedConferenceName: followedConferenceNames[0] ?? null,
+    followedDivisionNames,
+    followedConferenceNames,
   }
 }
 
@@ -587,13 +591,13 @@ async function fetchNHLStandings(highlightAbbrs: Set<string>): Promise<Standings
     divisions.push(...sortedDivs)
   }
 
-  let followedDivisionName: string | null = null
-  let followedConferenceName: string | null = null
+  const followedDivisionNames: string[] = []
+  const followedConferenceNames: string[] = []
   for (const conf of conferences) {
     for (const div of conf.divisions) {
       if (div.entries.some(e => e.isFollowed)) {
-        followedDivisionName = div.name
-        followedConferenceName = conf.name
+        if (!followedDivisionNames.includes(div.name)) followedDivisionNames.push(div.name)
+        if (!followedConferenceNames.includes(conf.name)) followedConferenceNames.push(conf.name)
       }
     }
   }
@@ -609,8 +613,10 @@ async function fetchNHLStandings(highlightAbbrs: Set<string>): Promise<Standings
     },
     divisions,
     conferences,
-    followedDivisionName,
-    followedConferenceName,
+    followedDivisionName: followedDivisionNames[0] ?? null,
+    followedConferenceName: followedConferenceNames[0] ?? null,
+    followedDivisionNames,
+    followedConferenceNames,
   }
 }
 
@@ -659,20 +665,24 @@ export async function GET(request: NextRequest) {
     const season = getSeasonInfo(data, leagueId, scoreboard)
     const { conferences, divisions } = parseHierarchy(data, highlightAbbrs, leagueId)
 
-    let followedDivisionName: string | null = null
-    let followedConferenceName: string | null = null
+    let followedDivisionNames: string[] = []
+    let followedConferenceNames: string[] = []
 
     for (const conf of conferences) {
       for (const div of conf.divisions) {
         if (div.entries.some(e => e.isFollowed)) {
-          followedDivisionName = div.name
-          followedConferenceName = conf.name
+          if (!followedDivisionNames.includes(div.name)) followedDivisionNames.push(div.name)
+          if (!followedConferenceNames.includes(conf.name)) followedConferenceNames.push(conf.name)
         }
       }
     }
 
     const response: StandingsResponse = {
-      season, divisions, conferences, followedDivisionName, followedConferenceName,
+      season, divisions, conferences,
+      followedDivisionName: followedDivisionNames[0] ?? null,
+      followedConferenceName: followedConferenceNames[0] ?? null,
+      followedDivisionNames,
+      followedConferenceNames,
     }
     return Response.json(response, NO_CACHE)
   } catch {

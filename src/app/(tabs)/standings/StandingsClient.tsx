@@ -29,8 +29,10 @@ interface StandingsResponse {
   season: SeasonInfo | null
   divisions: Division[]
   conferences: ConferenceGroup[]
-  followedDivisionName: string | null
-  followedConferenceName: string | null
+  followedDivisionName: string | null   // first followed division (backward compat)
+  followedConferenceName: string | null // first followed conference (backward compat)
+  followedDivisionNames?: string[]      // ALL followed division names (multi-team)
+  followedConferenceNames?: string[]    // ALL followed conference names (multi-team)
 }
 
 // Map Seattle team IDs → standings league key
@@ -367,15 +369,26 @@ const SeasonBanner = ({ leagueId }: { season: SeasonInfo; leagueId: string }) =>
 
 
 function ScopePicker({
-  scope, setScope, hasDivision, hasConference, followedDivisionName, followedConferenceName,
+  scope, setScope, hasDivision, hasConference, followedDivisionNames, followedConferenceNames,
 }: {
   scope: Scope; setScope: (s: Scope) => void
   hasDivision: boolean; hasConference: boolean
-  followedDivisionName: string | null; followedConferenceName: string | null
+  followedDivisionNames: string[]; followedConferenceNames: string[]
 }) {
+  const divSublabel = followedDivisionNames.length === 1
+    ? followedDivisionNames[0]
+    : followedDivisionNames.length > 1
+      ? `${followedDivisionNames.length} divisions`
+      : undefined
+  const confSublabel = followedConferenceNames.length === 1
+    ? followedConferenceNames[0]
+    : followedConferenceNames.length > 1
+      ? `${followedConferenceNames.length} conferences`
+      : undefined
+
   const options: { id: Scope; label: string; sublabel?: string }[] = []
-  if (hasDivision) options.push({ id: "division", label: "Division", sublabel: followedDivisionName || undefined })
-  if (hasConference) options.push({ id: "conference", label: "Conference", sublabel: followedConferenceName || undefined })
+  if (hasDivision) options.push({ id: "division", label: "Division", sublabel: divSublabel })
+  if (hasConference) options.push({ id: "conference", label: "Conference", sublabel: confSublabel })
   options.push({ id: "league", label: "All Divisions" })
 
   if (options.length <= 1) return null
@@ -883,17 +896,28 @@ export default function StandingsClient() {
   const visibleDivisions: Division[] = (() => {
     if (!data) return []
     if (scope === "league") return data.divisions
+    // Resolve the set of followed division/conference names, supporting both old and new API shapes
     if (scope === "conference") {
-      const conf = data.conferences.find(c => c.name === data.followedConferenceName)
-      return conf ? conf.divisions : data.divisions
+      const confNames = new Set(
+        data.followedConferenceNames ?? (data.followedConferenceName ? [data.followedConferenceName] : [])
+      )
+      const matched = data.conferences.filter(c => confNames.has(c.name))
+      return matched.length > 0 ? matched.flatMap(c => c.divisions) : data.divisions
     }
-    const div = data.divisions.find(d => d.name === data.followedDivisionName)
-    return div ? [div] : data.divisions.slice(0, 1)
+    // scope === "division"
+    const divNames = new Set(
+      data.followedDivisionNames ?? (data.followedDivisionName ? [data.followedDivisionName] : [])
+    )
+    const matched = data.divisions.filter(d => divNames.has(d.name))
+    return matched.length > 0 ? matched : data.divisions.slice(0, 1)
   })()
 
-  const hasTrueDivisions = !!(data?.followedDivisionName &&
+  const followedDivNames = data?.followedDivisionNames ?? (data?.followedDivisionName ? [data.followedDivisionName] : [])
+  const followedConfNames = data?.followedConferenceNames ?? (data?.followedConferenceName ? [data.followedConferenceName] : [])
+
+  const hasTrueDivisions = !!(data && followedDivNames.length > 0 &&
     data.conferences.some(c => c.divisions.length > 1))
-  const hasConference = !!(data?.followedConferenceName &&
+  const hasConference = !!(data && followedConfNames.length > 0 &&
     data.conferences.length > 1)
 
   if (!loaded || !followedLoaded) {
@@ -1044,8 +1068,8 @@ export default function StandingsClient() {
           <ScopePicker
             scope={scope} setScope={setScope}
             hasDivision={hasTrueDivisions} hasConference={hasConference}
-            followedDivisionName={data.followedDivisionName}
-            followedConferenceName={data.followedConferenceName}
+            followedDivisionNames={followedDivNames}
+            followedConferenceNames={followedConfNames}
           />
 
           {/* Standings label — only show "Final" when postseason, otherwise nothing */}
