@@ -378,6 +378,20 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
   const seattleWon = hasScore && game.seattleScore! > game.opponentScore!
   const seattleLost = hasScore && game.seattleScore! < game.opponentScore!
 
+  // Away on left, home on right — consistent with popup and today card
+  const seattleLogoUrl = getTeamLogoUrl(game.seattleTeam)
+  const leftLogo   = game.isHome ? game.opponent.logo         : seattleLogoUrl
+  const leftEmoji  = game.isHome ? "🏟️"                      : game.seattleTeam.emoji
+  const leftAbbr   = game.isHome ? game.opponent.abbr         : game.seattleTeam.abbr
+  const leftScore  = game.isHome ? game.opponentScore         : game.seattleScore
+  const leftDimmed = game.isHome ? seattleWon                 : seattleLost
+
+  const rightLogo   = game.isHome ? seattleLogoUrl            : game.opponent.logo
+  const rightEmoji  = game.isHome ? game.seattleTeam.emoji    : "🏟️"
+  const rightAbbr   = game.isHome ? game.seattleTeam.abbr     : game.opponent.abbr
+  const rightScore  = game.isHome ? game.seattleScore         : game.opponentScore
+  const rightDimmed = game.isHome ? seattleLost               : seattleWon
+
   return (
     <button
       onClick={onClick}
@@ -388,23 +402,23 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
       <div className="flex items-center justify-center mb-4 px-1">
         <span className="text-[10px] text-zinc-500 uppercase tracking-wide font-semibold">{fmtDate(game.kickoff).replace(/,.*/, "")}</span>
       </div>
-      {/* Logo · Score · Logo */}
+      {/* Away · Score · Home */}
       <div className="flex items-center justify-between gap-1">
-        {/* Seattle team */}
+        {/* Left (away) */}
         <div className="flex flex-col items-center flex-1">
-          <TeamLogo src={getTeamLogoUrl(game.seattleTeam)} emoji={game.seattleTeam.emoji} abbr={game.seattleTeam.abbr} size={26} />
-          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0.5">{game.seattleTeam.abbr}</span>
-          <span className={`font-display text-[17px] font-800 tabular-nums leading-none mt-1.5 ${seattleLost ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
-            {hasScore ? game.seattleScore : "–"}
+          <TeamLogo src={leftLogo} emoji={leftEmoji} abbr={leftAbbr} size={26} />
+          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0.5">{leftAbbr}</span>
+          <span className={`font-display text-[17px] font-800 tabular-nums leading-none mt-1.5 ${leftDimmed ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+            {hasScore ? leftScore : "–"}
           </span>
         </div>
         <span className="text-[11px] text-zinc-700 self-center pb-2">–</span>
-        {/* Opponent */}
+        {/* Right (home) */}
         <div className="flex flex-col items-center flex-1">
-          <TeamLogo src={game.opponent.logo} emoji="🏟️" abbr={game.opponent.abbr} size={26} />
-          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0.5">{game.opponent.abbr}</span>
-          <span className={`font-display text-[17px] font-800 tabular-nums leading-none mt-1.5 ${seattleWon ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
-            {hasScore ? game.opponentScore : "–"}
+          <TeamLogo src={rightLogo} emoji={rightEmoji} abbr={rightAbbr} size={26} />
+          <span className="text-[10px] text-zinc-500 font-semibold tracking-wide mt-0.5">{rightAbbr}</span>
+          <span className={`font-display text-[17px] font-800 tabular-nums leading-none mt-1.5 ${rightDimmed ? "text-zinc-500" : hasScore ? "text-white" : "text-zinc-600"}`}>
+            {hasScore ? rightScore : "–"}
           </span>
         </div>
       </div>
