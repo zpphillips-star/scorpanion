@@ -377,7 +377,7 @@ function ScopePicker({
   if (options.length <= 1) return null
 
   return (
-    <div className="mx-3 mt-3 flex gap-2">
+    <div className="mx-3 mt-5 flex gap-2">
       {options.map(opt => {
         const active = scope === opt.id
         return (
@@ -391,11 +391,11 @@ function ScopePicker({
               boxShadow: active ? "0 0 12px rgba(0,212,255,0.25)" : "none",
             }}
           >
-            <div className={`font-display text-[12px] font-700 uppercase tracking-wide ${active ? "text-[#08080f]" : "text-zinc-400"}`}>
+            <div className={`font-display text-[12px] font-700 uppercase tracking-wide ${active ? "text-white" : "text-zinc-400"}`}>
               {opt.label}
             </div>
             {opt.sublabel && (
-              <div className={`font-display text-[9px] mt-0.5 truncate ${active ? "text-[#08080f]/70" : "text-zinc-600"}`}>
+              <div className={`font-display text-[9px] mt-0.5 truncate ${active ? "text-white/70" : "text-zinc-600"}`}>
                 {opt.sublabel}
               </div>
             )}
