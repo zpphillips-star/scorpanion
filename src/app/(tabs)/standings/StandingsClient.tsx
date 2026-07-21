@@ -151,22 +151,37 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
 
   const activeIdx = phases.findIndex(p => p.key === activePhase)
   const ACTIVE_BG  = '#D95C17'
-  const PAST_BG    = '#1e3a5f'
-  const FUTURE_BG  = '#0d1e30'
   const N          = phases.length
 
-  const getBg = (idx: number) => idx === activeIdx ? ACTIVE_BG : idx < activeIdx ? PAST_BG : FUTURE_BG
+  // Each phase gets a distinct color so adjacent same-state phases are still distinguishable.
+  // Active phase → orange. Past → progressively lighter navy. Future → progressively darker navy.
+  // Without distinct colors, "Off Season" and "Pre-Season" (both PAST) would be identical
+  // and the chevron arrow between them would be invisible.
+  const PHASE_BASE: Record<string, string> = {
+    offseason:    '#0b1e35',
+    preseason:    '#163354',
+    regular:      '#1e4570',
+    playoffs:     '#172e4e',
+    championship: '#0e2040',
+  }
+  const getBg = (idx: number): string => {
+    if (idx === activeIdx) return ACTIVE_BG
+    return PHASE_BASE[phases[idx]?.key] ?? (idx < activeIdx ? '#1a3560' : '#0d2035')
+  }
 
   // ── Horizontal bar — single SVG, paths rendered in reverse order ─────────
-  // Each segment = full rectangle + right-pointing arrow that extends D units
-  // into the next segment. First segment rendered LAST in SVG = visually on top.
-  // Segment N's arrow overlaps segment N+1; since N is on top, N's arrow color shows
-  // cleanly with N+1's color filling the corner areas. Zero clip-path, zero gaps.
+  // Each segment: rectangle + right-pointing arrow that extends D units into the next.
+  // Rendered reverse (N-1 first, 0 last = on top). Segment 0's arrow overlaps segment 1;
+  // segment 0 is on top so its color fills the arrow cleanly. Segment 1's rectangle fills
+  // the corner areas, creating the notch. No clip-path, no transparent-corner artifacts.
+  //
+  // White V-shaped separator lines are drawn AFTER the fills so boundaries are always
+  // visible even when adjacent phases happen to have similar colors.
   const SVG_W = 1000
-  const SVG_H = 56
-  const H_BAR = 44   // DOM px
+  const SVG_H = 54
+  const H_BAR = 48   // DOM px — taller for more prominent arrows
   const segW  = SVG_W / N
-  const D     = 28   // arrow depth in SVG units (~2.8% of total width)
+  const D     = Math.round(segW * 0.38)  // arrow depth = 38% of segment width
 
   // arrow padding as % of each segment's DOM width (used for text centering)
   const arrowPadPct = `${(D / segW * 100).toFixed(1)}%`
@@ -197,15 +212,29 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
         onClick={() => setShowSheet(true)}
         aria-label="View season schedule"
       >
-        {/* Render paths in REVERSE so segment 0 (last rendered) is visually on top */}
         <svg
           viewBox={`0 0 ${SVG_W} ${SVG_H}`}
           preserveAspectRatio="none"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }}
         >
+          {/* Fill paths — render N-1 first (bottom), 0 last (top) */}
           {[...Array(N)].map((_, ri) => {
-            const idx = N - 1 - ri  // render N-1 first, 0 last
-            return <path key={phases[idx].key} d={barPath(idx)} fill={getBg(idx)} />
+            const idx = N - 1 - ri
+            return <path key={`fill-${phases[idx].key}`} d={barPath(idx)} fill={getBg(idx)} />
+          })}
+          {/* White V-shaped separator lines — drawn on top of all fills so boundaries
+              are always clearly visible even between similar-colored adjacent phases */}
+          {phases.slice(0, -1).map((_, idx) => {
+            const x1 = (idx + 1) * segW
+            return (
+              <path
+                key={`sep-${idx}`}
+                d={`M${x1},0 L${x1+D},${SVG_H/2} L${x1},${SVG_H}`}
+                stroke="rgba(255,255,255,0.22)"
+                strokeWidth="2"
+                fill="none"
+              />
+            )
           })}
         </svg>
 
