@@ -618,6 +618,19 @@ export default function HomeClient() {
 
   const allUpcoming = [...upcoming, ...upcomingFallback]
 
+  // Client-side dedup safety net — catches any duplicates that slip through server dedup
+  // (e.g. user follows both 'mariners' and 'mlb-sea' which map to the same real team)
+  const seenUpcomingKeys = new Set<string>()
+  const allUpcomingDeduped = allUpcoming.filter(g => {
+    const d = dateStr(parseKickoff(g.kickoff))
+    const t = g.kickoff.length >= 16 ? g.kickoff.slice(11, 16) : '00:00'
+    const abbrs = [g.seattleTeam.abbr, g.opponent?.abbr ?? ''].map(s => s.toUpperCase()).sort().join('-')
+    const key = `${d}|${t}|${g.sport}|${abbrs}`
+    if (seenUpcomingKeys.has(key)) return false
+    seenUpcomingKeys.add(key)
+    return true
+  })
+
   // For off-season cards: find next game per team across ALL games (unfiltered)
   const followedTeams = SEATTLE_TEAMS.filter(t => selectedTeamIds.includes(t.id))
   const nextGameByTeam: Record<string, Game | undefined> = {}
@@ -639,7 +652,7 @@ export default function HomeClient() {
   })()
 
   const upcomingByDate: Record<string, Game[]> = {}
-  for (const g of allUpcoming) {
+  for (const g of allUpcomingDeduped) {
     const d = dateStr(parseKickoff(g.kickoff)); if (!upcomingByDate[d]) upcomingByDate[d] = []
     upcomingByDate[d].push(g)
   }
@@ -883,7 +896,7 @@ export default function HomeClient() {
                 <div className="flex-1 h-px bg-zinc-700/50" />
               </div>
               {/* ── Team game rows ── */}
-              <div className="divide-y divide-white/[0.13]">
+              <div>
                 {(upcomingByDate[ds] ?? []).map(g => {
                   const seattleLogoUrl = getTeamLogoUrl(g.seattleTeam)
                 const awayLogo  = g.isHome ? g.opponent.logo     : seattleLogoUrl

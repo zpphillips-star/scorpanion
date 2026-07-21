@@ -166,10 +166,10 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
   const POPUP_BODY_ACTIVE   = 88
 
   return (
-    <>
+    <div style={{ paddingBottom: 20 }}>
       {/* ── Horizontal chevron bar — plain flex divs + SVG triangle per segment ── */}
       <button
-        className="w-full mt-3 mb-8 flex"
+        className="w-full mt-3 mb-2 flex"
         style={{ height: H_BAR, position: 'relative', overflow: 'visible' }}
         onClick={() => setShowSheet(true)}
         aria-label="View season schedule"
@@ -357,7 +357,7 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
           </div>
         </>
       )}
-    </>
+    </div>
   )
 }
 // Alias — call sites unchanged
