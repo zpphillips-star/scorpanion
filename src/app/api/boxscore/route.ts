@@ -312,8 +312,7 @@ async function fetchMLBBoxScore(gamePk: string): Promise<Record<string, unknown>
       const ipRaw = stats.inningsPitched ?? "0"
       const ipNum = parseIP(ipRaw)
       const er = Number(stats.earnedRuns ?? 0)
-      const era = ipNum > 0 ? ((er / ipNum) * 9).toFixed(2) : (er > 0 ? "∞" : "0.00")
-      return { teamId, name: lastName, ip: String(ipRaw), era }
+      return { teamId, name: lastName, ip: String(ipRaw), er: String(er) }
     }).filter((p: { ip: string }) => parseIP(p.ip) > 0)
   }
 

@@ -63,7 +63,7 @@ interface BoxScoreData {
   shotsOnGoal: { teamId: string; abbr: string; value: string }[]
   isShootout: boolean
   goalScorers: GoalScorer[]
-  pitcherList?: { teamId: string; name: string; ip: string; era: string }[]
+  pitcherList?: { teamId: string; name: string; ip: string; er: string }[]
 }
 
 // ─── Stat highlight keys per sport ────────────────────────────────────────────
@@ -274,7 +274,7 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
             <div className="flex-1" />
             <div className="flex gap-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest tabular-nums">
               <span className="w-8 text-center">IP</span>
-              <span className="w-8 text-center">ERA</span>
+              <span className="w-8 text-center">ER</span>
             </div>
           </div>
         )
@@ -290,7 +290,7 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
                     <span className="flex-1 text-[14px] font-semibold text-zinc-200 truncate min-w-0 pr-1">{p.name}</span>
                     <div className="flex gap-3 text-[14px] font-bold tabular-nums flex-shrink-0">
                       <span className="w-8 text-center text-zinc-400">{p.ip}</span>
-                      <span className="w-8 text-center text-zinc-400">{p.era}</span>
+                      <span className="w-8 text-center text-zinc-400">{p.er}</span>
                     </div>
                   </div>
                 ))}
@@ -303,7 +303,7 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
                     <span className="flex-1 text-[14px] font-semibold text-zinc-200 truncate min-w-0 pr-1">{p.name}</span>
                     <div className="flex gap-3 text-[14px] font-bold tabular-nums flex-shrink-0">
                       <span className="w-8 text-center text-zinc-400">{p.ip}</span>
-                      <span className="w-8 text-center text-zinc-400">{p.era}</span>
+                      <span className="w-8 text-center text-zinc-400">{p.er}</span>
                     </div>
                   </div>
                 ))}
