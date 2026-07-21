@@ -191,8 +191,11 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
                 display:    'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                paddingLeft:  idx === 0 ? 4 : D_PX + 2,
-                paddingRight: isLast    ? 4 : D_PX + 2,
+                // First segment: no left-side arrow overlay → less left pad
+                // Last segment: no right-side triangle → less right pad
+                // Middle segments: symmetric D_PX on both sides (left covered, right extends)
+                paddingLeft:  idx === 0 ? 6 : D_PX + 2,
+                paddingRight: isLast ? 6 : D_PX + 2,
                 overflow:     'visible',
               }}
             >
@@ -303,8 +306,9 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
                       <span
                         className="font-display font-800 uppercase tracking-wide leading-none"
                         style={{
-                          fontSize: isActive ? '24px' : '16px',
-                          color:    isActive ? '#ffffff' : isPast ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.32)',
+                          fontSize:  isActive ? '24px' : '16px',
+                          color:     isActive ? '#ffffff' : isPast ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.32)',
+                          marginTop: 8,
                         }}
                       >
                         {phase.label}
