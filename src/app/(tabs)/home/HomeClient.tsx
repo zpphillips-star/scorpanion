@@ -865,7 +865,13 @@ export default function HomeClient() {
             {/* Team sport game cards + golf — divide-y between cards only, no top or trailing border */}
             <div className="divide-y divide-white/[0.13]">
               {todayGames.length > 0 && (() => {
-                const [featuredGame, ...restGames] = todayGames
+                // Featured = live game first, then earliest kickoff
+                const sorted = [...todayGames].sort((a, b) => {
+                  if (a.status === 'live' && b.status !== 'live') return -1
+                  if (b.status === 'live' && a.status !== 'live') return 1
+                  return parseKickoff(a.kickoff).getTime() - parseKickoff(b.kickoff).getTime()
+                })
+                const [featuredGame, ...restGames] = sorted
                 const teamColor = featuredGame.seattleTeam.primaryColor
                 return (
                   <>
