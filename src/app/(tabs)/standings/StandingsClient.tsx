@@ -173,20 +173,13 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
   }
 
   // ── Popup constants ──────────────────────────────────────────────────────
-  // Each row: flat top, flat sides, bottom dips to a V point (downward chevron).
-  // Rows overlap: each subsequent row starts POPUP_ARROW px above the previous row's bottom,
-  // and the previous row's V arrow covers the top POPUP_ARROW px of the current row.
-  // z-index: first row = highest (visually on top).
-  const POPUP_ARROW         = 26   // depth of downward V in px
-  const POPUP_BODY_INACTIVE = 72   // visible content height for non-active phases
-  const POPUP_BODY_ACTIVE   = 100  // visible content height for active phase
-
-  // clip-path: flat top + flat sides down to bodyH, then V pointing down to bodyH+POPUP_ARROW
-  const vClip = (idx: number, bodyH: number): string => {
-    const V = POPUP_ARROW
-    if (idx === N - 1) return 'none'  // last row: flat bottom
-    return `polygon(0 0, 100% 0, 100% ${bodyH}px, 50% ${bodyH + V}px, 0 ${bodyH}px)`
-  }
+  // Each row is a plain rectangle (no clip-path).
+  // A downward-pointing SVG V-triangle is absolutely positioned at the BOTTOM of each row,
+  // extending V px below the row and overlapping the row below it (via higher z-index).
+  // This avoids the transparent-corner artifact that clip-path creates.
+  const POPUP_V             = 24   // depth of downward V triangle in px
+  const POPUP_BODY_INACTIVE = 72   // row height for non-active phases
+  const POPUP_BODY_ACTIVE   = 100  // row height for active phase
 
   return (
     <>
@@ -262,69 +255,78 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
               </div>
             </div>
 
-            {/* Vertical chevron stack — clip-path V-bottom on each row */}
-            <div className="overflow-y-auto" style={{ paddingBottom: 40 }}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {/* Vertical chevron stack — plain rectangles + SVG V-triangle between rows */}
+            <div style={{ overflowY: 'auto', paddingBottom: 40 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
                 {phases.map((phase, idx) => {
                   const isActive  = idx === activeIdx
                   const isPast    = idx < activeIdx
                   const bodyH     = isActive ? POPUP_BODY_ACTIVE : POPUP_BODY_INACTIVE
                   const isLast    = idx === N - 1
-                  // Total element height includes the V arrow tip below the content area
-                  const totalH    = isLast ? bodyH : bodyH + POPUP_ARROW
-                  // Content is visible from POPUP_ARROW..bodyH for non-first rows
-                  // (because the previous row's V arrow covers the top POPUP_ARROW px)
-                  const contentTop = idx === 0 ? 0 : POPUP_ARROW
+                  const bg        = getBg(idx)
+                  // Non-first rows: top POPUP_V px are covered by the previous row's triangle.
+                  // Content is padded down past that area.
+                  const contentPadTop = idx === 0 ? 0 : POPUP_V
 
                   return (
                     <div
                       key={phase.key}
                       style={{
                         position:   'relative',
-                        zIndex:     N - idx,         // first row on top
-                        height:     totalH,
-                        marginTop:  idx === 0 ? 0 : -POPUP_ARROW,
-                        background: getBg(idx),
-                        clipPath:   vClip(idx, bodyH),
+                        zIndex:     N - idx,   // first row on top
+                        height:     bodyH,
+                        background: bg,
                         flexShrink: 0,
+                        display:    'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        paddingLeft:  28,
+                        paddingRight: 28,
+                        paddingTop:   contentPadTop,
                       }}
                     >
-                      {/* Content positioned inside the visible area */}
-                      <div
+                      <span
+                        className="font-display font-800 uppercase tracking-wide leading-none"
                         style={{
-                          position:       'absolute',
-                          top:            contentTop,
-                          left:           0,
-                          right:          0,
-                          height:         bodyH - contentTop,
-                          display:        'flex',
-                          flexDirection:  'column',
-                          justifyContent: 'center',
-                          paddingLeft:    28,
-                          paddingRight:   28,
+                          fontSize: isActive ? '24px' : '16px',
+                          color:    isActive ? '#ffffff' : isPast ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.32)',
                         }}
                       >
-                        <span
-                          className="font-display font-800 uppercase tracking-wide leading-none"
+                        {phase.label}
+                      </span>
+                      {phase.dateRange && phase.dateRange !== '—' && (
+                        <div
                           style={{
-                            fontSize: isActive ? '24px' : '16px',
-                            color:    isActive ? '#ffffff' : isPast ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.32)',
+                            marginTop: 6,
+                            fontSize:  '13px',
+                            color:     isActive ? 'rgba(255,255,255,0.82)' : isPast ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.22)',
                           }}
                         >
-                          {phase.label}
-                        </span>
-                        {phase.dateRange && phase.dateRange !== '—' && (
-                          <div
-                            style={{
-                              marginTop: 6,
-                              fontSize:  '13px',
-                              color:     isActive ? 'rgba(255,255,255,0.82)' : isPast ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.22)',
-                            }}
-                          >
-                            {phase.dateRange}
-                          </div>
-                        )}
-                      </div>
+                          {phase.dateRange}
+                        </div>
+                      )}
+
+                      {/* SVG V-triangle: same color as this row, extends BELOW the row by POPUP_V px.
+                          Because this row has higher z-index than the next, the triangle appears
+                          on top of the next row — creating a clean downward chevron with no
+                          transparent corners (the next row's full rectangle fills the sides). */}
+                      {!isLast && (
+                        <svg
+                          viewBox="0 0 100 1"
+                          preserveAspectRatio="none"
+                          style={{
+                            position: 'absolute',
+                            bottom:   -POPUP_V,
+                            left:     0,
+                            width:    '100%',
+                            height:   POPUP_V,
+                            display:  'block',
+                            zIndex:   1,
+                          }}
+                        >
+                          <polygon points="0,0 100,0 50,1" fill={bg} />
+                        </svg>
+                      )}
                     </div>
                   )
                 })}
