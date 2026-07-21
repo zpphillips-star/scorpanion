@@ -202,7 +202,7 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
               <span
                 className="font-display font-800 uppercase tracking-widest text-white leading-none"
                 style={{
-                  fontSize: '8px',
+                  fontSize: '12px',
                   opacity: isActive ? 1 : 0.7,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -381,7 +381,7 @@ function ScopePicker({
   if (options.length <= 1) return null
 
   return (
-    <div className="mx-3 mt-5 flex gap-2">
+    <div className="mx-3 mt-2 flex gap-2">
       {options.map(opt => {
         const active = scope === opt.id
         return (
@@ -1048,15 +1048,15 @@ export default function StandingsClient() {
             followedConferenceName={data.followedConferenceName}
           />
 
-          {/* Standings label — "Final" when postseason */}
-          <div className="px-4 pt-3 pb-1 flex items-center gap-3">
-            <span className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-600">
-              {data.season?.status === 'playoffs' || data.season?.status === 'offseason'
-                ? 'Regular Season — Final'
-                : 'Standings'}
-            </span>
-            <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-          </div>
+          {/* Standings label — only show "Final" when postseason, otherwise nothing */}
+          {(data.season?.status === 'playoffs' || data.season?.status === 'offseason') && (
+            <div className="px-4 pt-3 pb-1 flex items-center gap-3">
+              <span className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-600">
+                Regular Season — Final
+              </span>
+              <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+            </div>
+          )}
 
           <div className="mt-1">
             {scope === 'league'
