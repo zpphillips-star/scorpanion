@@ -803,8 +803,7 @@ export default function HomeClient() {
       {/* ── Recent results (horizontal scroll, tappable) ─────────────────── */}
       {(recent.length > 0 || pgaRecent.length > 0 || lpgaRecent.length > 0) && (
         <div className="mt-10">
-          <div className="px-4 mb-3 flex items-center gap-3">
-            <div className="w-1 h-5 rounded-r-full flex-shrink-0" style={{ background: '#D95C17' }} />
+          <div className="flex items-center gap-3 px-4 mb-3">
             <span className="font-display text-[14px] font-700 text-white uppercase tracking-widest">Recent</span>
             <div className="flex-1 h-px bg-zinc-700/50" />
             <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">Last 7 days</span>
@@ -845,8 +844,7 @@ export default function HomeClient() {
 
         return (
           <div className="mt-8">
-            <div className="px-4 mb-3 flex items-center gap-3">
-              <div className="w-1 h-5 rounded-r-full flex-shrink-0" style={{ background: '#D95C17' }} />
+            <div className="flex items-center gap-3 px-4 mb-3">
               <span className="font-display text-[14px] font-700 text-white uppercase tracking-widest">Today</span>
               <div className="flex-1 h-px bg-zinc-700/50" />
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{dateLabel}</span>
@@ -879,8 +877,7 @@ export default function HomeClient() {
         && pgaToday.length === 0 && lpgaToday.length === 0 && (
         <>
           <div className="mt-14 px-4 mb-2 flex items-center gap-3">
-            <div className="w-1 h-5 rounded-r-full flex-shrink-0" style={{ background: '#D95C17' }} />
-            <span className="font-display text-[14px] font-700 text-white uppercase tracking-widest">Off Season</span>
+            <span className="font-display text-[14px] font-700 text-zinc-400 uppercase tracking-widest">Off Season</span>
             <div className="flex-1 h-px bg-zinc-700/50" />
           </div>
           <OffSeasonCards teams={teamsWithNoGames.length > 0 ? teamsWithNoGames : followedTeams} nextGames={nextGameByTeam} />
@@ -891,7 +888,6 @@ export default function HomeClient() {
       {upcomingDates.length > 0 && (
         <div className="mt-8">
           <div className="px-4 mb-3 flex items-center gap-3">
-            <div className="w-1 h-5 rounded-r-full flex-shrink-0" style={{ background: '#D95C17' }} />
             <span className="font-display text-[14px] font-700 text-white uppercase tracking-widest">Upcoming</span>
             <div className="flex-1 h-px bg-zinc-700/50" />
             <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">

@@ -83,11 +83,11 @@ interface TeamDetail {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-/** ALL-CAPS section label with left orange accent bar */
+/** ALL-CAPS section label flanked by hairline dividers */
 function SectionLabel({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 mb-3">
-      <div className="w-0.5 h-4 rounded-r-full flex-shrink-0" style={{ background: '#D95C17' }} />
+      <div className="flex-1 h-px bg-zinc-700/50" />
       <span className="text-[12px] font-bold uppercase tracking-widest text-zinc-500 flex-shrink-0">
         {label}
       </span>

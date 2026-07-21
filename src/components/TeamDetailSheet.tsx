@@ -96,7 +96,6 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
         {data && !loading && data.recentForm.length > 0 && (
           <div className="px-4 pt-5 pb-4 border-t border-white/[0.15]">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-0.5 h-4 rounded-r-full flex-shrink-0" style={{ background: '#D95C17' }} />
               <div className="font-display text-[12px] font-800 uppercase tracking-widest text-zinc-400">Last 3 Games</div>
               <div className="flex-1 h-px bg-white/5" />
             </div>
@@ -151,7 +150,6 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
         {data && !loading && data.upcomingGames.length > 0 && (
           <div className="px-4 pt-5 pb-4 border-t border-white/[0.15]">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-0.5 h-4 rounded-r-full flex-shrink-0" style={{ background: '#D95C17' }} />
               <div className="font-display text-[12px] font-800 uppercase tracking-widest text-zinc-400">Next 3 Games</div>
               <div className="flex-1 h-px bg-white/5" />
             </div>
@@ -191,7 +189,6 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
         {data && !loading && data.divisionStandings.length > 0 && (
           <div className="px-4 pt-5 pb-5 border-t border-white/[0.15]">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-0.5 h-4 rounded-r-full flex-shrink-0" style={{ background: '#D95C17' }} />
               <div className="font-display text-[12px] font-800 uppercase tracking-widest text-zinc-400">
                 {data.divisionName || "Division"}
               </div>
