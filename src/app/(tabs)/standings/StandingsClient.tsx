@@ -156,14 +156,6 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
 
   const getBg = (idx: number): string => idx === activeIdx ? ACTIVE_BG : INACTIVE_BG
 
-  // Short 3-4 char labels for the narrow horizontal bar (full names in popup)
-  const barLabel = (key: string, full: string): string => {
-    const map: Record<string, string> = {
-      offseason: 'OFF', preseason: 'PRE', regular: 'REG', playoffs: 'POST',
-    }
-    return map[key] ?? full.slice(0, 4).toUpperCase()
-  }
-
   // ── Horizontal bar ───────────────────────────────────────────────────────
   const H_BAR = 46
   const D_PX  = Math.round(H_BAR * 0.52)  // ~24px — ~45-degree arrow
@@ -217,7 +209,7 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
                   textAlign: 'center',
                 }}
               >
-                {barLabel(phase.key, phase.label)}
+                {phase.label}
               </span>
 
               {/* Right-pointing triangle — same color as this segment.
