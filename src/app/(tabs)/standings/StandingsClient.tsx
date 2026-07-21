@@ -142,11 +142,11 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
   if (s?.preseasonStart && s.preseasonEnd)
     phases.push({ key: 'preseason', label: 'Pre-Season', dateRange: `${fmtD(s.preseasonStart)} – ${fmtD(s.preseasonEnd)}` })
   if (s) {
-    phases.push({ key: 'regular',      label: 'Regular',                 dateRange: `${fmtD(s.regularStart)} – ${fmtD(s.regularEnd)}` })
+    phases.push({ key: 'regular',      label: 'Season',                  dateRange: `${fmtD(s.regularStart)} – ${fmtD(s.regularEnd)}` })
     phases.push({ key: 'playoffs',     label: 'Playoffs',                dateRange: `${fmtD(s.playoffStart)} – ${fmtD(s.championshipStart)}${s.tbd ? '*' : ''}` })
     phases.push({ key: 'championship', label: shortChamp(s.championship), dateRange: s.championshipStart === s.playoffEnd ? `${fmtD(s.championshipStart)}${s.tbd ? '*' : ''}` : `${fmtD(s.championshipStart)} – ${fmtD(s.playoffEnd)}${s.tbd ? '*' : ''}` })
   } else {
-    phases.push({ key: 'regular', label: 'Regular', dateRange: '—' })
+    phases.push({ key: 'regular', label: 'Season', dateRange: '—' })
     phases.push({ key: 'playoffs', label: 'Playoffs', dateRange: '—' })
     phases.push({ key: 'championship', label: 'Finals', dateRange: '—' })
   }
@@ -1060,7 +1060,7 @@ export default function StandingsClient() {
           {(data.season?.status === 'playoffs' || data.season?.status === 'offseason') && (
             <div className="px-4 pt-3 pb-1 flex items-center gap-3">
               <span className="font-display text-[10px] font-700 uppercase tracking-widest text-zinc-600">
-                Regular Season — Final
+                Season — Final
               </span>
               <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
             </div>
