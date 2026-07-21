@@ -6,12 +6,35 @@ interface TeamLogoProps {
   className?: string
 }
 
+/**
+ * Converts an ESPN CDN logo URL to use the ESPN combiner with exact crop dimensions.
+ * ESPN logo PNGs vary in how much transparent padding is baked in (WNBA has ~20% padding,
+ * MLB fills the frame). The combiner's scale=crop removes that whitespace so all logos
+ * render at the same visual size regardless of league.
+ */
+function normalizeLogoUrl(url: string, size: number): string {
+  if (!url || !url.includes('espncdn.com')) return url
+  // Already using combiner — just ensure size params are set
+  if (url.includes('/combiner/i')) {
+    const base = url.split('?')[0]
+    const params = new URLSearchParams(url.split('?')[1] ?? '')
+    params.set('w', String(size))
+    params.set('h', String(size))
+    params.set('scale', 'crop')
+    return `${base}?${params.toString()}`
+  }
+  // Direct ESPN CDN URL — convert to combiner
+  const imgPath = url.replace('https://a.espncdn.com', '')
+  return `https://a.espncdn.com/combiner/i?img=${imgPath}&w=${size}&h=${size}&scale=crop`
+}
+
 export default function TeamLogo({ src, emoji, abbr, size = 32, className = '' }: TeamLogoProps) {
   if (src) {
+    const resolvedSrc = normalizeLogoUrl(src, size)
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={src}
+        src={resolvedSrc}
         alt={abbr}
         width={size}
         height={size}
@@ -43,3 +66,4 @@ export default function TeamLogo({ src, emoji, abbr, size = 32, className = '' }
     </span>
   )
 }
+
