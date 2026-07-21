@@ -83,7 +83,7 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
                   </span>
-                  <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider">Live</span>
+                  <span className="text-[12px] font-bold text-red-400 uppercase tracking-wide">Live</span>
                   {(game.clock || game.period) && (
                     <span className="text-[11px] font-semibold tabular-nums" style={{ color: "var(--text-faint)" }}>
                       {game.period ? `${game.period}${game.clock ? ` · ${game.clock}` : ""}` : game.clock}
@@ -91,7 +91,7 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
                   )}
                 </>
               ) : isFt ? (
-                <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>Final</span>
+                <span className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--text-faint)" }}>Final</span>
               ) : (
                 <span className="text-[12px] font-semibold" style={{ color: "#f0f0f8" }}>{formatTime(game.kickoff)}</span>
               )}
@@ -115,7 +115,7 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
                      style={{ color: isFt && !awayWon && homeWon ? "#3a5070" : "#f0f0f8" }}>
                   {awayName}
                 </div>
-                <div className="text-[9px] uppercase tracking-widest mt-0.5" style={{ color: "#3a5070" }}>{awayAbbr}</div>
+                <div className="text-[11px] uppercase tracking-widest mt-0.5" style={{ color: "#3a5070" }}>{awayAbbr}</div>
               </div>
             </div>
 
@@ -125,12 +125,12 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
                 <>
                   <div className="flex items-baseline gap-1 tabular-nums leading-none">
                     <span className="font-display font-800"
-                          style={{ fontSize: featured ? "44px" : "36px", color: isFt && awayWon === false && homeWon ? "#1e3050" : "#f0f0f8" }}>
+                          style={{ fontSize: featured ? "56px" : "36px", color: isFt && awayWon === false && homeWon ? "#1e3050" : "#f0f0f8" }}>
                       {awayScore}
                     </span>
                     <span className="font-display font-800" style={{ fontSize: featured ? "24px" : "20px", color: "#1e3050" }}>–</span>
                     <span className="font-display font-800"
-                          style={{ fontSize: featured ? "44px" : "36px", color: isFt && homeWon === false && awayWon ? "#1e3050" : "#f0f0f8" }}>
+                          style={{ fontSize: featured ? "56px" : "36px", color: isFt && homeWon === false && awayWon ? "#1e3050" : "#f0f0f8" }}>
                       {homeScore}
                     </span>
                   </div>
@@ -153,7 +153,7 @@ export function TodayGameCard({ game, featured = false }: { game: Game; featured
                      style={{ color: isFt && !homeWon && awayWon ? "#3a5070" : "#f0f0f8" }}>
                   {homeName}
                 </div>
-                <div className="text-[9px] uppercase tracking-widest mt-0.5" style={{ color: "#3a5070" }}>{homeAbbr}</div>
+                <div className="text-[11px] uppercase tracking-widest mt-0.5" style={{ color: "#3a5070" }}>{homeAbbr}</div>
               </div>
             </div>
           </div>

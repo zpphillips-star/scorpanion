@@ -795,7 +795,7 @@ export default function HomeClient() {
       {(recent.length > 0 || pgaRecent.length > 0 || lpgaRecent.length > 0) && (
         <div className="mt-10">
           <div className="flex items-center gap-3 px-4 mb-4">
-            <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Recent</span>
+            <span className="font-display text-[14px] font-700 text-white uppercase tracking-widest">Recent</span>
             <div className="flex-1 h-px bg-zinc-700/50" />
             <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">Last 7 days</span>
           </div>
@@ -836,7 +836,7 @@ export default function HomeClient() {
         return (
           <div className="mt-28">
             <div className="flex items-center gap-3 px-4 mb-4">
-              <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Today</span>
+              <span className="font-display text-[14px] font-700 text-white uppercase tracking-widest">Today</span>
               <div className="flex-1 h-px bg-zinc-700/50" />
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{dateLabel}</span>
             </div>
@@ -866,7 +866,7 @@ export default function HomeClient() {
       {todayGames.length === 0 && !hasAnyLive && recent.length === 0 && allUpcoming.length === 0 && (
         <>
           <div className="mt-14 px-4 mb-2 flex items-center gap-3">
-            <span className="font-display text-[13px] font-800 text-zinc-400 uppercase tracking-widest">Off Season</span>
+            <span className="font-display text-[14px] font-700 text-zinc-400 uppercase tracking-widest">Off Season</span>
             <div className="flex-1 h-px bg-zinc-700/50" />
           </div>
           <OffSeasonCards teams={teamsWithNoGames.length > 0 ? teamsWithNoGames : followedTeams} nextGames={nextGameByTeam} />
@@ -877,7 +877,7 @@ export default function HomeClient() {
       {upcomingDates.length > 0 && (
         <div className="mt-28">
           <div className="px-4 mb-4 flex items-center gap-3">
-            <span className="font-display text-[13px] font-800 text-white uppercase tracking-widest">Upcoming</span>
+            <span className="font-display text-[14px] font-700 text-white uppercase tracking-widest">Upcoming</span>
             <div className="flex-1 h-px bg-zinc-700/50" />
             <span className="font-display text-[10px] text-zinc-500 uppercase tracking-wider">
               {upcomingFallback.length > 0 ? "Next scheduled" : "Next 14 days"}
@@ -892,7 +892,7 @@ export default function HomeClient() {
                 className="px-4 py-2 flex items-center gap-3"
                 style={{ background: "rgba(12,27,49,0.98)", backdropFilter: "blur(8px)" }}
               >
-                <span className="text-[11px] uppercase tracking-wider font-normal text-zinc-500">{fmtDayHeader(ds)}</span>
+                <span className="text-[12px] uppercase tracking-wider font-normal text-zinc-500">{fmtDayHeader(ds)}</span>
                 <div className="flex-1 h-px bg-zinc-700/50" />
               </div>
               {/* ── Team game rows ── */}

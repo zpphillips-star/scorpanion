@@ -509,7 +509,7 @@ function DivisionTable({ division, followedTeamColors, accentColor, leagueId }: 
                 className="sticky left-0 z-10 px-4 py-1.5 text-left"
                 style={{ background: 'var(--surface-2)', minWidth: '160px' }}
               >
-                <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider">Team</span>
+                <span className="font-display text-[11px] font-600 text-zinc-600 uppercase tracking-wider">Team</span>
               </th>
               {cols.map(col => (
                 <th
@@ -517,7 +517,7 @@ function DivisionTable({ division, followedTeamColors, accentColor, leagueId }: 
                   className="px-3 py-1.5 text-center"
                   style={{ background: 'var(--surface-2)', minWidth: `${col.minWidth}px` }}
                 >
-                  <span className="font-display text-[10px] font-600 text-zinc-600 uppercase tracking-wider">{col.label}</span>
+                  <span className="font-display text-[11px] font-600 text-zinc-600 uppercase tracking-wider">{col.label}</span>
                 </th>
               ))}
             </tr>

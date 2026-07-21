@@ -92,19 +92,19 @@ export default function GameCard({ game }: GameCardProps) {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
                 </span>
-                <span className="text-[11px] font-bold text-red-400 uppercase tracking-wide">Live</span>
+                <span className="text-[12px] font-bold text-red-400 uppercase tracking-wide">Live</span>
               </div>
             ) : isFt ? (
-              <span className="text-[11px] text-zinc-500 uppercase tracking-wide">Final</span>
+              <span className="text-[12px] text-zinc-500 uppercase tracking-wide">Final</span>
             ) : (
               <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap">{formatGameTime(game.kickoff)}</span>
             )}
-            <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">{game.league}</span>
+            <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider">{game.league}</span>
           </div>
 
           {/* Away team (right-aligned) */}
           <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
-            <span className={`text-[13px] font-semibold truncate text-right leading-tight ${isFt && gcHomeWon ? "text-zinc-500" : "text-white"}`}>
+            <span className={`text-[14px] font-semibold truncate text-right leading-tight ${isFt && gcHomeWon ? "text-zinc-500" : "text-white"}`}>
               {gcAwayName}
             </span>
             <TeamLogo src={gcAwayLogo} emoji={gcAwayEmoji} abbr={gcAwayAbbr} size={26}
@@ -114,7 +114,7 @@ export default function GameCard({ game }: GameCardProps) {
           {/* Score / vs — center */}
           <div className="w-14 flex-shrink-0 text-center">
             {hasScore && gcAwayScore !== undefined && gcHomeScore !== undefined ? (
-              <span className={`text-[14px] font-bold tabular-nums ${isLive ? "text-red-300" : "text-white"}`}>
+              <span className={`text-[16px] font-bold tabular-nums ${isLive ? "text-red-300" : "text-white"}`}>
                 {gcAwayScore}–{gcHomeScore}
               </span>
             ) : (
@@ -126,7 +126,7 @@ export default function GameCard({ game }: GameCardProps) {
           <div className="flex-1 flex items-center gap-2 min-w-0">
             <TeamLogo src={gcHomeLogo} emoji={gcHomeEmoji} abbr={gcHomeAbbr} size={26}
               className={`flex-shrink-0 transition-opacity${isFt && gcAwayWon ? " opacity-40" : ""}`} />
-            <span className={`text-[13px] font-semibold truncate leading-tight ${isFt && gcAwayWon ? "text-zinc-500" : "text-white"}`}>
+            <span className={`text-[14px] font-semibold truncate leading-tight ${isFt && gcAwayWon ? "text-zinc-500" : "text-white"}`}>
               {gcHomeName}
             </span>
           </div>

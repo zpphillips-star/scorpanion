@@ -595,7 +595,7 @@ export default function TeamsClient() {
                   {/* Section header */}
                   <div className="flex items-center gap-2 mb-2">
                     <span
-                      className="font-display text-[11px] font-800 uppercase tracking-widest"
+                      className="font-display text-[12px] font-800 uppercase tracking-widest"
                       style={{ color: league === '★ Following' ? '#D95C17' : (LEAGUE_BADGE[league] ? '#ffffff' : '#9ca3af') }}
                     >
                       {league}
@@ -643,7 +643,7 @@ export default function TeamsClient() {
           )}
           {activeTab === 'ALL' && (
             <div className="flex items-center gap-2 mb-2">
-              <span className="font-display text-[11px] font-800 uppercase tracking-widest text-white">Golf</span>
+              <span className="font-display text-[12px] font-800 uppercase tracking-widest text-white">Golf</span>
               <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.16)' }} />
               <span className="text-[10px] text-zinc-600">2</span>
             </div>

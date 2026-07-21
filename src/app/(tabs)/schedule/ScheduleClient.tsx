@@ -279,12 +279,12 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
               </span>
-              <span className="text-[11px] font-bold text-red-400 uppercase leading-tight">Live</span>
+              <span className="text-[12px] font-bold text-red-400 uppercase leading-tight">Live</span>
             </div>
             {liveDetail() && <span className="text-[10px] text-red-400/60 leading-tight">{liveDetail()}</span>}
           </>
         ) : isFt ? (
-          <span className="text-[11px] text-zinc-500 uppercase tracking-wide">Final</span>
+          <span className="text-[12px] text-zinc-500 uppercase tracking-wide">Final</span>
         ) : (
           <span className="text-[12px] font-medium text-zinc-300 whitespace-nowrap">
             {formatTime(game.kickoff)}
@@ -294,7 +294,7 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
 
       {/* Left = AWAY team */}
       <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
-        <span className={`text-[13px] font-semibold truncate text-right ${game.isHome ? (seattleWon ? 'text-zinc-500' : 'text-white') : (seattleLost ? 'text-zinc-500' : 'text-white')}`}>
+        <span className={`text-[14px] font-semibold truncate text-right ${game.isHome ? (seattleWon ? 'text-zinc-500' : 'text-white') : (seattleLost ? 'text-zinc-500' : 'text-white')}`}>
           {game.isHome ? (game.opponent.shortName || game.opponent.name) : game.seattleTeam.shortName}
         </span>
         {game.isHome
@@ -308,7 +308,7 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
       {/* Score or vs — center */}
       <div className="w-14 flex-shrink-0 text-center">
         {hasScore ? (
-          <span className={`text-[14px] font-bold tabular-nums ${isLive ? 'text-red-300' : 'text-white'}`}>
+          <span className={`text-[16px] font-bold tabular-nums ${isLive ? 'text-red-300' : 'text-white'}`}>
             {game.isHome ? game.opponentScore : game.seattleScore}–{game.isHome ? game.seattleScore : game.opponentScore}
           </span>
         ) : (
@@ -324,7 +324,7 @@ function ScheduleRow({ game, onTap }: { game: Game; onTap: () => void }) {
               ? <img src={game.opponent.logo} alt={game.opponent.abbr} width={28} height={28} className="object-contain flex-shrink-0" />
               : <div className="w-6 h-6 rounded-full bg-white/10 flex-shrink-0" />)
         }
-        <span className={`text-[13px] font-semibold truncate ${game.isHome ? (seattleLost ? 'text-zinc-500' : 'text-white') : (seattleWon ? 'text-zinc-500' : 'text-white')}`}>
+        <span className={`text-[14px] font-semibold truncate ${game.isHome ? (seattleLost ? 'text-zinc-500' : 'text-white') : (seattleWon ? 'text-zinc-500' : 'text-white')}`}>
           {game.isHome ? game.seattleTeam.shortName : (game.opponent.shortName || game.opponent.name)}
         </span>
       </div>
@@ -694,27 +694,27 @@ export default function ScheduleClient() {
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75" />
                               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-yellow-400" />
                             </span>
-                            <span className="text-[11px] font-bold text-yellow-400 uppercase">Live</span>
+                            <span className="text-[12px] font-bold text-yellow-400 uppercase">Live</span>
                           </div>
                         ) : isCompleted ? (
-                          <span className="text-[11px] text-zinc-500 uppercase tracking-wide">Final</span>
+                          <span className="text-[12px] text-zinc-500 uppercase tracking-wide">Final</span>
                         ) : (
-                          <span className="text-[11px] font-medium text-zinc-400">Upcoming</span>
+                          <span className="text-[12px] font-medium text-zinc-400">Upcoming</span>
                         )}
-                        <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">{label === 'PGA Tour' ? 'PGA' : label}</span>
+                        <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider">{label === 'PGA Tour' ? 'PGA' : label}</span>
                       </div>
 
                       {/* Center: label · logo · name */}
                       <div className="flex-1 grid items-center" style={{ gridTemplateColumns: '1fr 36px 1fr' }}>
                         <div className="flex items-center justify-end pr-2">
-                          <span className="text-[13px] font-semibold text-white truncate">{label}</span>
+                          <span className="text-[14px] font-semibold text-white truncate">{label}</span>
                         </div>
                         <div className="flex items-center justify-center">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={golfLogoUrl} alt={label} width={28} height={28} style={{ objectFit: 'contain' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
                         </div>
                         <div className="flex items-center pl-2 min-w-0">
-                          <span className="text-[13px] font-semibold text-white truncate">{tournament.shortName || tournament.name}</span>
+                          <span className="text-[14px] font-semibold text-white truncate">{tournament.shortName || tournament.name}</span>
                         </div>
                       </div>
 
