@@ -484,7 +484,7 @@ export default function HomeClient() {
   const [activeFilter, setActiveFilter] = useState<string>("all")
   const [collegePicker, setCollegePicker] = useState<string | null>(null) // groupKey "uw" | "wsu"
   const [selectedRecentGame, setSelectedRecentGame] = useState<Game | null>(null)
-  const [selectedGolfUpcoming, setSelectedGolfUpcoming] = useState<{ tournament: PGATournament; label: string; accentColor: string } | null>(null)
+  const [selectedGolfUpcoming, setSelectedGolfUpcoming] = useState<{ tournament: PGATournament; label: string; accentColor: string; roundLabel?: string } | null>(null)
 
   // Golf follow state — only show golf when filter is 'all' or golf-specific
   // pgaVisibleInFilter / lpgaVisibleInFilter gate all three sections (Today, Recent, Upcoming)
@@ -948,7 +948,7 @@ export default function HomeClient() {
                     <button
                       key={`golf-${t.id}-${ds}-${roundLabel ?? 'all'}`}
                       className="w-full flex items-center py-3 px-4 hover:bg-white/[0.03] active:opacity-70 transition-opacity"
-                      onClick={() => setSelectedGolfUpcoming({ tournament: t, label, accentColor })}
+                      onClick={() => setSelectedGolfUpcoming({ tournament: t, label, accentColor, roundLabel })}
                     >
                       <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr 88px 1fr" }}>
                         {/* Left: league label */}
@@ -990,6 +990,7 @@ export default function HomeClient() {
           tournament={selectedGolfUpcoming.tournament}
           label={selectedGolfUpcoming.label}
           accentColor={selectedGolfUpcoming.accentColor}
+          initialRound={selectedGolfUpcoming.roundLabel}
           onClose={() => setSelectedGolfUpcoming(null)}
         />
       )}

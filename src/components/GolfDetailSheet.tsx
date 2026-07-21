@@ -1,5 +1,5 @@
 "use client"
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import type { PGATournament } from "@/app/api/pga/route"
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -32,12 +32,43 @@ function fmtGolfDateShort(iso: string): string {
   } catch { return "" }
 }
 
+/** Format a tee time ISO string as "6:45 AM" in local time */
+function fmtTeeTime(iso: string): string {
+  try {
+    return new Date(iso).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+  } catch { return iso }
+}
+
+/** "2026-07-24" → "Thu, Jul 24" */
+function fmtRoundDate(ymd: string): string {
+  try {
+    const [y, m, d] = ymd.split("-").map(Number)
+    return new Date(y, m - 1, d).toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    })
+  } catch { return ymd }
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface TeeGroup {
+  teeTime: string
+  players: { name: string; country?: string }[]
+}
+
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface GolfDetailSheetProps {
   tournament: PGATournament
   label: string
   accentColor: string
+  initialRound?: string
   onClose: () => void
 }
 
@@ -62,12 +93,22 @@ export default function GolfDetailSheet({
   tournament,
   label,
   accentColor,
+  initialRound,
   onClose,
 }: GolfDetailSheetProps) {
   const isLive      = tournament.status === "live"
   const isCompleted = tournament.status === "completed"
   const isUpcoming  = tournament.status === "upcoming"
   const hasLeaders  = tournament.leaders.length > 0
+
+  // ── Tee sheet state (upcoming with PGA Tour ID) ─────────────────────────────
+  const [activeRound, setActiveRound] = useState<number>(() => {
+    const n = initialRound ? parseInt(initialRound.replace(/\D/g, ''), 10) : NaN
+    return !isNaN(n) && n >= 1 && n <= 4 ? n : 1
+  })
+  const [teeGroups, setTeeGroups] = useState<TeeGroup[] | null>(null)
+  const [teeSheetLoading, setTeeSheetLoading] = useState(false)
+  const [teeSheetError, setTeeSheetError] = useState(false)
 
   const dateRange =
     tournament.endDate && tournament.endDate !== tournament.startDate
@@ -99,6 +140,27 @@ export default function GolfDetailSheet({
     document.addEventListener("keydown", handleKey)
     return () => document.removeEventListener("keydown", handleKey)
   }, [handleKey])
+
+  // Fetch tee times for upcoming tournaments with a known PGA Tour ID
+  useEffect(() => {
+    if (!isUpcoming || !tournament.pgatourId) return
+    setTeeSheetLoading(true)
+    setTeeSheetError(false)
+    setTeeGroups(null)
+    let cancelled = false
+    fetch(`/api/pga-teesheet?id=${tournament.pgatourId}&round=${activeRound}`)
+      .then(r => {
+        if (!r.ok) throw new Error(String(r.status))
+        return r.json()
+      })
+      .then((data: { groups: TeeGroup[] }) => {
+        if (!cancelled) { setTeeGroups(data.groups); setTeeSheetLoading(false) }
+      })
+      .catch(() => {
+        if (!cancelled) { setTeeSheetError(true); setTeeSheetLoading(false) }
+      })
+    return () => { cancelled = true }
+  }, [isUpcoming, tournament.pgatourId, activeRound])
 
   return (
     <>
@@ -237,126 +299,202 @@ export default function GolfDetailSheet({
         {/* ── SCROLLABLE BODY ── */}
         <div className="overflow-y-auto flex-1 px-5 pt-5 pb-12">
 
-          {/* ── FIELD / LEADERBOARD section ── */}
-          <div className="mb-5">
-            <SectionLabel label={isUpcoming ? "Field" : "Leaderboard"} />
+          {isUpcoming && tournament.pgatourId ? (
+            /* ── TEE SHEET section (upcoming with PGA Tour tee times) ── */
+            <div className="mb-5">
+              <SectionLabel label="Tee Times" />
 
-            {hasLeaders ? (
+              {/* Round tabs — only shown when multiple rounds are available */}
+              {tournament.rounds && tournament.rounds.length > 1 && (
+                <div className="flex gap-1 mb-3">
+                  {tournament.rounds.map(r => (
+                    <button
+                      key={r.label}
+                      onClick={() => setActiveRound(r.roundNumber)}
+                      className={`px-3 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider transition-colors ${
+                        activeRound === r.roundNumber
+                          ? "bg-white/[0.12] text-white"
+                          : "text-zinc-500 hover:text-zinc-300"
+                      }`}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Round date label e.g. "Thu, Jul 24" */}
+              {(() => {
+                const rd = tournament.rounds?.find(r => r.roundNumber === activeRound)?.date
+                return rd ? (
+                  <div className="text-[11px] text-zinc-600 mb-3">{fmtRoundDate(rd)}</div>
+                ) : null
+              })()}
+
               <div
                 className="overflow-hidden"
                 style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}
               >
-                {/* Column headers for live/completed */}
-                {!isUpcoming && (
-                  <div
-                    className="grid px-4 py-2"
-                    style={{
-                      gridTemplateColumns: "32px 1fr 52px 44px 36px",
-                      background: "rgba(255,255,255,0.03)",
-                      borderBottom: "1px solid rgba(255,255,255,0.16)",
-                    }}
-                  >
-                    <span />
-                    <span className="text-[9px] tracking-widest uppercase font-semibold text-zinc-600">
-                      Player
-                    </span>
-                    <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">
-                      Total
-                    </span>
-                    <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">
-                      Rd
-                    </span>
-                    <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">
-                      Thru
-                    </span>
-                  </div>
-                )}
-
-                {/* Player rows */}
-                {tournament.leaders.map((p, i) =>
-                  isUpcoming ? (
-                    // Upcoming: name + country, no scores
+                {teeSheetLoading ? (
+                  <div className="flex items-center justify-center py-8">
                     <div
-                      key={`${p.name}-${i}`}
-                      className="flex items-center px-4 py-3 gap-3"
+                      className="w-5 h-5 rounded-full border-2 animate-spin"
+                      style={{ borderColor: accentColor, borderTopColor: "transparent" }}
+                    />
+                  </div>
+                ) : teeSheetError ? (
+                  <div className="p-6 flex items-center justify-center">
+                    <span className="text-[13px] text-zinc-600">Tee times unavailable</span>
+                  </div>
+                ) : teeGroups && teeGroups.length > 0 ? (
+                  teeGroups.map((group, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center py-2.5 px-4"
                       style={{
-                        background: i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
-                        borderBottom:
-                          i < tournament.leaders.length - 1
-                            ? "1px solid rgba(255,255,255,0.04)"
-                            : "none",
+                        borderBottom: i < teeGroups.length - 1 ? "1px solid rgba(255,255,255,0.09)" : "none",
                       }}
                     >
-                      <span className="text-[11px] text-zinc-600 w-6 flex-shrink-0 tabular-nums">
-                        {i + 1}
+                      <span
+                        className="text-[13px] font-semibold text-white tabular-nums flex-shrink-0"
+                        style={{ width: "64px" }}
+                      >
+                        {fmtTeeTime(group.teeTime)}
                       </span>
-                      <span className="text-[13px] font-semibold text-white flex-1 truncate">
-                        {p.name}
+                      <span className="text-[13px] text-zinc-300 truncate">
+                        {group.players.map(p => p.name).join(" / ")}
                       </span>
-                      {p.country && (
-                        <span className="text-[11px] text-zinc-500 flex-shrink-0">{p.country}</span>
-                      )}
                     </div>
-                  ) : (
-                    // Live / completed: full score row
+                  ))
+                ) : (
+                  <div className="p-6 flex items-center justify-center">
+                    <span className="text-[13px] text-zinc-600">Tee times not posted yet</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* ── FIELD / LEADERBOARD section ── */
+            <div className="mb-5">
+              <SectionLabel label={isUpcoming ? "Field" : "Leaderboard"} />
+
+              {hasLeaders ? (
+                <div
+                  className="overflow-hidden"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}
+                >
+                  {/* Column headers for live/completed */}
+                  {!isUpcoming && (
                     <div
-                      key={`${p.name}-${i}`}
-                      className="grid items-center px-4 py-3"
+                      className="grid px-4 py-2"
                       style={{
                         gridTemplateColumns: "32px 1fr 52px 44px 36px",
-                        background: i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
-                        borderBottom:
-                          i < tournament.leaders.length - 1
-                            ? "1px solid rgba(255,255,255,0.04)"
-                            : "none",
+                        background: "rgba(255,255,255,0.03)",
+                        borderBottom: "1px solid rgba(255,255,255,0.16)",
                       }}
                     >
-                      <span className="text-[11px] tabular-nums text-zinc-500">{p.position}</span>
-                      <div className="flex flex-col min-w-0 pr-2">
-                        <span className="text-[13px] font-semibold text-white truncate">
-                          {p.shortName || p.name}
-                        </span>
-                        {p.country && (
-                          <span className="text-[10px] text-zinc-600">{p.country}</span>
-                        )}
-                      </div>
-                      <span
-                        className="text-right text-[13px] font-bold tabular-nums"
-                        style={{ color: scoreColor(p.totalScore) }}
-                      >
-                        {p.totalScore}
+                      <span />
+                      <span className="text-[9px] tracking-widest uppercase font-semibold text-zinc-600">
+                        Player
                       </span>
-                      <span className="text-right text-[12px] text-zinc-600 tabular-nums">
-                        {p.todayScore}
+                      <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">
+                        Total
                       </span>
-                      <span className="text-right text-[11px] text-zinc-700 tabular-nums">
-                        {p.thru}
+                      <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">
+                        Rd
+                      </span>
+                      <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">
+                        Thru
                       </span>
                     </div>
-                  ),
-                )}
+                  )}
 
-                {/* Cut line note */}
-                {tournament.cutLine && (
-                  <div className="px-4 py-2.5 text-center text-[10px] text-zinc-600 border-t border-white/[0.15]">
-                    {tournament.cutLine}
-                  </div>
-                )}
-              </div>
-            ) : (
-              // No leaders yet — graceful empty state
-              <div
-                className="p-6 flex items-center justify-center"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}
-              >
-                <span className="text-[13px] text-zinc-600">
-                  {isUpcoming
-                    ? "Field TBA"
-                    : "Leaderboard available when tournament begins"}
-                </span>
-              </div>
-            )}
-          </div>
+                  {/* Player rows */}
+                  {tournament.leaders.map((p, i) =>
+                    isUpcoming ? (
+                      // Upcoming: name + country, no scores
+                      <div
+                        key={`${p.name}-${i}`}
+                        className="flex items-center px-4 py-3 gap-3"
+                        style={{
+                          background: i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
+                          borderBottom:
+                            i < tournament.leaders.length - 1
+                              ? "1px solid rgba(255,255,255,0.04)"
+                              : "none",
+                        }}
+                      >
+                        <span className="text-[11px] text-zinc-600 w-6 flex-shrink-0 tabular-nums">
+                          {i + 1}
+                        </span>
+                        <span className="text-[13px] font-semibold text-white flex-1 truncate">
+                          {p.name}
+                        </span>
+                        {p.country && (
+                          <span className="text-[11px] text-zinc-500 flex-shrink-0">{p.country}</span>
+                        )}
+                      </div>
+                    ) : (
+                      // Live / completed: full score row
+                      <div
+                        key={`${p.name}-${i}`}
+                        className="grid items-center px-4 py-3"
+                        style={{
+                          gridTemplateColumns: "32px 1fr 52px 44px 36px",
+                          background: i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
+                          borderBottom:
+                            i < tournament.leaders.length - 1
+                              ? "1px solid rgba(255,255,255,0.04)"
+                              : "none",
+                        }}
+                      >
+                        <span className="text-[11px] tabular-nums text-zinc-500">{p.position}</span>
+                        <div className="flex flex-col min-w-0 pr-2">
+                          <span className="text-[13px] font-semibold text-white truncate">
+                            {p.shortName || p.name}
+                          </span>
+                          {p.country && (
+                            <span className="text-[10px] text-zinc-600">{p.country}</span>
+                          )}
+                        </div>
+                        <span
+                          className="text-right text-[13px] font-bold tabular-nums"
+                          style={{ color: scoreColor(p.totalScore) }}
+                        >
+                          {p.totalScore}
+                        </span>
+                        <span className="text-right text-[12px] text-zinc-600 tabular-nums">
+                          {p.todayScore}
+                        </span>
+                        <span className="text-right text-[11px] text-zinc-700 tabular-nums">
+                          {p.thru}
+                        </span>
+                      </div>
+                    ),
+                  )}
+
+                  {/* Cut line note */}
+                  {tournament.cutLine && (
+                    <div className="px-4 py-2.5 text-center text-[10px] text-zinc-600 border-t border-white/[0.15]">
+                      {tournament.cutLine}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // No leaders yet — graceful empty state
+                <div
+                  className="p-6 flex items-center justify-center"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}
+                >
+                  <span className="text-[13px] text-zinc-600">
+                    {isUpcoming
+                      ? "Field TBA"
+                      : "Leaderboard available when tournament begins"}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
       </div>
