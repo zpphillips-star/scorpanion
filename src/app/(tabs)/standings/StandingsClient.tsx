@@ -459,6 +459,7 @@ function getColDefs(leagueId: string, entries: StandingsEntry[]): ColDef[] {
 function ConferenceHeader({ name }: { name: string }) {
   return (
     <div className="px-4 pt-5 pb-1 flex items-center gap-3">
+      <div className="w-1 h-5 rounded-r-full flex-shrink-0" style={{ background: '#D95C17' }} />
       <span className="font-display text-[12px] font-800 text-zinc-300 uppercase tracking-[0.15em]">{name}</span>
       <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.15)" }} />
     </div>
@@ -480,6 +481,7 @@ function DivisionTable({ division, followedTeamColors, accentColor, leagueId }: 
     <div className="mb-4">
       {/* Division header */}
       <div className="px-4 py-2.5 flex items-center gap-3" style={{ background: "var(--surface-2)" }}>
+        <div className="w-1 h-4 rounded-r-full flex-shrink-0" style={{ background: '#D95C17' }} />
         <span className="font-display text-[11px] font-700 text-zinc-400 uppercase tracking-widest">{division.name}</span>
         <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
       </div>

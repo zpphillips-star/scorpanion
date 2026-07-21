@@ -89,8 +89,9 @@ export default function HorizontalRecentResults({ games, label = "Recent Results
   return (
     <>
       <div className="mt-4">
-        <div className="flex items-center gap-3 px-4 mb-3">
-          <span className="font-display text-[14px] font-700 text-zinc-400 uppercase tracking-widest">{label}</span>
+        <div className="px-4 mb-3 flex items-center gap-3">
+          <div className="w-1 h-5 rounded-r-full flex-shrink-0" style={{ background: '#D95C17' }} />
+          <span className="font-display text-[14px] font-700 text-white uppercase tracking-widest">{label}</span>
           <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
           <span className="font-display text-[10px] text-zinc-600 uppercase tracking-wider">{sublabel}</span>
         </div>
