@@ -67,21 +67,19 @@ export default function UpcomingScheduleSection({ game }: Props) {
   const homeGames  = game.isHome ? seaGames  : oppGames
 
   const ScheduleCol = ({ games }: { games: UpcomingGame[] }) => (
-    <div className="px-3 py-3">
+    <div className="px-3 py-2">
       {games.length === 0 ? (
         <div className="text-[12px] text-zinc-600 py-1">No upcoming games</div>
       ) : (
         games.map((g, i) => (
-          <div key={i} className={`py-2.5 ${i < games.length - 1 ? "border-b border-zinc-500/40" : ""}`}>
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-[11px] text-zinc-500 flex-shrink-0 w-4">{g.isHome ? "vs" : "@"}</span>
-              {g.oppLogo
-                ? <img src={g.oppLogo} alt={g.opponent} width={18} height={18} className="object-contain flex-shrink-0" />
-                : null
-              }
-              <span className="text-[12px] font-semibold text-white truncate">{g.opponent}</span>
-            </div>
-            <div className="text-[11px] text-zinc-500 mt-0.5 pl-5">{fmtShortDate(g.date)}</div>
+          <div key={i} className={`flex items-center gap-1.5 py-2 min-w-0 ${i < games.length - 1 ? "border-b border-zinc-500/40" : ""}`}>
+            <span className="text-[11px] text-zinc-500 flex-shrink-0 w-12">{fmtShortDate(g.date)}</span>
+            <span className="text-[11px] text-zinc-500 flex-shrink-0 w-4">{g.isHome ? "vs" : "@"}</span>
+            {g.oppLogo
+              ? <img src={g.oppLogo} alt={g.opponent} width={16} height={16} className="object-contain flex-shrink-0" />
+              : null
+            }
+            <span className="text-[12px] font-semibold text-white truncate">{g.opponent}</span>
           </div>
         ))
       )}
@@ -89,7 +87,9 @@ export default function UpcomingScheduleSection({ game }: Props) {
   )
 
   return (
-    <div className="pt-2 pb-2">
+    <div className="pt-3 pb-2">
+      {/* Section title */}
+      <div className="text-[12px] font-bold uppercase tracking-widest text-zinc-400 px-3 mb-3">Upcoming Schedule</div>
       {/* Two-column layout: away (left) | home (right) — matches card layout */}
       <div className="grid grid-cols-2 divide-x divide-zinc-800/60">
         <ScheduleCol games={awayGames} />

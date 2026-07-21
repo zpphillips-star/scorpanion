@@ -140,12 +140,10 @@ function TeamContextCard({
 
   return (
     <div className="space-y-3.5">
-      {/* Team header row */}
-      <div className="flex items-center gap-2.5">
-        <TeamLogo src={logo} emoji={emoji} abbr={abbr} size={26} />
-        <div className="flex-1 min-w-0">
-          <div className="font-display text-[14px] font-bold text-white truncate leading-tight">{name}</div>
-        </div>
+      {/* Team header — centered */}
+      <div className="flex flex-col items-center gap-1.5 mb-1">
+        <TeamLogo src={logo} emoji={emoji} abbr={abbr} size={28} />
+        <div className="font-display text-[13px] font-bold text-white text-center leading-tight">{name}</div>
       </div>
 
       {/* Last 5 form */}
