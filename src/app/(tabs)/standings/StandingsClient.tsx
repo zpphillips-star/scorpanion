@@ -151,23 +151,12 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
 
   const activeIdx = phases.findIndex(p => p.key === activePhase)
   const ACTIVE_BG  = '#D95C17'
+  const INACTIVE_BG = '#0d1e30'   // same dark navy for ALL non-active segments
   const N          = phases.length
 
-  // Distinct color per phase so adjacent same-state phases are distinguishable.
-  const PHASE_BASE: Record<string, string> = {
-    offseason:    '#0b1e35',
-    preseason:    '#163354',
-    regular:      '#1e4570',
-    playoffs:     '#172e4e',
-    championship: '#0e2040',
-  }
-  const getBg = (idx: number): string => {
-    if (idx === activeIdx) return ACTIVE_BG
-    return PHASE_BASE[phases[idx]?.key] ?? (idx < activeIdx ? '#1a3560' : '#0d2035')
-  }
+  const getBg = (idx: number): string => idx === activeIdx ? ACTIVE_BG : INACTIVE_BG
 
-  // Short 3-4 char labels for the narrow horizontal bar segments
-  // (full names shown in the popup when tapped)
+  // Short 3-4 char labels for the narrow horizontal bar (full names in popup)
   const barLabel = (key: string, full: string): string => {
     const map: Record<string, string> = {
       offseason: 'OFF', preseason: 'PRE', regular: 'REG', playoffs: 'POST',
@@ -176,15 +165,8 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
   }
 
   // ── Horizontal bar ───────────────────────────────────────────────────────
-  // Same technique as the popup (which the user confirmed looks good):
-  // plain flex divs + absolutely-positioned SVG right-pointing triangle on the right
-  // side of each non-last segment. No single-SVG, no preserveAspectRatio scaling issues.
-  //
-  // The triangle extends D px to the right, overlapping the next segment.
-  // Since this segment has higher z-index, the triangle renders on top of the next segment.
-  // The next segment's full rectangle fills the corner areas = clean notch appearance.
-  const H_BAR = 48   // bar height in px
-  const D_PX  = Math.round(H_BAR * 0.52)  // arrow depth ≈ half-height → ~45-degree arrows
+  const H_BAR = 46
+  const D_PX  = Math.round(H_BAR * 0.52)  // ~24px — ~45-degree arrow
 
   // ── Popup constants ──────────────────────────────────────────────────────
   const POPUP_V             = 24
@@ -217,9 +199,8 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
                 display:    'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                // Push text inward away from the arrow zones
-                paddingLeft:  idx === 0    ? 6 : D_PX + 4,
-                paddingRight: isLast       ? 6 : D_PX + 4,
+                paddingLeft:  idx === 0 ? 4 : D_PX + 2,
+                paddingRight: isLast    ? 4 : D_PX + 2,
                 overflow:     'visible',
               }}
             >
@@ -227,11 +208,13 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
                 className="font-display font-800 uppercase tracking-widest text-white leading-none"
                 style={{
                   fontSize: '9px',
-                  opacity: isActive ? 1 : isPast ? 0.6 : 0.38,
+                  opacity: isActive ? 1 : 0.7,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                   maxWidth: '100%',
+                  display: 'block',
+                  textAlign: 'center',
                 }}
               >
                 {barLabel(phase.key, phase.label)}
@@ -311,13 +294,15 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
                       key={phase.key}
                       style={{
                         position:   'relative',
-                        zIndex:     N - idx,   // first row on top
+                        zIndex:     N - idx,
                         height:     bodyH,
                         background: bg,
                         flexShrink: 0,
                         display:    'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',
+                        alignItems: 'center',      // ← horizontally center content
+                        textAlign: 'center',
                         paddingLeft:  28,
                         paddingRight: 28,
                         paddingTop:   contentPadTop,
