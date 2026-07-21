@@ -278,9 +278,7 @@ function GolfRecentCard({ tournament, label, accentColor }: {
     ? 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/lpga.png'
     : 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/pgatour.png'
 
-  const scoreColor = !winner ? '#52525b'
-    : winner.totalScore.startsWith('-') ? '#4ade80'
-    : winner.totalScore.startsWith('+') ? '#f87171' : '#e4e4e7'
+  const scoreColor = winner?.totalScore.startsWith('+') ? '#f87171' : '#e4e4e7'
 
   // Shorten tournament name — keep "The" prefix, use first 2 words
   const shortTourneyName = (() => {
