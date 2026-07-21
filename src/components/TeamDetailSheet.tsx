@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, ReactNode } from "react"
 
 interface StandingRow {
   abbr: string; logo: string; wins: number; losses: number; winPct: number; isThis: boolean
@@ -25,6 +25,21 @@ function fmtShortDate(iso: string) {
 }
 function fmtDay(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+}
+
+/** Colored section container with accent-tinted background, border, and uppercase label */
+function SectionBox({ label, color, children }: { label: string; color: string; children: ReactNode }) {
+  return (
+    <div
+      className="rounded-xl p-4 mb-3"
+      style={{ background: color + "14", border: `1px solid ${color}30` }}
+    >
+      <div className="text-[12px] font-bold uppercase tracking-widest mb-3" style={{ color }}>
+        {label}
+      </div>
+      {children}
+    </div>
+  )
 }
 
 export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, onClose }: Props) {
@@ -94,11 +109,8 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
 
         {/* ── LAST 3 GAMES ─────────────────────────────────────────────────────── */}
         {data && !loading && data.recentForm.length > 0 && (
-          <div className="px-4 pt-5 pb-4 border-t border-white/[0.15]">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="font-display text-[12px] font-800 uppercase tracking-widest text-zinc-400">Last 3 Games</div>
-              <div className="flex-1 h-px bg-white/5" />
-            </div>
+          <div className="px-4 pt-3">
+            <SectionBox label="Last 3 Games" color={color}>
             <div className="grid grid-cols-3 gap-2">
               {[...data.recentForm].reverse().slice(0, 3).map((g, i) => {
                 const win = g.result === "W"
@@ -143,16 +155,14 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                 )
               })}
             </div>
+            </SectionBox>
           </div>
         )}
 
         {/* ── NEXT 3 GAMES ─────────────────────────────────────────────────────── */}
         {data && !loading && data.upcomingGames.length > 0 && (
-          <div className="px-4 pt-5 pb-4 border-t border-white/[0.15]">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="font-display text-[12px] font-800 uppercase tracking-widest text-zinc-400">Next 3 Games</div>
-              <div className="flex-1 h-px bg-white/5" />
-            </div>
+          <div className="px-4 pt-0">
+            <SectionBox label="Next 3 Games" color={color}>
             <div className="space-y-2">
               {data.upcomingGames.map((g, i) => (
                 <div
@@ -182,18 +192,14 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                 </div>
               ))}
             </div>
+            </SectionBox>
           </div>
         )}
 
-        {/* ── DIVISION STANDINGS ───────────────────────────────────────────────── */}
+        {/* ── DIVISION STANDINGS───────────────────────────────────────────────── */}
         {data && !loading && data.divisionStandings.length > 0 && (
-          <div className="px-4 pt-5 pb-5 border-t border-white/[0.15]">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="font-display text-[12px] font-800 uppercase tracking-widest text-zinc-400">
-                {data.divisionName || "Division"}
-              </div>
-              <div className="flex-1 h-px bg-white/5" />
-            </div>
+          <div className="px-4 pt-0">
+            <SectionBox label={data.divisionName || "Division"} color={color}>
 
             {/* Header row */}
             <div className="flex items-center px-3 mb-1.5">
@@ -236,12 +242,13 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                 </div>
               ))}
             </div>
+            </SectionBox>
           </div>
         )}
 
         {/* Venue */}
         {data?.venue && (
-          <div className="px-5 pb-5 border-t border-white/[0.15] pt-3">
+          <div className="px-5 pb-5 pt-3">
             <div className="flex items-center gap-2 text-zinc-600 text-[12px]">
               <span>📍</span><span>{data.venue}</span>
             </div>

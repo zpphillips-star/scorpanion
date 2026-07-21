@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, ReactNode } from "react"
 import { Game } from "@/lib/types"
 import { getTeamLogoUrl } from "@/lib/teams"
 import TeamLogo from "./TeamLogo"
@@ -83,15 +83,19 @@ interface TeamDetail {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-/** ALL-CAPS section label flanked by hairline dividers */
-function SectionLabel({ label }: { label: string }) {
+/** Colored section container with accent-tinted background, border, and uppercase label */
+function SectionBox({ label, color, children }: { label: string; color: string; children: ReactNode }) {
   return (
-    <div className="flex items-center gap-3 mb-3">
-      <div className="flex-1 h-px bg-zinc-700/50" />
-      <span className="text-[12px] font-bold uppercase tracking-widest text-zinc-500 flex-shrink-0">
-        {label}
-      </span>
-      <div className="flex-1 h-px bg-zinc-700/50" />
+    <div
+      className="rounded-xl p-4 mb-3"
+      style={{ background: color + "14", border: `1px solid ${color}30` }}
+    >
+      {label && (
+        <div className="text-[12px] font-bold uppercase tracking-widest mb-3" style={{ color }}>
+          {label}
+        </div>
+      )}
+      {children}
     </div>
   )
 }
@@ -442,44 +446,33 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
 
           {/* Baseball inline line score */}
           {canShowBoxScore && game.sport === "baseball" && (
-            <div className="mb-5">
-              <SectionLabel label="Line Score" />
-              <div className="overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}>
-                <div className="px-3 py-3">
-                  <CompactBaseballLineScore
-                    gameId={game.id}
-                    league={game.league}
-                    seattleTeamId={game.seattleTeam.espnId || game.seattleTeam.id}
-                    isLive={isLive}
-                  />
-                </div>
-              </div>
-            </div>
+            <SectionBox label="Line Score" color={seattleColor}>
+              <CompactBaseballLineScore
+                gameId={game.id}
+                league={game.league}
+                seattleTeamId={game.seattleTeam.espnId || game.seattleTeam.id}
+                isLive={isLive}
+              />
+            </SectionBox>
           )}
 
           {/* Full box score for other sports */}
           {canShowBoxScore && game.sport !== "baseball" && (
-            <div className="mb-5">
-              <div className="overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}>
-                <div className="px-3 py-3">
-                  <BoxScore
-                    eventId={game.id.includes("|") ? game.id.split("|").at(-1)! : game.id}
-                    league={game.league}
-                    seattleTeamId={game.seattleTeam.espnId}
-                    color={isLive ? "#ef4444" : (game.seattleTeam.primaryColor ?? "#D95C17")}
-                  />
-                </div>
-              </div>
-            </div>
+            <SectionBox label="Box Score" color={seattleColor}>
+              <BoxScore
+                eventId={game.id.includes("|") ? game.id.split("|").at(-1)! : game.id}
+                league={game.league}
+                seattleTeamId={game.seattleTeam.espnId}
+                color={isLive ? "#ef4444" : (game.seattleTeam.primaryColor ?? "#D95C17")}
+              />
+            </SectionBox>
           )}
 
           {/* Team context — two-column card */}
           {showTeamContext && (
-            <div className="mb-5">
-              <SectionLabel label="Teams" />
+            <SectionBox label="Teams" color={seattleColor}>
               <div
-                className="grid grid-cols-2 divide-x divide-zinc-800/60"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}
+                className="grid grid-cols-2 divide-x divide-zinc-800/60 -mx-4 -mb-4 mt-1"
               >
                 <div className="p-4">
                   <TeamContextCard
@@ -504,11 +497,16 @@ export default function GameDetailSheet({ game, onClose }: { game: Game; onClose
                   />
                 </div>
               </div>
-            </div>
+            </SectionBox>
           )}
 
           {/* Upcoming schedule */}
-          <UpcomingScheduleSection game={game} />
+          <div
+            className="rounded-xl overflow-hidden mb-3 [&:empty]:hidden"
+            style={{ background: seattleColor + "14", border: `1px solid ${seattleColor}30` }}
+          >
+            <UpcomingScheduleSection game={game} />
+          </div>
 
         </div>{/* end scrollable body */}
       </div>{/* end sheet */}
