@@ -169,7 +169,7 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
     <>
       {/* ── Horizontal chevron bar — plain flex divs + SVG triangle per segment ── */}
       <button
-        className="w-full mt-3 mb-5 flex"
+        className="w-full mt-3 mb-8 flex"
         style={{ height: H_BAR, position: 'relative', overflow: 'visible' }}
         onClick={() => setShowSheet(true)}
         aria-label="View season schedule"
@@ -1017,6 +1017,7 @@ export default function StandingsClient() {
       {/* Golf tour leaderboard */}
       {activeLeague && GOLF_TOURS.has(activeLeague) && (
         <div className="mt-4">
+          <SeasonBanner season={null as any} leagueId={activeLeague} />
           <GolfTournamentSection
             tourId={activeLeague as 'pga' | 'lpga'}
             accentColor={LEAGUE_INFO[activeLeague]?.color ?? '#003087'}
