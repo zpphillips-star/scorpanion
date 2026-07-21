@@ -283,12 +283,12 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
             <SectionHeader label="Pitching" />
             <div className="px-3 grid grid-cols-2 gap-x-4 pb-2">
               {/* Away pitchers */}
-              <div>
+              <div className="min-w-0">
                 <PitchHeader />
                 {awayPitchers.map((p, idx) => (
-                  <div key={idx} className="flex items-center py-2.5">
-                    <span className="flex-1 text-[14px] font-semibold text-zinc-200 truncate">{p.name}</span>
-                    <div className="flex gap-3 text-[14px] font-bold tabular-nums">
+                  <div key={idx} className="flex items-center py-2.5 min-w-0">
+                    <span className="flex-1 text-[14px] font-semibold text-zinc-200 truncate min-w-0 pr-1">{p.name}</span>
+                    <div className="flex gap-3 text-[14px] font-bold tabular-nums flex-shrink-0">
                       <span className="w-8 text-center text-zinc-400">{p.ip}</span>
                       <span className="w-8 text-center text-zinc-400">{p.era}</span>
                     </div>
@@ -296,12 +296,12 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
                 ))}
               </div>
               {/* Home pitchers */}
-              <div>
+              <div className="min-w-0">
                 <PitchHeader />
                 {homePitchers.map((p, idx) => (
-                  <div key={idx} className="flex items-center py-2.5">
-                    <span className="flex-1 text-[14px] font-semibold text-zinc-200 truncate">{p.name}</span>
-                    <div className="flex gap-3 text-[14px] font-bold tabular-nums">
+                  <div key={idx} className="flex items-center py-2.5 min-w-0">
+                    <span className="flex-1 text-[14px] font-semibold text-zinc-200 truncate min-w-0 pr-1">{p.name}</span>
+                    <div className="flex gap-3 text-[14px] font-bold tabular-nums flex-shrink-0">
                       <span className="w-8 text-center text-zinc-400">{p.ip}</span>
                       <span className="w-8 text-center text-zinc-400">{p.era}</span>
                     </div>

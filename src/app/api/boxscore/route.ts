@@ -263,23 +263,25 @@ async function fetchMLBBoxScore(gamePk: string): Promise<Record<string, unknown>
     ? { winning: wp, losing: lp, saving: sp }
     : null
 
-  // Top batters — pull from liveData.boxscore, filter AB > 0, top 2 per team by hits then RBI
+  // Top batters — pull from liveData.boxscore, filter AB > 0, top 3 per team by H+RBI combined
   const extractBatters = (teamPlayers: any, teamId: string) => {
     if (!teamPlayers || typeof teamPlayers !== "object") return []
     return Object.values(teamPlayers as Record<string, any>)
       .filter((p: any) => (p?.stats?.batting?.atBats ?? 0) > 0)
       .sort((a: any, b: any) => {
-        const hDiff = (b.stats.batting.hits ?? 0) - (a.stats.batting.hits ?? 0)
-        if (hDiff !== 0) return hDiff
-        return (b.stats.batting.rbi ?? 0) - (a.stats.batting.rbi ?? 0)
+        // rank by H + RBI combined, then HR as tiebreak
+        const aScore = (a.stats.batting.hits ?? 0) + (a.stats.batting.rbi ?? 0)
+        const bScore = (b.stats.batting.hits ?? 0) + (b.stats.batting.rbi ?? 0)
+        if (bScore !== aScore) return bScore - aScore
+        return (b.stats.batting.homeRuns ?? 0) - (a.stats.batting.homeRuns ?? 0)
       })
-      .slice(0, 2)
+      .slice(0, 3)
       .map((p: any) => {
-        const fullName: string = p.playerInfo?.fullName ?? ""
+        const fullName: string = p.person?.fullName ?? p.playerInfo?.fullName ?? ""
         const lastName = fullName.trim().split(" ").pop() ?? fullName
         return {
           teamId,
-          name: lastName,
+          name: lastName || "—",
           ab:  String(p.stats.batting.atBats    ?? 0),
           h:   String(p.stats.batting.hits       ?? 0),
           hr:  String(p.stats.batting.homeRuns   ?? 0),
