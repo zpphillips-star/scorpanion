@@ -1,5 +1,5 @@
 "use client"
-import { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import type { PGATournament } from "@/app/api/pga/route"
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -74,6 +74,124 @@ interface GolfDetailSheetProps {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
+/** Round tabs row with left/right chevron navigation hints */
+function RoundTabsWithChevrons({
+  rounds,
+  activeRound,
+  setActiveRound,
+}: {
+  rounds?: { label: string; roundNumber: number; date?: string }[]
+  activeRound: number
+  setActiveRound: React.Dispatch<React.SetStateAction<number>>
+}) {
+  if (!rounds || rounds.length <= 1) return null
+  return (
+    <div className="flex items-center gap-1 mb-3">
+      {/* Left chevron */}
+      {activeRound > 1 ? (
+        <button
+          onClick={() => setActiveRound(r => r - 1)}
+          className="p-1 text-zinc-600 hover:text-zinc-400 transition-colors flex-shrink-0"
+          aria-label="Previous round"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+      ) : (
+        <span className="w-[22px] flex-shrink-0" />
+      )}
+      {/* Round buttons */}
+      <div className="flex gap-1 flex-1">
+        {rounds.map(r => (
+          <button
+            key={r.label}
+            onClick={() => setActiveRound(r.roundNumber)}
+            className={`px-3 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider transition-colors ${
+              activeRound === r.roundNumber
+                ? "bg-white/[0.12] text-white"
+                : "text-zinc-500 hover:text-zinc-300"
+            }`}
+          >
+            {r.label}
+          </button>
+        ))}
+      </div>
+      {/* Right chevron */}
+      {activeRound < rounds.length ? (
+        <button
+          onClick={() => setActiveRound(r => r + 1)}
+          className="p-1 text-zinc-600 hover:text-zinc-400 transition-colors flex-shrink-0"
+          aria-label="Next round"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      ) : (
+        <span className="w-[22px] flex-shrink-0" />
+      )}
+    </div>
+  )
+}
+
+/** Tee group rows — loading / error / data states */
+function TeeGroupRows({
+  loading,
+  error,
+  groups,
+  accentColor,
+}: {
+  loading: boolean
+  error: boolean
+  groups: TeeGroup[] | null
+  accentColor: string
+}) {
+  return (
+    <div
+      className="overflow-hidden"
+      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}
+    >
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <div
+            className="w-5 h-5 rounded-full border-2 animate-spin"
+            style={{ borderColor: accentColor, borderTopColor: "transparent" }}
+          />
+        </div>
+      ) : error ? (
+        <div className="p-6 flex items-center justify-center">
+          <span className="text-[13px] text-zinc-600">Tee times unavailable</span>
+        </div>
+      ) : groups && groups.length > 0 ? (
+        groups.map((group, i) => (
+          <div
+            key={i}
+            className="flex items-center py-2.5 px-4"
+            style={{
+              borderBottom: i < groups.length - 1 ? "1px solid rgba(255,255,255,0.09)" : "none",
+            }}
+          >
+            <span
+              className="text-[13px] font-semibold text-white tabular-nums flex-shrink-0"
+              style={{ width: "64px" }}
+            >
+              {fmtTeeTime(group.teeTime)}
+            </span>
+            <span className="text-[13px] text-zinc-300 truncate">
+              {group.players.map(p => p.name).join(" / ")}
+            </span>
+          </div>
+        ))
+      ) : (
+        <div className="p-6 flex items-center justify-center">
+          <span className="text-[13px] text-zinc-600">Tee times not posted yet</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /** ALL-CAPS section label flanked by hairline dividers — identical to GameDetailSheet */
 function SectionLabel({ label }: { label: string }) {
   return (
@@ -83,6 +201,40 @@ function SectionLabel({ label }: { label: string }) {
         {label}
       </span>
       <div className="flex-1 h-px bg-zinc-700/50" />
+    </div>
+  )
+}
+
+/** Collapsible titled section with a toggle chevron */
+function CollapsibleSection({
+  title,
+  children,
+  defaultCollapsed = false,
+}: {
+  title: string
+  children: React.ReactNode
+  defaultCollapsed?: boolean
+}) {
+  const [collapsed, setCollapsed] = useState(defaultCollapsed)
+  return (
+    <div>
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 border-t border-white/[0.13]"
+        onClick={() => setCollapsed(c => !c)}
+      >
+        <span className="font-display text-[12px] font-bold uppercase tracking-widest text-zinc-400">
+          {title}
+        </span>
+        <svg
+          className={`w-4 h-4 text-zinc-600 transition-transform ${collapsed ? "" : "rotate-180"}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {!collapsed && children}
     </div>
   )
 }
@@ -109,6 +261,25 @@ export default function GolfDetailSheet({
   const [teeGroups, setTeeGroups] = useState<TeeGroup[] | null>(null)
   const [teeSheetLoading, setTeeSheetLoading] = useState(false)
   const [teeSheetError, setTeeSheetError] = useState(false)
+
+  // ── Swipe to switch rounds ─────────────────────────────────────────────────
+  const touchStartX = useRef(0)
+  const touchStartY = useRef(0)
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current)
+    // Only trigger on horizontal swipe (dx > 40px, dy < 60px to avoid scroll conflicts)
+    if (Math.abs(dx) > 40 && dy < 60) {
+      if (dx < 0 && activeRound < 4) setActiveRound(r => r + 1) // swipe left = next round
+      if (dx > 0 && activeRound > 1) setActiveRound(r => r - 1) // swipe right = prev round
+    }
+  }
 
   const dateRange =
     tournament.endDate && tournament.endDate !== tournament.startDate
@@ -141,9 +312,16 @@ export default function GolfDetailSheet({
     return () => document.removeEventListener("keydown", handleKey)
   }, [handleKey])
 
-  // Fetch tee times for upcoming tournaments with a known PGA Tour ID
+  // ── Tournament "started" state ─────────────────────────────────────────────
+  const today = new Date().toISOString().split("T")[0]
+  const r1Date = tournament.rounds?.[0]?.date
+  const tournamentStarted =
+    isLive || isCompleted || (r1Date != null && today >= r1Date)
+  const isToday = r1Date != null && today === r1Date
+
+  // Fetch tee times for any tournament with a known PGA Tour ID
   useEffect(() => {
-    if (!isUpcoming || !tournament.pgatourId) return
+    if (!tournament.pgatourId) return
     setTeeSheetLoading(true)
     setTeeSheetError(false)
     setTeeGroups(null)
@@ -160,7 +338,7 @@ export default function GolfDetailSheet({
         if (!cancelled) { setTeeSheetError(true); setTeeSheetLoading(false) }
       })
     return () => { cancelled = true }
-  }, [isUpcoming, tournament.pgatourId, activeRound])
+  }, [tournament.pgatourId, activeRound])
 
   return (
     <>
@@ -297,199 +475,198 @@ export default function GolfDetailSheet({
         </div>
 
         {/* ── SCROLLABLE BODY ── */}
-        <div className="overflow-y-auto flex-1 px-5 pt-5 pb-12">
+        <div
+          className="overflow-y-auto flex-1 px-5 pt-5 pb-12"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
 
-          {isUpcoming && tournament.pgatourId ? (
-            /* ── TEE SHEET section (upcoming with PGA Tour tee times) ── */
-            <div className="mb-5">
-              <SectionLabel label="Tee Times" />
-
-              {/* Round tabs — only shown when multiple rounds are available */}
-              {tournament.rounds && tournament.rounds.length > 1 && (
-                <div className="flex gap-1 mb-3">
-                  {tournament.rounds.map(r => (
-                    <button
-                      key={r.label}
-                      onClick={() => setActiveRound(r.roundNumber)}
-                      className={`px-3 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider transition-colors ${
-                        activeRound === r.roundNumber
-                          ? "bg-white/[0.12] text-white"
-                          : "text-zinc-500 hover:text-zinc-300"
-                      }`}
-                    >
-                      {r.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Round date label e.g. "Thu, Jul 24" */}
-              {(() => {
-                const rd = tournament.rounds?.find(r => r.roundNumber === activeRound)?.date
-                return rd ? (
-                  <div className="text-[11px] text-zinc-600 mb-3">{fmtRoundDate(rd)}</div>
-                ) : null
-              })()}
-
-              <div
-                className="overflow-hidden"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}
+          {/* ── "Tournament starts today" banner ── */}
+          {isToday && isUpcoming && !hasLeaders && (
+            <div
+              className="flex items-center gap-2 mb-4 px-4 py-3 rounded-md"
+              style={{
+                background: "rgba(217,92,23,0.1)",
+                border: "1px solid rgba(217,92,23,0.2)",
+              }}
+            >
+              <span
+                className="text-[12px] font-bold uppercase tracking-widest"
+                style={{ color: "#D95C17" }}
               >
-                {teeSheetLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div
-                      className="w-5 h-5 rounded-full border-2 animate-spin"
-                      style={{ borderColor: accentColor, borderTopColor: "transparent" }}
-                    />
-                  </div>
-                ) : teeSheetError ? (
-                  <div className="p-6 flex items-center justify-center">
-                    <span className="text-[13px] text-zinc-600">Tee times unavailable</span>
-                  </div>
-                ) : teeGroups && teeGroups.length > 0 ? (
-                  teeGroups.map((group, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center py-2.5 px-4"
-                      style={{
-                        borderBottom: i < teeGroups.length - 1 ? "1px solid rgba(255,255,255,0.09)" : "none",
-                      }}
-                    >
-                      <span
-                        className="text-[13px] font-semibold text-white tabular-nums flex-shrink-0"
-                        style={{ width: "64px" }}
-                      >
-                        {fmtTeeTime(group.teeTime)}
-                      </span>
-                      <span className="text-[13px] text-zinc-300 truncate">
-                        {group.players.map(p => p.name).join(" / ")}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-6 flex items-center justify-center">
-                    <span className="text-[13px] text-zinc-600">Tee times not posted yet</span>
-                  </div>
-                )}
-              </div>
+                Tournament starts today
+              </span>
             </div>
-          ) : (
-            /* ── FIELD / LEADERBOARD section ── */
-            <div className="mb-5">
-              <SectionLabel label={isUpcoming ? "Field" : "Leaderboard"} />
+          )}
 
-              {hasLeaders ? (
+          {/* ── Case A: Live / completed (or today ≥ R1) with leaders → leaderboard first ── */}
+          {tournamentStarted && hasLeaders ? (
+            <>
+              {/* Leaderboard */}
+              <div className="mb-5">
+                <SectionLabel label="Leaderboard" />
                 <div
                   className="overflow-hidden"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}
                 >
-                  {/* Column headers for live/completed */}
-                  {!isUpcoming && (
+                  {/* Column headers */}
+                  <div
+                    className="grid px-4 py-2"
+                    style={{
+                      gridTemplateColumns: "32px 1fr 52px 44px 36px",
+                      background: "rgba(255,255,255,0.03)",
+                      borderBottom: "1px solid rgba(255,255,255,0.16)",
+                    }}
+                  >
+                    <span />
+                    <span className="text-[9px] tracking-widest uppercase font-semibold text-zinc-600">
+                      Player
+                    </span>
+                    <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">
+                      Total
+                    </span>
+                    <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">
+                      Rd
+                    </span>
+                    <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">
+                      Thru
+                    </span>
+                  </div>
+                  {/* Player rows */}
+                  {tournament.leaders.map((p, i) => (
                     <div
-                      className="grid px-4 py-2"
+                      key={`${p.name}-${i}`}
+                      className="grid items-center px-4 py-3"
                       style={{
                         gridTemplateColumns: "32px 1fr 52px 44px 36px",
-                        background: "rgba(255,255,255,0.03)",
-                        borderBottom: "1px solid rgba(255,255,255,0.16)",
+                        background: i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
+                        borderBottom:
+                          i < tournament.leaders.length - 1
+                            ? "1px solid rgba(255,255,255,0.04)"
+                            : "none",
                       }}
                     >
-                      <span />
-                      <span className="text-[9px] tracking-widest uppercase font-semibold text-zinc-600">
-                        Player
-                      </span>
-                      <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">
-                        Total
-                      </span>
-                      <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">
-                        Rd
-                      </span>
-                      <span className="text-[9px] tracking-widest uppercase font-semibold text-right text-zinc-600">
-                        Thru
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Player rows */}
-                  {tournament.leaders.map((p, i) =>
-                    isUpcoming ? (
-                      // Upcoming: name + country, no scores
-                      <div
-                        key={`${p.name}-${i}`}
-                        className="flex items-center px-4 py-3 gap-3"
-                        style={{
-                          background: i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
-                          borderBottom:
-                            i < tournament.leaders.length - 1
-                              ? "1px solid rgba(255,255,255,0.04)"
-                              : "none",
-                        }}
-                      >
-                        <span className="text-[11px] text-zinc-600 w-6 flex-shrink-0 tabular-nums">
-                          {i + 1}
-                        </span>
-                        <span className="text-[13px] font-semibold text-white flex-1 truncate">
-                          {p.name}
+                      <span className="text-[11px] tabular-nums text-zinc-500">{p.position}</span>
+                      <div className="flex flex-col min-w-0 pr-2">
+                        <span className="text-[13px] font-semibold text-white truncate">
+                          {p.shortName || p.name}
                         </span>
                         {p.country && (
-                          <span className="text-[11px] text-zinc-500 flex-shrink-0">{p.country}</span>
+                          <span className="text-[10px] text-zinc-600">{p.country}</span>
                         )}
                       </div>
-                    ) : (
-                      // Live / completed: full score row
-                      <div
-                        key={`${p.name}-${i}`}
-                        className="grid items-center px-4 py-3"
-                        style={{
-                          gridTemplateColumns: "32px 1fr 52px 44px 36px",
-                          background: i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
-                          borderBottom:
-                            i < tournament.leaders.length - 1
-                              ? "1px solid rgba(255,255,255,0.04)"
-                              : "none",
-                        }}
+                      <span
+                        className="text-right text-[13px] font-bold tabular-nums"
+                        style={{ color: scoreColor(p.totalScore) }}
                       >
-                        <span className="text-[11px] tabular-nums text-zinc-500">{p.position}</span>
-                        <div className="flex flex-col min-w-0 pr-2">
-                          <span className="text-[13px] font-semibold text-white truncate">
-                            {p.shortName || p.name}
-                          </span>
-                          {p.country && (
-                            <span className="text-[10px] text-zinc-600">{p.country}</span>
-                          )}
-                        </div>
-                        <span
-                          className="text-right text-[13px] font-bold tabular-nums"
-                          style={{ color: scoreColor(p.totalScore) }}
-                        >
-                          {p.totalScore}
-                        </span>
-                        <span className="text-right text-[12px] text-zinc-600 tabular-nums">
-                          {p.todayScore}
-                        </span>
-                        <span className="text-right text-[11px] text-zinc-700 tabular-nums">
-                          {p.thru}
-                        </span>
-                      </div>
-                    ),
-                  )}
-
-                  {/* Cut line note */}
+                        {p.totalScore}
+                      </span>
+                      <span className="text-right text-[12px] text-zinc-600 tabular-nums">
+                        {p.todayScore}
+                      </span>
+                      <span className="text-right text-[11px] text-zinc-700 tabular-nums">
+                        {p.thru}
+                      </span>
+                    </div>
+                  ))}
                   {tournament.cutLine && (
                     <div className="px-4 py-2.5 text-center text-[10px] text-zinc-600 border-t border-white/[0.15]">
                       {tournament.cutLine}
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Collapsible tee times (below leaderboard, only if PGA Tour ID known) */}
+              {tournament.pgatourId && (
+                <CollapsibleSection
+                  title="Tee Times"
+                  defaultCollapsed={isLive || isCompleted}
+                >
+                  <div className="px-5 pt-3 pb-4">
+                    <RoundTabsWithChevrons
+                      rounds={tournament.rounds}
+                      activeRound={activeRound}
+                      setActiveRound={setActiveRound}
+                    />
+                    {(() => {
+                      const rd = tournament.rounds?.find(r => r.roundNumber === activeRound)?.date
+                      return rd ? (
+                        <div className="text-[11px] text-zinc-600 mb-3">{fmtRoundDate(rd)}</div>
+                      ) : null
+                    })()}
+                    <TeeGroupRows
+                      loading={teeSheetLoading}
+                      error={teeSheetError}
+                      groups={teeGroups}
+                      accentColor={accentColor}
+                    />
+                  </div>
+                </CollapsibleSection>
+              )}
+            </>
+          ) : isUpcoming && tournament.pgatourId ? (
+            /* ── Case B: Pure upcoming with tee sheet ── */
+            <div className="mb-5">
+              <SectionLabel label="Tee Times" />
+              <RoundTabsWithChevrons
+                rounds={tournament.rounds}
+                activeRound={activeRound}
+                setActiveRound={setActiveRound}
+              />
+              {(() => {
+                const rd = tournament.rounds?.find(r => r.roundNumber === activeRound)?.date
+                return rd ? (
+                  <div className="text-[11px] text-zinc-600 mb-3">{fmtRoundDate(rd)}</div>
+                ) : null
+              })()}
+              <TeeGroupRows
+                loading={teeSheetLoading}
+                error={teeSheetError}
+                groups={teeGroups}
+                accentColor={accentColor}
+              />
+            </div>
+          ) : (
+            /* ── Case C: Upcoming without pgatourId → field list ── */
+            <div className="mb-5">
+              <SectionLabel label={isUpcoming ? "Field" : "Leaderboard"} />
+              {hasLeaders ? (
+                <div
+                  className="overflow-hidden"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}
+                >
+                  {tournament.leaders.map((p, i) => (
+                    <div
+                      key={`${p.name}-${i}`}
+                      className="flex items-center px-4 py-3 gap-3"
+                      style={{
+                        background: i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
+                        borderBottom:
+                          i < tournament.leaders.length - 1
+                            ? "1px solid rgba(255,255,255,0.04)"
+                            : "none",
+                      }}
+                    >
+                      <span className="text-[11px] text-zinc-600 w-6 flex-shrink-0 tabular-nums">
+                        {i + 1}
+                      </span>
+                      <span className="text-[13px] font-semibold text-white flex-1 truncate">
+                        {p.name}
+                      </span>
+                      {p.country && (
+                        <span className="text-[11px] text-zinc-500 flex-shrink-0">{p.country}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               ) : (
-                // No leaders yet — graceful empty state
                 <div
                   className="p-6 flex items-center justify-center"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.16)" }}
                 >
                   <span className="text-[13px] text-zinc-600">
-                    {isUpcoming
-                      ? "Field TBA"
-                      : "Leaderboard available when tournament begins"}
+                    {isUpcoming ? "Field TBA" : "Leaderboard available when tournament begins"}
                   </span>
                 </div>
               )}
