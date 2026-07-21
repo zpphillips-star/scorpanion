@@ -105,52 +105,49 @@ function mlbLogoUrl(fileCode: string): string {
 /**
  * MLB statsapi.mlb.com returns gameDate as "MM/DD/YYYY HH:MM:SS" (UTC).
  * This format is non-standard and causes Invalid Date in Safari/WebKit.
- * Convert to a proper ISO 8601 string so new Date(kickoff) always works.
+ * Normalise to a proper ISO 8601 UTC string so new Date(kickoff) always works.
  *
- * officialDate (e.g. "2026-07-18") is the LOCAL calendar date of the game.
- * We use it as the date portion of the ISO string so that late-night games
- * whose UTC date rolls over to the next day still sort and filter correctly
- * against the local calendar date the user expects.
+ * IMPORTANT: We always preserve the ORIGINAL UTC timestamp. Do NOT substitute
+ * officialDate (the US local calendar date) as the date portion while keeping
+ * the UTC time — that produces a mangled timestamp that is off by one day in the
+ * user's local timezone.
+ *
+ * Example of why the old officialDate override was wrong:
+ *   gameDate    = "07/22/2026 01:40:00"  (UTC — 1:40 AM UTC July 22)
+ *   officialDate= "2026-07-21"           (US local date — game is 6:40 PM PDT July 21)
+ *   BAD result  = "2026-07-21T01:40:00Z" → Intl.DateTimeFormat(PDT) → July 20  ✗
+ *   GOOD result = "2026-07-22T01:40:00Z" → Intl.DateTimeFormat(PDT) → July 21  ✓
+ *
+ * HomeClient uses Intl.DateTimeFormat with the user's local timezone for all date
+ * comparisons, so the correct UTC timestamp is automatically displayed on the
+ * right local calendar date without any manual adjustment.
  *
  * NOTE: The MLB API oscillates between ISO and legacy format — this function
  * handles BOTH formats defensively. Do not add a fast-path that skips conversion
  * for "already ISO" strings without also checking for legacy format first.
  */
-function normalizeMLBDate(gameDate: string, officialDate?: string): string {
+function normalizeMLBDate(gameDate: string, _officialDate?: string): string {
   // MLB Stats API may return gameDate as either:
   //   ISO 8601: "2026-07-19T20:10:00Z"
   //   Legacy:   "07/19/2026 20:10:00"   ← MM/DD/YYYY HH:MM:SS (UTC, no zone marker)
   // We must always convert to ISO so Safari/WebKit handles new Date(kickoff) correctly.
 
-  let isoDate: string
-  let timePart: string
-
   if (gameDate.includes('T')) {
-    // Already ISO: "2026-07-19T20:10:00Z"
-    isoDate = gameDate.slice(0, 10)
-    timePart = gameDate.split('T')[1]?.replace('Z', '') ?? '00:00:00'
-  } else {
-    // Legacy format: "07/19/2026 20:10:00"
-    const [datePart, tp = '00:00:00'] = gameDate.split(' ')
-    timePart = tp
-    const parts = datePart.split('/')
-    if (parts.length === 3) {
-      const [mm, dd, yyyy] = parts
-      isoDate = `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`
-    } else {
-      // Unknown format — return as-is; HomeClient parseKickoff will attempt to handle it
-      return gameDate
-    }
+    // Already ISO — ensure it ends with Z so it is unambiguously UTC.
+    return gameDate.endsWith('Z') ? gameDate : `${gameDate}Z`
   }
 
-  // If officialDate is provided AND differs from the UTC date, use officialDate.
-  // This corrects cross-midnight UTC games (e.g. 7 PM PT game starts at 2 AM UTC
-  // the next day, so UTC date = schedule_date + 1, but officialDate = schedule_date).
-  if (officialDate && /^\d{4}-\d{2}-\d{2}$/.test(officialDate) && officialDate !== isoDate) {
-    return `${officialDate}T${timePart}Z`
+  // Legacy format: "07/19/2026 20:10:00"
+  const [datePart, timePart = '00:00:00'] = gameDate.split(' ')
+  const parts = datePart.split('/')
+  if (parts.length === 3) {
+    const [mm, dd, yyyy] = parts
+    const isoDate = `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`
+    return `${isoDate}T${timePart}Z`
   }
 
-  return `${isoDate}T${timePart}Z`
+  // Unknown format — return as-is; HomeClient parseKickoff will attempt to handle it
+  return gameDate
 }
 
 // ── Fetch Mariners schedule from statsapi.mlb.com ────────────────────────────
