@@ -116,14 +116,29 @@ export async function GET(req: NextRequest) {
   const mode = new URL(req.url).searchParams.get('mode') ?? 'current'
   const slug = tour === 'lpga' ? 'lpga' : 'pga'
 
-  // Schedule mode: return all tournaments for the season (for calendar dots)
+  // Schedule mode: return all tournaments for the season (for calendar dots).
+  // Always fetch fresh — the Edge cache must never serve stale/empty data here,
+  // because an empty calendar wipes ALL golf dots from every month at once.
   if (mode === 'schedule') {
     try {
       const url = `https://site.api.espn.com/apis/site/v2/sports/golf/${slug}/scoreboard`
-      const res = await fetch(url, { next: { revalidate: 3600 } })
-      if (!res.ok) return Response.json([], { status: 200 })
+      const res = await fetch(url, { cache: 'no-store' })
+      if (!res.ok) {
+        return Response.json(
+          { error: `ESPN scoreboard returned ${res.status}`, tournaments: [] },
+          { status: 502 }
+        )
+      }
       const data: any = await res.json()
       const calendar: any[] = data.leagues?.[0]?.calendar ?? []
+      // Health-check: if ESPN returns an empty calendar, surface an error so we
+      // catch regressions immediately rather than silently serving 0 dots.
+      if (calendar.length === 0) {
+        return Response.json(
+          { error: `ESPN ${slug} calendar is empty — possible API shape change`, tournaments: [] },
+          { status: 502 }
+        )
+      }
       const tournaments = calendar.map((entry: any) => ({
         id: entry.id,
         name: entry.label ?? entry.name ?? 'Tournament',
@@ -131,8 +146,11 @@ export async function GET(req: NextRequest) {
         endDate: entry.endDate ?? entry.startDate ?? '',
       })).filter((t: any) => t.startDate)
       return Response.json(tournaments)
-    } catch {
-      return Response.json([])
+    } catch (err) {
+      return Response.json(
+        { error: `Schedule fetch failed: ${String(err)}`, tournaments: [] },
+        { status: 502 }
+      )
     }
   }
 

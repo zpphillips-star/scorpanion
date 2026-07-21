@@ -34,7 +34,8 @@ export default function CalendarClient() {
   const touchStartY = useRef(0)
 
   const fetchSchedule = useCallback(async () => {
-    if (!loaded || selectedTeamIds.length === 0) return
+    if (!loaded) return
+    if (selectedTeamIds.length === 0) { setLoading(false); return }
     try {
       const GOLF_IDS = ['pga', 'lpga']
       const WHL = ['thunderbirds', 'silvertips']
