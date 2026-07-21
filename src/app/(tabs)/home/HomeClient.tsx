@@ -910,22 +910,18 @@ export default function HomeClient() {
                 return (
                   <div
                     key={g.id}
-                    className="flex items-center py-3 px-4 hover:bg-white/[0.03] active:bg-white/[0.06] transition-colors cursor-pointer gap-3"
+                    className="flex items-center py-3 px-4 hover:bg-white/[0.03] active:bg-white/[0.06] transition-colors cursor-pointer"
                     onClick={() => setSelectedRecentGame(g)}
                   >
-                    {/* Left: time + league */}
-                    <div className="w-16 flex-shrink-0 flex flex-col gap-0.5">
-                      <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{fmtTime(g.kickoff)}</span>
-                      {g.broadcast && <span className="text-[10px] text-zinc-600">{g.broadcast}</span>}
-                    </div>
-                    {/* Matchup grid */}
-                    <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr 2rem 1fr" }}>
+                    {/* Matchup: away | time (center) | home */}
+                    <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
                       <div className="flex items-center justify-end gap-2 min-w-0">
                         <span className="text-[14px] font-semibold text-white whitespace-nowrap leading-tight truncate">{awayName}</span>
                         <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={28} className="flex-shrink-0" />
                       </div>
-                      <div className="flex items-center justify-center">
-                        <span className="text-zinc-600 text-[13px] font-normal select-none">·</span>
+                      <div className="flex flex-col items-center justify-center px-3">
+                        <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{fmtTime(g.kickoff)}</span>
+                        {g.broadcast && <span className="text-[10px] text-zinc-600">{g.broadcast}</span>}
                       </div>
                       <div className="flex items-center justify-start gap-2 min-w-0">
                         <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={28} className="flex-shrink-0" />
@@ -948,28 +944,23 @@ export default function HomeClient() {
                   return (
                     <button
                       key={`golf-${t.id}-${ds}`}
-                      className="w-full text-left flex items-center py-3 px-4 active:opacity-70 transition-opacity gap-3"
+                      className="w-full text-left flex items-center py-3 px-4 active:opacity-70 transition-opacity"
                       onClick={() => setSelectedGolfUpcoming({ tournament: t, label, accentColor })}
                     >
-                      {/* Left: tee time when ESPN has a valid time; otherwise date range */}
-                      <div className="w-16 flex-shrink-0 flex flex-col gap-0.5">
-                        {t.firstTeeTime ? (
-                          <>
-                            <span className="text-[10px] font-medium text-zinc-500 leading-tight">Tee time</span>
-                            <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{fmtTime(t.firstTeeTime)}</span>
-                          </>
-                        ) : (
-                          <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{dateRange}</span>
-                        )}
-                      </div>
-                      {/* Matchup: label · logo · tournament name */}
-                      <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr 2rem 1fr" }}>
+                      {/* label | tee time (center) | tournament name */}
+                      <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
                         <div className="flex items-center justify-end">
-                          <span className="text-[14px] font-semibold truncate leading-tight" style={{ color: "#ffffff" }}>{label}</span>
+                          <span className="text-[12px] font-700 uppercase tracking-wide text-zinc-500 whitespace-nowrap">{label}</span>
                         </div>
-                        <div className="flex items-center justify-center">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={golfLogoUrl} alt={label} width={28} height={28} className="object-contain" />
+                        <div className="flex flex-col items-center justify-center px-3">
+                          {t.firstTeeTime ? (
+                            <>
+                              <span className="text-[10px] font-medium text-zinc-500 whitespace-nowrap">Tee time</span>
+                              <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{fmtTime(t.firstTeeTime)}</span>
+                            </>
+                          ) : (
+                            <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">{dateRange}</span>
+                          )}
                         </div>
                         <div className="flex items-center justify-start">
                           <span className="text-[14px] font-semibold text-white truncate leading-tight">{t.shortName || t.name}</span>
