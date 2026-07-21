@@ -197,66 +197,49 @@ function BaseballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
         </table>
       </div>
 
-      {/* Top Performers — WNBA-style two independent halves */}
+      {/* Top Performers — stacked: away on top, home below */}
       {topBatters && topBatters.length > 0 && (() => {
         const awayId = linescores[0]?.teamId
         const homeId = linescores[1]?.teamId
         const awayBatters = topBatters.filter(b => b.teamId === awayId)
         const homeBatters = topBatters.filter(b => b.teamId === homeId)
         if (awayBatters.length === 0 && homeBatters.length === 0) return null
-        const HalfHeader = () => (
-          <div className="flex items-center pb-1.5 mb-1 border-b border-zinc-500/65">
-            <div className="flex-1" />
-            <div className="flex gap-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest tabular-nums">
-              <span className="w-8 text-center">H</span>
-              <span className="w-8 text-center">HR</span>
-              <span className="w-8 text-center">RBI</span>
+
+        const TeamBlock = ({ batters, logo, teamId }: { batters: typeof topBatters; logo?: string; teamId: string }) => (
+          <div className="relative overflow-hidden px-3 py-1">
+            {/* Faint logo watermark */}
+            {logo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logo} alt="" aria-hidden className="absolute pointer-events-none select-none"
+                style={{ width: 80, height: 80, opacity: 0.06, objectFit: "contain", top: "50%", right: 16, transform: "translateY(-50%)" }} />
+            )}
+            {/* Header */}
+            <div className="flex items-center pb-1.5 mb-0.5 border-b border-zinc-500/40">
+              <div className="flex-1" />
+              <div className="flex gap-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest tabular-nums">
+                <span className="w-8 text-center">H</span>
+                <span className="w-8 text-center">HR</span>
+                <span className="w-8 text-center">RBI</span>
+              </div>
             </div>
+            {batters.map((b, idx) => (
+              <div key={idx} className="relative flex items-center py-2">
+                <span className={`flex-1 text-[14px] font-semibold truncate pr-4 ${b.teamId === seattleTeamId ? "text-white" : "text-zinc-300"}`}>{b.name}</span>
+                <div className="flex gap-3 text-[14px] font-bold tabular-nums">
+                  <span className={`w-8 text-center ${b.teamId === seattleTeamId ? "text-white" : "text-zinc-300"}`}>{b.h}</span>
+                  <span className="w-8 text-center text-zinc-500">{b.hr}</span>
+                  <span className="w-8 text-center text-zinc-500">{b.rbi}</span>
+                </div>
+              </div>
+            ))}
           </div>
         )
+
         return (
           <>
             <SectionHeader label="Top Performers" />
-            <div className="px-3 grid grid-cols-2 gap-x-4 pb-2">
-              {/* Away half */}
-              <div className="relative overflow-hidden">
-                {linescores[0]?.logo && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={linescores[0].logo} alt="" aria-hidden className="absolute pointer-events-none select-none"
-                    style={{ width: 64, height: 64, opacity: 0.06, objectFit: "contain", top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />
-                )}
-                <HalfHeader />
-                {awayBatters.map((b, idx) => (
-                  <div key={idx} className="relative flex items-center py-2.5">
-                    <span className={`flex-1 text-[14px] font-semibold truncate ${b.teamId === seattleTeamId ? "text-white" : "text-zinc-200"}`}>{b.name}</span>
-                    <div className="flex gap-3 text-[14px] font-bold tabular-nums">
-                      <span className={`w-8 text-center ${b.teamId === seattleTeamId ? "text-white" : "text-zinc-200"}`}>{b.h}</span>
-                      <span className="w-8 text-center text-zinc-400">{b.hr}</span>
-                      <span className="w-8 text-center text-zinc-400">{b.rbi}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {/* Home half */}
-              <div className="relative overflow-hidden">
-                {linescores[1]?.logo && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={linescores[1].logo} alt="" aria-hidden className="absolute pointer-events-none select-none"
-                    style={{ width: 64, height: 64, opacity: 0.06, objectFit: "contain", top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />
-                )}
-                <HalfHeader />
-                {homeBatters.map((b, idx) => (
-                  <div key={idx} className="relative flex items-center py-2.5">
-                    <span className={`flex-1 text-[14px] font-semibold truncate ${b.teamId === seattleTeamId ? "text-white" : "text-zinc-200"}`}>{b.name}</span>
-                    <div className="flex gap-3 text-[14px] font-bold tabular-nums">
-                      <span className={`w-8 text-center ${b.teamId === seattleTeamId ? "text-white" : "text-zinc-200"}`}>{b.h}</span>
-                      <span className="w-8 text-center text-zinc-400">{b.hr}</span>
-                      <span className="w-8 text-center text-zinc-400">{b.rbi}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <TeamBlock batters={awayBatters} logo={linescores[0]?.logo} teamId={awayId ?? ""} />
+            <TeamBlock batters={homeBatters} logo={linescores[1]?.logo} teamId={homeId ?? ""} />
           </>
         )
       })()}
