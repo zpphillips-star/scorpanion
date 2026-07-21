@@ -157,13 +157,13 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
   const getBg = (idx: number): string => idx === activeIdx ? ACTIVE_BG : INACTIVE_BG
 
   // ── Horizontal bar ───────────────────────────────────────────────────────
-  const H_BAR = 46
-  const D_PX  = Math.round(H_BAR * 0.52)  // ~24px — ~45-degree arrow
+  const H_BAR = 34                         // compact height — fits on mobile without scrolling
+  const D_PX  = Math.round(H_BAR * 0.50)  // 17px — 45-degree arrow
 
   // ── Popup constants ──────────────────────────────────────────────────────
-  const POPUP_V             = 24
-  const POPUP_BODY_INACTIVE = 72
-  const POPUP_BODY_ACTIVE   = 100
+  const POPUP_V             = 20
+  const POPUP_BODY_INACTIVE = 64
+  const POPUP_BODY_ACTIVE   = 88
 
   return (
     <>
@@ -191,18 +191,18 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
                 display:    'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                // First segment: no left-side arrow overlay → less left pad
-                // Last segment: no right-side triangle → less right pad
-                // Middle segments: symmetric D_PX on both sides (left covered, right extends)
-                paddingLeft:  idx === 0 ? 6 : D_PX + 2,
-                paddingRight: isLast ? 6 : D_PX + 2,
+                // Center text in the VISIBLE portion of each segment.
+                // Non-first segments have their left D_PX covered by the prev triangle,
+                // so we pad left by D_PX to shift the content area to match the visible region.
+                paddingLeft:  idx === 0 ? 4 : D_PX,
+                paddingRight: 4,
                 overflow:     'visible',
               }}
             >
               <span
                 className="font-display font-800 uppercase tracking-widest text-white leading-none"
                 style={{
-                  fontSize: '9px',
+                  fontSize: '8px',
                   opacity: isActive ? 1 : 0.7,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
