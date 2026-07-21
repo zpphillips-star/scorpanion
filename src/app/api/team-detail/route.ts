@@ -259,6 +259,50 @@ export async function GET(req: Request) {
           time: e.date,  // raw ISO — format client-side to use local TZ
         }
       })
+
+      // Soccer leagues (MLS, NWSL) may have mid-season breaks (e.g. World Cup).
+      // The /schedule endpoint only returns the pre-break chunk. Fall back to scanning
+      // the scoreboard 4 weeks ahead to find the team's next games.
+      if (upcomingGames.length === 0 && sportPath.startsWith("soccer/")) {
+        try {
+          const now = new Date()
+          const dateStrings: string[] = []
+          for (let i = 0; i < 42; i++) {
+            const d = new Date(now)
+            d.setDate(d.getDate() + i)
+            dateStrings.push(d.toISOString().slice(0, 10).replace(/-/g, ""))
+          }
+          // Fetch scoreboard for each week (in chunks of 7 days)
+          const weeks = [dateStrings.slice(0, 7), dateStrings.slice(7, 14), dateStrings.slice(14, 28), dateStrings.slice(28, 42)]
+          for (const week of weeks) {
+            if (upcomingGames.length >= 3) break
+            for (const dateStr of week) {
+              if (upcomingGames.length >= 3) break
+              const sbUrl = `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/scoreboard?dates=${dateStr}&limit=50`
+              const sbRes = await fetch(sbUrl, { next: { revalidate: 300 } })
+              if (!sbRes.ok) continue
+              const sbData = await sbRes.json()
+              const dayEvents: any[] = sbData.events ?? []
+              for (const e of dayEvents) {
+                const comp = e.competitions?.[0]
+                if (!comp) continue
+                const myTeam = comp.competitors?.find((c: any) => String(c.team?.id) === String(teamId) || String(c.id) === String(teamId))
+                if (!myTeam) continue
+                const opp = comp.competitors?.find((c: any) => String(c.team?.id) !== String(teamId) && String(c.id) !== String(teamId))
+                if (comp.status?.type?.completed) continue
+                upcomingGames.push({
+                  opponent: opp?.team?.shortDisplayName ?? opp?.team?.abbreviation ?? "?",
+                  oppLogo: opp?.team?.logos?.[0]?.href ?? opp?.team?.logo ?? "",
+                  date: e.date,
+                  isHome: myTeam.homeAway === "home",
+                  time: e.date,
+                })
+                if (upcomingGames.length >= 3) break
+              }
+            }
+          }
+        } catch { /* ignore fallback errors */ }
+      }
     }
 
     // Standings rank + full division — fetch standings

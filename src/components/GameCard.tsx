@@ -99,7 +99,6 @@ export default function GameCard({ game }: GameCardProps) {
             ) : (
               <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap">{formatGameTime(game.kickoff)}</span>
             )}
-            <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider">{game.league}</span>
           </div>
 
           {/* Away team (right-aligned) */}
