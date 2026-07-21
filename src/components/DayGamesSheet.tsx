@@ -129,172 +129,94 @@ function DayGameCard({ game, onTap }: { game: Game; onTap: () => void }) {
   return (
     <button
       onClick={onTap}
-      className="w-full text-left transition-all active:scale-[0.983] active:opacity-90"
+      className="w-full text-left active:bg-white/[0.03] transition-colors"
     >
-      <div
-        className="overflow-hidden"
-        style={{
-          background: "var(--surface-2)",
-          border: `1px solid ${isLive ? "rgba(255,180,0,0.22)" : "var(--border-default)"}`,
-          borderLeft: `3.5px solid ${isLive ? "#FFB400" : accentColor}`,
-        }}
-      >
-        {/* ── Top bar: broadcast + status ── */}
-        <div
-          className="flex items-center justify-between px-4 pt-3.5 pb-2"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.16)" }}
-        >
-          {/* Broadcast network */}
-          <span
-            className="text-[11px] font-bold uppercase tracking-widest"
-            style={{ color: "var(--text-faint)" }}
-          >
-            {game.broadcast || (game.isHome ? "Home" : "Away")}
-          </span>
+      <div className="flex items-center px-4 py-3 gap-3">
 
-          {/* Status badge */}
+        {/* Left: time / status */}
+        <div className="w-16 flex-shrink-0 flex flex-col gap-0.5">
           {isLive ? (
-            <div className="flex items-center gap-1.5">
-              <span className="relative flex h-2 w-2 flex-shrink-0">
+            <div className="flex items-center gap-1">
+              <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
                       style={{ backgroundColor: "#FFB400" }} />
-                <span className="relative inline-flex rounded-full h-2 w-2"
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5"
                       style={{ backgroundColor: "#FFB400" }} />
               </span>
-              <span className="text-[12px] font-bold uppercase tracking-wider"
-                    style={{ color: "#FFB400" }}>
-                Live
-              </span>
-              {liveDetail && (
-                <span className="text-[11px] font-semibold tabular-nums"
-                      style={{ color: "rgba(255,180,0,0.55)" }}>
-                  · {liveDetail}
-                </span>
-              )}
+              <span className="text-[11px] font-bold uppercase tracking-wide"
+                    style={{ color: "#FFB400" }}>Live</span>
             </div>
           ) : isFt ? (
-            <span className="text-[11px] font-bold uppercase tracking-widest"
-                  style={{ color: "var(--text-faint)" }}>
-              Final
-            </span>
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Final</span>
           ) : (
-            <span className="text-[14px] font-bold tabular-nums"
-                  style={{ color: "var(--text)" }}>
+            <span className="text-[11px] font-medium text-zinc-400 whitespace-nowrap tabular-nums">
               {formatTime(game.kickoff)}
             </span>
           )}
+          {isLive && liveDetail && (
+            <span className="text-[10px] tabular-nums" style={{ color: "rgba(255,180,0,0.6)" }}>{liveDetail}</span>
+          )}
+          {game.broadcast && !isLive && (
+            <span className="text-[10px] text-zinc-600">{game.broadcast}</span>
+          )}
         </div>
 
-        {/* ── Main matchup row ── */}
-        <div className="flex items-center px-4 py-5 gap-3">
-          {/* Away team */}
-          <div className="flex-1 flex items-center gap-3 min-w-0">
-            <TeamLogo
-              src={awayLogo}
-              emoji={awayEmoji}
-              abbr={awayAbbr}
-              size={54}
-              className={`flex-shrink-0 transition-opacity${isFt && homeWon ? " opacity-20" : ""}`}
-            />
-            <div className="min-w-0">
-              <div
-                className="text-[16px] font-bold leading-tight truncate"
-                style={{ color: isFt && homeWon ? "rgba(242,230,207,0.25)" : "var(--text)" }}
-              >
+        {/* Matchup grid */}
+        <div className="flex-1 grid items-center" style={{ gridTemplateColumns: "1fr 2.5rem 1fr" }}>
+          {/* Away */}
+          <div className="flex items-center justify-end gap-2 min-w-0">
+            <div className="text-right min-w-0">
+              <div className={`text-[14px] font-semibold leading-tight truncate ${isFt && homeWon ? "text-zinc-500" : "text-white"}`}>
                 {awayName}
               </div>
               {awayRecord && (
-                <div className="text-[11px] tabular-nums leading-tight mt-1"
-                     style={{ color: "var(--text-faint)" }}>
-                  {formatRecord(awayRecord)}
-                </div>
+                <div className="text-[10px] text-zinc-600 tabular-nums leading-tight">{formatRecord(awayRecord)}</div>
               )}
             </div>
+            <TeamLogo src={awayLogo} emoji={awayEmoji} abbr={awayAbbr} size={32}
+              className={`flex-shrink-0${isFt && homeWon ? " opacity-25" : ""}`} />
           </div>
 
-          {/* Score / VS center */}
-          <div className="flex-shrink-0 flex items-center gap-1.5 mx-1">
+          {/* Score / vs */}
+          <div className="flex items-center justify-center">
             {hasScore ? (
-              <>
-                <span
-                  className="font-display text-[34px] font-800 tabular-nums leading-none w-10 text-right"
-                  style={{ color: awayWon ? "var(--text)" : isFt ? "rgba(242,230,207,0.22)" : "var(--text)" }}
-                >
-                  {awayScore}
-                </span>
-                <span
-                  className="font-display text-[18px] font-600 leading-none px-0.5"
-                  style={{ color: "var(--border-strong)" }}
-                >
-                  –
-                </span>
-                <span
-                  className="font-display text-[34px] font-800 tabular-nums leading-none w-10 text-left"
-                  style={{ color: homeWon ? "var(--text)" : isFt ? "rgba(242,230,207,0.22)" : "var(--text)" }}
-                >
-                  {homeScore}
-                </span>
-              </>
-            ) : (
-              <span
-                className="font-display text-[17px] font-700 uppercase tracking-wider px-2"
-                style={{ color: "var(--border-strong)" }}
-              >
-                vs
+              <span className="font-display text-[15px] font-800 tabular-nums text-white">
+                {awayScore}<span className="text-zinc-600 mx-0.5">–</span>{homeScore}
               </span>
+            ) : (
+              <span className="text-zinc-600 text-[13px]">·</span>
             )}
           </div>
 
-          {/* Home team */}
-          <div className="flex-1 flex items-center justify-end gap-3 min-w-0">
-            <div className="min-w-0 text-right">
-              <div
-                className="text-[16px] font-bold leading-tight truncate"
-                style={{ color: isFt && awayWon ? "rgba(242,230,207,0.25)" : "var(--text)" }}
-              >
+          {/* Home */}
+          <div className="flex items-center justify-start gap-2 min-w-0">
+            <TeamLogo src={homeLogo} emoji={homeEmoji} abbr={homeAbbr} size={32}
+              className={`flex-shrink-0${isFt && awayWon ? " opacity-25" : ""}`} />
+            <div className="min-w-0">
+              <div className={`text-[14px] font-semibold leading-tight truncate ${isFt && awayWon ? "text-zinc-500" : "text-white"}`}>
                 {homeName}
               </div>
               {homeRecord && (
-                <div className="text-[11px] tabular-nums leading-tight mt-1"
-                     style={{ color: "var(--text-faint)" }}>
-                  {formatRecord(homeRecord)}
-                </div>
+                <div className="text-[10px] text-zinc-600 tabular-nums leading-tight">{formatRecord(homeRecord)}</div>
               )}
             </div>
-            <TeamLogo
-              src={homeLogo}
-              emoji={homeEmoji}
-              abbr={homeAbbr}
-              size={54}
-              className={`flex-shrink-0 transition-opacity${isFt && awayWon ? " opacity-20" : ""}`}
-            />
           </div>
         </div>
 
-        {/* ── Venue footer ── */}
-        {game.venue?.name && (
-          <div
-            className="flex items-center justify-between px-4 pb-3.5"
-            style={{ borderTop: "1px solid rgba(255,255,255,0.16)" }}
-          >
-            <span className="text-[11px] truncate" style={{ color: "var(--text-faint)" }}>
-              📍 {game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}
-            </span>
-            <svg className="w-3.5 h-3.5 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24"
-                 stroke="currentColor" style={{ color: "var(--border-strong)" }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-        )}
-        {!game.venue?.name && (
-          <div className="flex justify-end px-4 pb-3">
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
-                 stroke="currentColor" style={{ color: "var(--border-strong)" }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-        )}
+        {/* Chevron */}
+        <svg className="w-3 h-3 text-zinc-700 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
       </div>
+
+      {/* Venue — subtle, below the row */}
+      {game.venue?.name && (
+        <div className="px-4 pb-2 -mt-1">
+          <span className="text-[10px] text-zinc-700 truncate">
+            📍 {game.venue.name}{game.venue.city ? `, ${game.venue.city}` : ""}
+          </span>
+        </div>
+      )}
     </button>
   )
 }
@@ -322,48 +244,44 @@ function GolfDayCard({ tournament, label, accentColor, onTap }: {
   return (
     <button
       onClick={onTap}
-      className="w-full text-left transition-all active:scale-[0.983] active:opacity-90"
+      className="w-full text-left active:bg-white/[0.03] transition-colors"
     >
-      <div
-        className="overflow-hidden"
-        style={{
-          background: "var(--surface-2)",
-          border: `1px solid ${isLive ? "rgba(255,180,0,0.22)" : "var(--border-default)"}`,
-          borderLeft: `3.5px solid ${isLive ? "#FFB400" : accentColor}`,
-        }}
-      >
-        {/* Top bar */}
-        <div className="flex items-center justify-between px-4 pt-3.5 pb-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.16)" }}>
-          <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>{label}</span>
+      <div className="flex items-center px-4 py-3 gap-3">
+        {/* Left: status */}
+        <div className="w-16 flex-shrink-0 flex flex-col gap-0.5">
           {isLive ? (
-            <div className="flex items-center gap-1.5">
-              <span className="relative flex h-2 w-2 flex-shrink-0">
+            <div className="flex items-center gap-1">
+              <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-yellow-400" />
               </span>
-              <span className="text-[12px] font-bold uppercase tracking-wider text-yellow-400">Live · {tournament.roundLabel}</span>
+              <span className="text-[11px] font-bold uppercase tracking-wide text-yellow-400">Live</span>
             </div>
           ) : isCompleted ? (
-            <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>Final</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Final</span>
           ) : (
-            <span className="text-[13px] font-bold text-zinc-200">{dateRange}</span>
+            <span className="text-[11px] text-zinc-400">{dateRange}</span>
           )}
+          <span className="text-[10px] text-zinc-600 uppercase tracking-wider">{label}</span>
         </div>
 
-        {/* Main row */}
-        <div className="flex items-center px-4 py-4 gap-4">
+        {/* Logo + name */}
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoUrl} alt={label} width={48} height={48} style={{ objectFit: "contain", flexShrink: 0 }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
-          <div className="min-w-0 flex-1">
-            <div className="text-[15px] font-bold text-white leading-tight truncate">{tournament.name}</div>
+          <img src={logoUrl} alt={label} width={28} height={28}
+            style={{ objectFit: "contain", flexShrink: 0 }}
+            onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
+          <div className="min-w-0">
+            <div className="text-[14px] font-semibold text-white leading-tight truncate">{tournament.name}</div>
             {(tournament.course || tournament.location) && (
-              <div className="text-[11px] text-zinc-500 mt-1 truncate">📍 {[tournament.course, tournament.location].filter(Boolean).join(", ")}</div>
+              <div className="text-[10px] text-zinc-600 truncate">{[tournament.course, tournament.location].filter(Boolean).join(", ")}</div>
             )}
           </div>
-          <svg className="w-4 h-4 flex-shrink-0 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-          </svg>
         </div>
+
+        <svg className="w-3 h-3 flex-shrink-0 text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
       </div>
     </button>
   )
@@ -538,7 +456,7 @@ export default function DayGamesSheet({ date, games, golfTournaments = [], onClo
               </div>
             </div>
           ) : (
-            <div className="px-4 pt-3 pb-4 flex flex-col gap-4">
+          <div className="divide-y divide-white/[0.13]">
               {games.map(g => (
                 <DayGameCard
                   key={g.id}
@@ -549,17 +467,22 @@ export default function DayGamesSheet({ date, games, golfTournaments = [], onClo
               {golfTournaments.length > 0 && (
                 <>
                   {games.length > 0 && (
-                    <LeagueSectionHeader label="Golf" />
+                    <div className="px-4 py-2 flex items-center gap-3">
+                      <span className="font-display text-[11px] font-700 uppercase tracking-widest text-zinc-500">Golf</span>
+                      <div className="flex-1 h-px bg-zinc-700/50" />
+                    </div>
                   )}
-                  {golfTournaments.map(({ tournament, label, accentColor }) => (
-                    <GolfDayCard
-                      key={tournament.id}
-                      tournament={tournament}
-                      label={label}
-                      accentColor={accentColor}
-                      onTap={() => setSelectedGolf({ tournament, label, accentColor })}
-                    />
-                  ))}
+                  <div className="divide-y divide-white/[0.13]">
+                    {golfTournaments.map(({ tournament, label, accentColor }) => (
+                      <GolfDayCard
+                        key={tournament.id}
+                        tournament={tournament}
+                        label={label}
+                        accentColor={accentColor}
+                        onTap={() => setSelectedGolf({ tournament, label, accentColor })}
+                      />
+                    ))}
+                  </div>
                 </>
               )}
             </div>
