@@ -190,6 +190,8 @@ export async function GET() {
         // Fallback: ESPN doesn't have event details yet — surface a calendar stub
         if (!pushed) {
           const { course, location } = await fetchVenueInfo(nextEntry.id)
+          // ESPN calendar dates include Pro-Am day (Wed); shift +1 to show actual rounds (Thu–Sun)
+          const shiftDay = (iso: string) => { const d = new Date(iso); d.setUTCDate(d.getUTCDate() + 1); return d.toISOString() }
           tournaments.push({
             id: nextEntry.id,
             name: nextEntry.label,
@@ -198,8 +200,8 @@ export async function GET() {
             location,
             roundLabel: 'Upcoming',
             status: 'upcoming',
-            startDate: nextEntry.startDate,
-            endDate: nextEntry.endDate,
+            startDate: shiftDay(nextEntry.startDate),
+            endDate: shiftDay(nextEntry.endDate),
             leaders: [],
           })
         }

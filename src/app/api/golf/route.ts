@@ -139,12 +139,22 @@ export async function GET(req: NextRequest) {
           { status: 502 }
         )
       }
-      const tournaments = calendar.map((entry: any) => ({
-        id: entry.id,
-        name: entry.label ?? entry.name ?? 'Tournament',
-        startDate: entry.startDate ?? '',
-        endDate: entry.endDate ?? entry.startDate ?? '',
-      })).filter((t: any) => t.startDate)
+      const tournaments = calendar.map((entry: any) => {
+        // ESPN calendar startDate is the Pro-Am/practice day (always Wednesday for Thu-Sun events).
+        // Shift both dates +1 day so displayed range shows actual competitive rounds (Thu–Sun).
+        const shiftDay = (iso: string): string => {
+          if (!iso) return iso
+          const d = new Date(iso)
+          d.setUTCDate(d.getUTCDate() + 1)
+          return d.toISOString()
+        }
+        return {
+          id: entry.id,
+          name: entry.label ?? entry.name ?? 'Tournament',
+          startDate: shiftDay(entry.startDate ?? ''),
+          endDate: shiftDay(entry.endDate ?? entry.startDate ?? ''),
+        }
+      }).filter((t: any) => t.startDate)
       return Response.json(tournaments)
     } catch (err) {
       return Response.json(

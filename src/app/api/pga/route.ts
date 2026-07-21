@@ -203,6 +203,8 @@ export async function GET() {
         // so the home screen and detail sheet still show the upcoming tournament.
         if (!pushed) {
           const { course, location } = await fetchVenueInfo(nextEntry.id)
+          // ESPN calendar dates include Pro-Am day (Wed); shift +1 to show actual rounds (Thu–Sun)
+          const shiftDay = (iso: string) => { const d = new Date(iso); d.setUTCDate(d.getUTCDate() + 1); return d.toISOString() }
           tournaments.push({
             id: nextEntry.id,
             name: nextEntry.label,
@@ -211,8 +213,8 @@ export async function GET() {
             location,
             roundLabel: 'Upcoming',
             status: 'upcoming',
-            startDate: nextEntry.startDate,
-            endDate: nextEntry.endDate,
+            startDate: shiftDay(nextEntry.startDate),
+            endDate: shiftDay(nextEntry.endDate),
             leaders: [],
           })
         }
