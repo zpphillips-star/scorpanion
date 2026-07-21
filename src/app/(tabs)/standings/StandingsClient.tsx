@@ -153,10 +153,7 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
   const ACTIVE_BG  = '#D95C17'
   const N          = phases.length
 
-  // Each phase gets a distinct color so adjacent same-state phases are still distinguishable.
-  // Active phase → orange. Past → progressively lighter navy. Future → progressively darker navy.
-  // Without distinct colors, "Off Season" and "Pre-Season" (both PAST) would be identical
-  // and the chevron arrow between them would be invisible.
+  // Distinct color per phase so adjacent same-state phases are distinguishable.
   const PHASE_BASE: Record<string, string> = {
     offseason:    '#0b1e35',
     preseason:    '#163354',
@@ -169,99 +166,99 @@ function SeasonProgressChevrons({ leagueId }: { leagueId: string }) {
     return PHASE_BASE[phases[idx]?.key] ?? (idx < activeIdx ? '#1a3560' : '#0d2035')
   }
 
-  // ── Horizontal bar — single SVG, paths rendered in reverse order ─────────
-  // Each segment: rectangle + right-pointing arrow that extends D units into the next.
-  // Rendered reverse (N-1 first, 0 last = on top). Segment 0's arrow overlaps segment 1;
-  // segment 0 is on top so its color fills the arrow cleanly. Segment 1's rectangle fills
-  // the corner areas, creating the notch. No clip-path, no transparent-corner artifacts.
-  //
-  // White V-shaped separator lines are drawn AFTER the fills so boundaries are always
-  // visible even when adjacent phases happen to have similar colors.
-  const SVG_W = 1000
-  const SVG_H = 54
-  const H_BAR = 48   // DOM px — taller for more prominent arrows
-  const segW  = SVG_W / N
-  const D     = Math.round(segW * 0.38)  // arrow depth = 38% of segment width
-
-  // arrow padding as % of each segment's DOM width (used for text centering)
-  const arrowPadPct = `${(D / segW * 100).toFixed(1)}%`
-
-  const barPath = (idx: number): string => {
-    const x0 = idx * segW
-    const x1 = (idx + 1) * segW
-    const isLast = idx === N - 1
-    if (isLast) return `M${x0},0 L${x1},0 L${x1},${SVG_H} L${x0},${SVG_H} Z`
-    return `M${x0},0 L${x1},0 L${x1+D},${SVG_H/2} L${x1},${SVG_H} L${x0},${SVG_H} Z`
+  // Short 3-4 char labels for the narrow horizontal bar segments
+  // (full names shown in the popup when tapped)
+  const barLabel = (key: string, full: string): string => {
+    const map: Record<string, string> = {
+      offseason: 'OFF', preseason: 'PRE', regular: 'REG', playoffs: 'POST',
+    }
+    return map[key] ?? full.slice(0, 4).toUpperCase()
   }
 
+  // ── Horizontal bar ───────────────────────────────────────────────────────
+  // Same technique as the popup (which the user confirmed looks good):
+  // plain flex divs + absolutely-positioned SVG right-pointing triangle on the right
+  // side of each non-last segment. No single-SVG, no preserveAspectRatio scaling issues.
+  //
+  // The triangle extends D px to the right, overlapping the next segment.
+  // Since this segment has higher z-index, the triangle renders on top of the next segment.
+  // The next segment's full rectangle fills the corner areas = clean notch appearance.
+  const H_BAR = 48   // bar height in px
+  const D_PX  = Math.round(H_BAR * 0.52)  // arrow depth ≈ half-height → ~45-degree arrows
+
   // ── Popup constants ──────────────────────────────────────────────────────
-  // Each row is a plain rectangle (no clip-path).
-  // A downward-pointing SVG V-triangle is absolutely positioned at the BOTTOM of each row,
-  // extending V px below the row and overlapping the row below it (via higher z-index).
-  // This avoids the transparent-corner artifact that clip-path creates.
-  const POPUP_V             = 24   // depth of downward V triangle in px
-  const POPUP_BODY_INACTIVE = 72   // row height for non-active phases
-  const POPUP_BODY_ACTIVE   = 100  // row height for active phase
+  const POPUP_V             = 24
+  const POPUP_BODY_INACTIVE = 72
+  const POPUP_BODY_ACTIVE   = 100
 
   return (
     <>
-      {/* ── Horizontal chevron bar — single SVG + HTML text overlay ── */}
+      {/* ── Horizontal chevron bar — plain flex divs + SVG triangle per segment ── */}
       <button
-        className="w-full mt-3 mb-5 block relative"
-        style={{ height: H_BAR }}
+        className="w-full mt-3 mb-5 flex"
+        style={{ height: H_BAR, position: 'relative', overflow: 'visible' }}
         onClick={() => setShowSheet(true)}
         aria-label="View season schedule"
       >
-        <svg
-          viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-          preserveAspectRatio="none"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }}
-        >
-          {/* Fill paths — render N-1 first (bottom), 0 last (top) */}
-          {[...Array(N)].map((_, ri) => {
-            const idx = N - 1 - ri
-            return <path key={`fill-${phases[idx].key}`} d={barPath(idx)} fill={getBg(idx)} />
-          })}
-          {/* White V-shaped separator lines — drawn on top of all fills so boundaries
-              are always clearly visible even between similar-colored adjacent phases */}
-          {phases.slice(0, -1).map((_, idx) => {
-            const x1 = (idx + 1) * segW
-            return (
-              <path
-                key={`sep-${idx}`}
-                d={`M${x1},0 L${x1+D},${SVG_H/2} L${x1},${SVG_H}`}
-                stroke="rgba(255,255,255,0.22)"
-                strokeWidth="2"
-                fill="none"
-              />
-            )
-          })}
-        </svg>
-
-        {/* HTML text labels — flex divs aligned to segment widths */}
-        <div className="absolute inset-0 flex pointer-events-none">
-          {phases.map((phase, idx) => {
-            const isActive = idx === activeIdx
-            const isPast   = idx < activeIdx
-            return (
-              <div
-                key={phase.key}
-                className="flex-1 flex items-center justify-center overflow-hidden"
+        {phases.map((phase, idx) => {
+          const isActive = idx === activeIdx
+          const isPast   = idx < activeIdx
+          const isLast   = idx === N - 1
+          const bg       = getBg(idx)
+          return (
+            <div
+              key={phase.key}
+              style={{
+                flex:       1,
+                height:     H_BAR,
+                background: bg,
+                position:   'relative',
+                zIndex:     N - idx,
+                display:    'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                // Push text inward away from the arrow zones
+                paddingLeft:  idx === 0    ? 6 : D_PX + 4,
+                paddingRight: isLast       ? 6 : D_PX + 4,
+                overflow:     'visible',
+              }}
+            >
+              <span
+                className="font-display font-800 uppercase tracking-widest text-white leading-none"
                 style={{
-                  paddingLeft:  idx === 0     ? '4%' : arrowPadPct,
-                  paddingRight: idx === N - 1 ? '4%' : arrowPadPct,
+                  fontSize: '9px',
+                  opacity: isActive ? 1 : isPast ? 0.6 : 0.38,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  maxWidth: '100%',
                 }}
               >
-                <span
-                  className="font-display font-800 uppercase tracking-wide text-white text-center truncate leading-none"
-                  style={{ fontSize: '10px', opacity: isActive ? 1 : isPast ? 0.65 : 0.4 }}
+                {barLabel(phase.key, phase.label)}
+              </span>
+
+              {/* Right-pointing triangle — same color as this segment.
+                  Extends D_PX into the next segment. Higher z-index = renders on top. */}
+              {!isLast && (
+                <svg
+                  viewBox="0 0 1 2"
+                  preserveAspectRatio="none"
+                  style={{
+                    position: 'absolute',
+                    right:    -D_PX,
+                    top:      0,
+                    width:    D_PX,
+                    height:   H_BAR,
+                    display:  'block',
+                    zIndex:   1,
+                  }}
                 >
-                  {phase.label}
-                </span>
-              </div>
-            )
-          })}
-        </div>
+                  <polygon points="0,0 1,1 0,2" fill={bg} />
+                </svg>
+              )}
+            </div>
+          )
+        })}
       </button>
 
       {/* ── Season Schedule Sheet ── */}
