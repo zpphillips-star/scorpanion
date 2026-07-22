@@ -46,6 +46,16 @@ interface GoalScorer {
   type: string
 }
 
+interface TopFootballer {
+  teamId: string
+  name: string
+  role: "QB" | "RUS" | "REC"
+  stat1: string   // QB: "C/ATT" string  |  RUS: carries  |  REC: receptions
+  stat2: string   // passing/rushing/receiving yards
+  stat3: string   // touchdowns
+  stat4?: string  // QB only: interceptions
+}
+
 interface BoxScoreData {
   sportType: string
   periodLabels: string[]
@@ -60,6 +70,7 @@ interface BoxScoreData {
   } | null
   topScorers: TopScorer[]
   topBatters?: TopBatter[]
+  topFootballers?: TopFootballer[]
   shotsOnGoal: { teamId: string; abbr: string; value: string }[]
   isShootout: boolean
   goalScorers: GoalScorer[]
@@ -493,7 +504,15 @@ function HockeyScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattle
 // ─── Football ─────────────────────────────────────────────────────────────────
 
 function FootballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seattleTeamId?: string }) {
-  const { linescores, periodLabels, currentPeriod } = data
+  const { linescores, periodLabels, currentPeriod, topFootballers = [] } = data
+
+  // Group performers by teamId (preserves QB → RUS → REC order from API)
+  const performersByTeam: Record<string, TopFootballer[]> = {}
+  for (const p of topFootballers) {
+    if (!performersByTeam[p.teamId]) performersByTeam[p.teamId] = []
+    performersByTeam[p.teamId].push(p)
+  }
+
   return (
     <>
       <SectionHeader label="Score by Quarter" first />
@@ -537,6 +556,75 @@ function FootballScoreboard({ data, seattleTeamId }: { data: BoxScoreData; seatt
           </tbody>
         </table>
       </div>
+
+      {/* Top Performers — mirrors WNBA Top Scorers pattern exactly */}
+      {topFootballers.length > 0 && (
+        <>
+          <SectionHeader label="Top Performers" />
+          <div className="pb-2">
+            {linescores.map((team, teamIdx) => {
+              const performers = performersByTeam[team.teamId] ?? []
+              if (performers.length === 0) return null
+              const isSea = (seattleTeamId && team.teamId === seattleTeamId) || team.abbr === "SEA"
+              return (
+                <div
+                  key={team.teamId}
+                  className={`relative overflow-hidden ${teamIdx > 0 ? "mt-3 pt-3 border-t-2 border-zinc-800" : ""}`}
+                >
+                  {/* Ghost logo watermark — same style as basketball */}
+                  {team.logo && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={team.logo}
+                      alt=""
+                      aria-hidden
+                      className="absolute pointer-events-none select-none"
+                      style={{ width: 64, height: 64, opacity: 0.08, objectFit: "contain", top: "50%", left: "50%", transform: "translate(-50%,-50%)" }}
+                    />
+                  )}
+                  {performers.map((p, idx) => {
+                    const isQB = p.role === "QB"
+                    return (
+                      <div key={idx} className="relative flex items-center py-2.5">
+                        {/* Role chip — dim, fixed width, left-anchored */}
+                        <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider w-7 flex-shrink-0">{p.role}</span>
+                        {/* Player last name */}
+                        <span className={`flex-1 text-[14px] font-semibold truncate ${isSea ? "text-white" : "text-zinc-200"}`}>{p.name}</span>
+                        {/* Stat columns — QB gets 4 (C/ATT · YDS · TD · INT); RUS/REC get 3 + spacer */}
+                        <div className="flex items-center gap-3 tabular-nums flex-shrink-0">
+                          {isQB ? (
+                            <>
+                              {/* C/ATT — slightly smaller, wider to fit "22/35" */}
+                              <span className="text-[12px] font-medium text-zinc-400 w-10 text-center leading-none">{p.stat1}</span>
+                              {/* YDS */}
+                              <span className="text-[14px] font-bold text-zinc-200 w-8 text-center">{p.stat2}</span>
+                              {/* TD */}
+                              <span className="text-[14px] font-bold text-zinc-400 w-6 text-center">{p.stat3}</span>
+                              {/* INT — dimmer, 0 is unremarkable */}
+                              <span className="text-[14px] font-bold text-zinc-600 w-6 text-center">{p.stat4 ?? "–"}</span>
+                            </>
+                          ) : (
+                            <>
+                              {/* CAR / REC */}
+                              <span className="text-[14px] font-bold text-zinc-400 w-8 text-center">{p.stat1}</span>
+                              {/* YDS */}
+                              <span className="text-[14px] font-bold text-zinc-200 w-8 text-center">{p.stat2}</span>
+                              {/* TD */}
+                              <span className="text-[14px] font-bold text-zinc-400 w-6 text-center">{p.stat3}</span>
+                              {/* Spacer to align with QB's INT column */}
+                              <span className="w-6" />
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
     </>
   )
 }
@@ -793,7 +881,7 @@ export default function BoxScore({ eventId, league, seattleTeamId, color = "#00d
   if (error || !data || data.linescores.length === 0) return null
 
   const { sportType } = data
-  const showStats = true // show team stats for all sports
+  const showStats = sportType !== "football"  // football uses Top Performers instead; no team stats bar
 
   return (
     <div className="mt-1">

@@ -649,6 +649,94 @@ async function fetchESPNBoxScore(
     }))
   }
 
+  // ── NFL top performers ─────────────────────────────────────────────────────
+  // QB (passing), top rusher, top receiver — one per team, away first then home
+  let topFootballers: {
+    teamId: string; name: string; role: string
+    stat1: string; stat2: string; stat3: string; stat4?: string
+  }[] = []
+  if (sportType === "football") {
+    const bsPlayers: any[] = data.boxscore?.players ?? []
+    for (const teamEntry of bsPlayers) {
+      const teamId: string = teamEntry.team?.id ?? ""
+      const statistics: any[] = teamEntry.statistics ?? []
+      const getGroup = (n: string) => statistics.find((g: any) => g.name === n)
+      const getIdx   = (keys: string[], k: string) => keys.indexOf(k)
+      const lastName = (displayName: string) => {
+        const n = displayName?.trim() ?? ""
+        return n.split(" ").pop() ?? n
+      }
+
+      // Top QB (sort by passingYards)
+      const passGrp = getGroup("passing")
+      if (passGrp) {
+        const keys: string[] = passGrp.keys ?? []
+        const caIdx  = getIdx(keys, "completions/passingAttempts")
+        const ydIdx  = getIdx(keys, "passingYards")
+        const tdIdx  = getIdx(keys, "passingTouchdowns")
+        const intIdx = getIdx(keys, "interceptions")
+        const sorted = [...(passGrp.athletes ?? [])]
+          .filter((a: any) => a.athlete && Array.isArray(a.stats) && a.stats.length > 0)
+          .sort((a: any, b: any) => parseFloat(String(b.stats[ydIdx] ?? "0")) - parseFloat(String(a.stats[ydIdx] ?? "0")))
+        if (sorted.length > 0) {
+          const a = sorted[0]
+          topFootballers.push({
+            teamId, role: "QB",
+            name:  lastName(a.athlete?.displayName ?? a.athlete?.shortName ?? ""),
+            stat1: caIdx  >= 0 ? String(a.stats[caIdx]  ?? "–") : "–",  // "22/35"
+            stat2: ydIdx  >= 0 ? String(a.stats[ydIdx]  ?? "–") : "–",  // yards
+            stat3: tdIdx  >= 0 ? String(a.stats[tdIdx]  ?? "–") : "–",  // TD
+            stat4: intIdx >= 0 ? String(a.stats[intIdx] ?? "–") : "–",  // INT
+          })
+        }
+      }
+
+      // Top Rusher (sort by rushingYards)
+      const rushGrp = getGroup("rushing")
+      if (rushGrp) {
+        const keys: string[] = rushGrp.keys ?? []
+        const carIdx = getIdx(keys, "rushingAttempts")
+        const ydIdx  = getIdx(keys, "rushingYards")
+        const tdIdx  = getIdx(keys, "rushingTouchdowns")
+        const sorted = [...(rushGrp.athletes ?? [])]
+          .filter((a: any) => a.athlete && Array.isArray(a.stats) && a.stats.length > 0)
+          .sort((a: any, b: any) => parseFloat(String(b.stats[ydIdx] ?? "0")) - parseFloat(String(a.stats[ydIdx] ?? "0")))
+        if (sorted.length > 0) {
+          const a = sorted[0]
+          topFootballers.push({
+            teamId, role: "RUS",
+            name:  lastName(a.athlete?.displayName ?? a.athlete?.shortName ?? ""),
+            stat1: carIdx >= 0 ? String(a.stats[carIdx] ?? "–") : "–",  // carries
+            stat2: ydIdx  >= 0 ? String(a.stats[ydIdx]  ?? "–") : "–",  // yards
+            stat3: tdIdx  >= 0 ? String(a.stats[tdIdx]  ?? "–") : "–",  // TD
+          })
+        }
+      }
+
+      // Top Receiver (sort by receivingYards)
+      const recGrp = getGroup("receiving")
+      if (recGrp) {
+        const keys: string[] = recGrp.keys ?? []
+        const recIdx = getIdx(keys, "receptions")
+        const ydIdx  = getIdx(keys, "receivingYards")
+        const tdIdx  = getIdx(keys, "receivingTouchdowns")
+        const sorted = [...(recGrp.athletes ?? [])]
+          .filter((a: any) => a.athlete && Array.isArray(a.stats) && a.stats.length > 0)
+          .sort((a: any, b: any) => parseFloat(String(b.stats[ydIdx] ?? "0")) - parseFloat(String(a.stats[ydIdx] ?? "0")))
+        if (sorted.length > 0) {
+          const a = sorted[0]
+          topFootballers.push({
+            teamId, role: "REC",
+            name:  lastName(a.athlete?.displayName ?? a.athlete?.shortName ?? ""),
+            stat1: recIdx >= 0 ? String(a.stats[recIdx] ?? "–") : "–",  // receptions
+            stat2: ydIdx  >= 0 ? String(a.stats[ydIdx]  ?? "–") : "–",  // yards
+            stat3: tdIdx  >= 0 ? String(a.stats[tdIdx]  ?? "–") : "–",  // TD
+          })
+        }
+      }
+    }
+  }
+
   return {
     sportType,
     periodLabels,
@@ -658,6 +746,7 @@ async function fetchESPNBoxScore(
     currentPeriod: isLive ? currentPeriod : null,
     pitchers,
     topScorers,
+    topFootballers,
     shotsOnGoal,
     isShootout,
     goalScorers,
