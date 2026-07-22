@@ -160,12 +160,29 @@ export async function GET() {
     ...sportLeagues.map(async (sl) => {
       try {
         const [sport, league] = sl.split('/')
-        const url = `https://site.api.espn.com/apis/site/v2/sports/${sport}/${league}/scoreboard`
-        const res = await fetch(url, { cache: 'no-store' })
-        if (!res.ok) return
+        const base = `https://site.api.espn.com/apis/site/v2/sports/${sport}/${league}/scoreboard`
+        // Fetch default scoreboard AND preseason scoreboard in parallel.
+        // During preseason weeks the default endpoint may still return the next
+        // regular season; the seasontype=1 call ensures live preseason games are
+        // captured. Dedup by event ID so regular-season events aren't doubled.
+        const [defaultRes, preRes] = await Promise.allSettled([
+          fetch(base, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch(`${base}?seasontype=1`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+        ])
 
-        const data = await res.json()
-        for (const event of data.events ?? []) {
+        const seenEventIds = new Set<string>()
+        const allEvents: any[] = []
+        for (const result of [defaultRes, preRes]) {
+          if (result.status !== 'fulfilled' || !result.value) continue
+          for (const event of result.value.events ?? []) {
+            if (!seenEventIds.has(event.id)) {
+              seenEventIds.add(event.id)
+              allEvents.push(event)
+            }
+          }
+        }
+
+        for (const event of allEvents) {
           const comp = event.competitions?.[0]
           if (!comp) continue
 

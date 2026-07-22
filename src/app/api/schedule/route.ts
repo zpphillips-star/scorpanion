@@ -161,8 +161,10 @@ async function fetchMLBSchedule(team: SeattleTeam): Promise<Game[]> {
   const games: Game[] = []
   for (const date of data.dates ?? []) {
     for (const game of date.games ?? []) {
-      // Only regular season + postseason
-      if (game.gameType !== 'R' && game.gameType !== 'P' && game.gameType !== 'D' && game.gameType !== 'L' && game.gameType !== 'W') continue
+      // Include all game types: R=regular, S=spring training, P/D/L/W/F=postseason, E=exhibition
+      // Skip only non-game types (A=all-star, N/Z/etc. administrative)
+      const SKIP_GAME_TYPES = new Set(['A', 'N', 'Z'])
+      if (SKIP_GAME_TYPES.has(game.gameType)) continue
 
       const awayData = game.teams.away
       const homeData = game.teams.home
@@ -228,9 +230,7 @@ async function fetchNHLSchedule(team: SeattleTeam): Promise<Game[]> {
 
   const games: Game[] = []
   for (const game of data.games ?? []) {
-    // gameType: 1=preseason, 2=regular, 3=playoffs — skip preseason
-    if (game.gameType === 1) continue
-
+    // Include all game types: 1=preseason, 2=regular, 3=playoffs
     const awayTeam = game.awayTeam
     const homeTeam = game.homeTeam
     const isHome = homeTeam.abbrev === NHL_KRAKEN_ABBREV
@@ -323,13 +323,32 @@ function parseRecord(comp: any): TeamRecord | undefined {
 }
 
 async function fetchESPNSchedule(team: SeattleTeam): Promise<Game[]> {
-  const url = `https://site.api.espn.com/apis/site/v2/sports/${team.sport}/${team.league}/teams/${team.espnId}/schedule`
-  const res = await fetch(url, { next: { revalidate: 60 } })
-  if (!res.ok) return []
-  const data = await res.json()
+  // Fetch all three season types (1=preseason, default≈2=regular, 3=postseason) in parallel
+  // so games appear on the home screen and schedule tab regardless of which phase we're in.
+  const baseUrl = `https://site.api.espn.com/apis/site/v2/sports/${team.sport}/${team.league}/teams/${team.espnId}/schedule`
+  const fetchOpts = { next: { revalidate: 60 } }
+
+  const [defaultResult, preseasonResult, postseasonResult] = await Promise.allSettled([
+    fetch(baseUrl, fetchOpts).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch(`${baseUrl}?seasontype=1`, fetchOpts).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch(`${baseUrl}?seasontype=3`, fetchOpts).then(r => r.ok ? r.json() : null).catch(() => null),
+  ])
+
+  // Merge events from all three responses, deduplicating by ESPN event ID
+  const seenEventIds = new Set<string>()
+  const allEvents: any[] = []
+  for (const result of [defaultResult, preseasonResult, postseasonResult]) {
+    if (result.status !== 'fulfilled' || !result.value) continue
+    for (const event of result.value.events ?? []) {
+      if (!seenEventIds.has(event.id)) {
+        seenEventIds.add(event.id)
+        allEvents.push(event)
+      }
+    }
+  }
 
   const games: Game[] = []
-  for (const event of data.events ?? []) {
+  for (const event of allEvents) {
     const comp = event.competitions?.[0]
     if (!comp) continue
     const home = comp.competitors?.find((c: any) => c.homeAway === 'home')
