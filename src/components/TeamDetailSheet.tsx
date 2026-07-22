@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, ReactNode } from "react"
+import { useState, useEffect } from "react"
 
 interface StandingRow {
   abbr: string; logo: string; wins: number; losses: number; winPct: number; isThis: boolean
@@ -27,17 +27,13 @@ function fmtDay(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
 }
 
-/** Colored section container with accent-tinted background, border, and uppercase label */
-function SectionBox({ label, color, children }: { label: string; color: string; children: ReactNode }) {
+/** Flat section label — no background, no border, no accent color */
+function SectionLabel({ label }: { label: string }) {
   return (
-    <div
-      className="rounded-xl p-4 mb-3"
-      style={{ background: color + "14", border: `1px solid ${color}30` }}
-    >
-      <div className="text-[12px] font-bold uppercase tracking-widest mb-3" style={{ color }}>
-        {label}
-      </div>
-      {children}
+    <div className="flex items-center gap-2 mb-3">
+      <div className="flex-1 h-px bg-zinc-700/50" />
+      <span className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">{label}</span>
+      <div className="flex-1 h-px bg-zinc-700/50" />
     </div>
   )
 }
@@ -54,7 +50,6 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
       .catch(() => setLoading(false))
   }, [teamId, league])
 
-  const color = data?.color ?? "#00d4ff"
   const logo = data?.logo ?? teamLogo ?? ""
 
   return (
@@ -72,13 +67,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
         <div className="w-10 h-1 rounded-full bg-white/15 mx-auto mt-3 mb-1" />
 
         {/* ── HERO HEADER ─────────────────────────────────────────────────────── */}
-        <div
-          className="relative px-5 pt-4 pb-6"
-          style={{ background: `linear-gradient(160deg, ${color}30 0%, ${color}10 55%, transparent 100%)` }}
-        >
-          {/* Top accent line */}
-          <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-3xl" style={{ background: `linear-gradient(to right, ${color}, ${color}44, transparent)` }} />
-
+        <div className="relative px-5 pt-4 pb-6">
           <button
             onClick={onClose}
             className="absolute top-3 right-4 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 text-sm hover:bg-white/15 transition-colors"
@@ -86,7 +75,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
 
           <div className="flex items-center gap-4">
             {/* Logo */}
-            <div className="flex-shrink-0 relative">
+            <div className="flex-shrink-0">
               {logo
                 ? <img src={logo} alt={teamName} width={76} height={76} className="object-contain drop-shadow-xl" />
                 : <div className="w-[76px] h-[76px] rounded-full bg-white/10 animate-pulse" />
@@ -95,7 +84,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
 
             {/* Name + record */}
             <div className="flex-1 min-w-0">
-              <div className="font-display text-[12px] font-700 uppercase tracking-widest mb-0.5" style={{ color }}>
+              <div className="font-display text-[12px] font-700 uppercase tracking-widest mb-0.5 text-zinc-500">
                 {loading ? "Loading…" : (data?.location ?? "")}
               </div>
               <div className="font-display text-[26px] font-800 text-white uppercase leading-tight truncate">
@@ -109,8 +98,8 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
 
         {/* ── LAST 3 GAMES ─────────────────────────────────────────────────────── */}
         {data && !loading && data.recentForm.length > 0 && (
-          <div className="px-4 pt-3">
-            <SectionBox label="Last 3 Games" color={color}>
+          <div className="px-4 pt-1 pb-4">
+            <SectionLabel label="Last 3 Games" />
             <div className="grid grid-cols-3 gap-2">
               {[...data.recentForm].reverse().slice(0, 3).map((g, i) => {
                 const win = g.result === "W"
@@ -126,7 +115,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                   <div
                     key={i}
                     className="rounded-lg overflow-hidden"
-                    style={{ background: "var(--surface-2)", border: `1px solid ${rc}28` }}
+                    style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
                   >
                     {/* Away row */}
                     <div className="flex items-center px-2.5 pt-2.5 pb-1 gap-1.5">
@@ -155,14 +144,13 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                 )
               })}
             </div>
-            </SectionBox>
           </div>
         )}
 
         {/* ── NEXT 3 GAMES ─────────────────────────────────────────────────────── */}
         {data && !loading && data.upcomingGames.length > 0 && (
-          <div className="px-4 pt-0">
-            <SectionBox label="Next 3 Games" color={color}>
+          <div className="px-4 pb-4">
+            <SectionLabel label="Next 3 Games" />
             <div className="space-y-2">
               {data.upcomingGames.map((g, i) => (
                 <div
@@ -184,22 +172,20 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                     <div className="font-display text-[14px] font-700 text-zinc-200">
                       {new Date(g.time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
                     </div>
-                    <div
-                      className="font-display text-[11px] font-700 uppercase tracking-wide mt-0.5 px-1.5 py-0.5 rounded-full inline-block"
-                      style={{ color: g.isHome ? color : "var(--text-muted)", background: g.isHome ? `${color}18` : "transparent" }}
-                    >{g.isHome ? "Home" : "Away"}</div>
+                    <div className="font-display text-[11px] font-700 uppercase tracking-wide mt-0.5 text-zinc-500">
+                      {g.isHome ? "Home" : "Away"}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-            </SectionBox>
           </div>
         )}
 
         {/* ── DIVISION STANDINGS───────────────────────────────────────────────── */}
         {data && !loading && data.divisionStandings.length > 0 && (
-          <div className="px-4 pt-0">
-            <SectionBox label={data.divisionName || "Division"} color={color}>
+          <div className="px-4 pb-4">
+            <SectionLabel label={data.divisionName || "Division"} />
 
             {/* Header row */}
             <div className="flex items-center px-3 mb-1.5">
@@ -214,27 +200,21 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
               {data.divisionStandings.map((row, i) => (
                 <div
                   key={i}
-                  className="flex items-center px-3 py-2.5 rounded-lg gap-2.5"
-                  style={{
-                    background: row.isThis ? `${color}18` : "var(--surface-2)",
-                    border: `1px solid ${row.isThis ? `${color}35` : "var(--border)"}`,
-                  }}
+                  className={`flex items-center px-3 py-2.5 rounded-lg gap-2.5 ${row.isThis ? "bg-white/[0.08] border border-white/15" : "border border-transparent"}`}
                 >
                   <div
-                    className="w-5 font-display text-[12px] font-700 text-center flex-shrink-0"
-                    style={{ color: row.isThis ? color : (i === 0 ? "#fbbf24" : "var(--text-muted)") }}
+                    className={`w-5 font-display text-[12px] font-700 text-center flex-shrink-0 ${i === 0 ? "text-amber-400" : "text-zinc-500"}`}
                   >{i + 1}</div>
                   {row.logo
                     ? <img src={row.logo} alt={row.abbr} width={28} height={28} className="object-contain flex-shrink-0" />
                     : <div className="w-6 h-6 rounded-full bg-white/8 flex-shrink-0" />
                   }
                   <div className="flex-1 min-w-0">
-                    <span
-                      className="font-display text-[14px] font-700 truncate"
-                      style={{ color: row.isThis ? "white" : "var(--text-secondary)" }}
-                    >{row.abbr}</span>
+                    <span className={`font-display text-[14px] font-700 truncate ${row.isThis ? "text-white" : "text-zinc-400"}`}>
+                      {row.abbr}
+                    </span>
                   </div>
-                  <div className="w-8 font-display text-[14px] font-700 text-center tabular-nums" style={{ color: row.isThis ? "white" : "var(--text-secondary)" }}>{row.wins}</div>
+                  <div className={`w-8 font-display text-[14px] font-700 text-center tabular-nums ${row.isThis ? "text-white" : "text-zinc-400"}`}>{row.wins}</div>
                   <div className="w-8 font-display text-[14px] text-center tabular-nums text-zinc-500">{row.losses}</div>
                   <div className="w-12 font-display text-[12px] text-right tabular-nums text-zinc-400">
                     {row.winPct > 0 ? `.${Math.round(row.winPct * 1000).toString().padStart(3,"0")}` : "—"}
@@ -242,13 +222,12 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
                 </div>
               ))}
             </div>
-            </SectionBox>
           </div>
         )}
 
         {/* Venue */}
         {data?.venue && (
-          <div className="px-5 pb-5 pt-3">
+          <div className="px-5 pb-5 pt-1">
             <div className="flex items-center gap-2 text-zinc-600 text-[12px]">
               <span>📍</span><span>{data.venue}</span>
             </div>
@@ -257,7 +236,7 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
 
         {loading && (
           <div className="px-5 py-10 flex flex-col items-center gap-3">
-            <div className="w-7 h-7 border-2 rounded-full animate-spin" style={{ borderColor: `${color}44`, borderTopColor: color }} />
+            <div className="w-7 h-7 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
             <div className="font-display text-[12px] text-zinc-600">Loading {teamName}…</div>
           </div>
         )}
