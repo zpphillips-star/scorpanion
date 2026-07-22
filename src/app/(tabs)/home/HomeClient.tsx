@@ -185,8 +185,8 @@ function GolfTodayCard({ tournament, label, accentColor }: {
   const dayLabel   = roundNum ? `Day ${roundNum} of 4` : tournament.roundLabel
 
   const logoUrl = label === 'LPGA'
-    ? 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/lpga.png'
-    : 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/pga.png'
+    ? 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/lpga.png'
+    : 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/pgatour.png'
 
   return (
     <>
@@ -275,8 +275,8 @@ function GolfRecentCard({ tournament, label, accentColor }: {
   }
 
   const logoUrl = label === 'LPGA'
-    ? 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/lpga.png'
-    : 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/pgatour.png'
+    ? 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/lpga.png'
+    : 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/pgatour.png'
 
   const scoreColor = winner?.totalScore.startsWith('+') ? '#f87171' : '#e4e4e7'
 

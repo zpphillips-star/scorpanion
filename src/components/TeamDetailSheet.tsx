@@ -59,12 +59,12 @@ export default function TeamDetailSheet({ teamId, teamName, teamLogo, league, on
 
   return (
     <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60]" onClick={onClose} />
+      {/* Backdrop — must sit above GameDetailSheet (z-[10000]) */}
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[10001]" onClick={onClose} />
 
       {/* Sheet */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-[70] lg:max-w-2xl lg:mx-auto rounded-t-lg overflow-y-auto animate-slide-up"
+        className="fixed bottom-0 left-0 right-0 z-[10002] lg:max-w-2xl lg:mx-auto rounded-t-lg overflow-y-auto animate-slide-up"
         style={{ background: "var(--surface)", paddingBottom: "env(safe-area-inset-bottom)", maxHeight: "88dvh" }}
         onClick={e => e.stopPropagation()}
       >

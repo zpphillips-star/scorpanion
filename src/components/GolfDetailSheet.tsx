@@ -297,8 +297,8 @@ export default function GolfDetailSheet({
 
   // Logo URL — PGA or LPGA
   const logoUrl = label === "LPGA"
-    ? "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/lpga.png"
-    : "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/pgatour.png"
+    ? "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/lpga.png"
+    : "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/pgatour.png"
 
   // Dismiss on Escape key
   const handleKey = useCallback(
