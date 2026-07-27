@@ -153,18 +153,22 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
           && id !== 'lpga'
       )
       const fetches: Promise<Game[]>[] = []
+      // Use cache-busting + no-cache headers so Vercel edge / browser cache never
+      // serves a stale schedule. The API route also sets Cache-Control: no-store.
+      const noCache = { headers: { 'Cache-Control': 'no-cache, no-store' } }
+      const cacheBust = `_cb=${Date.now()}`
 
       if (espnIds.length > 0) {
         fetches.push(
-          fetch(`/api/schedule?teams=${espnIds.join(',')}`).then(r => r.ok ? r.json() : [])
+          fetch(`/api/schedule?teams=${espnIds.join(',')}&${cacheBust}`, noCache).then(r => r.ok ? r.json() : [])
         )
       }
       if (selectedTeamIds.includes('torrent')) {
-        fetches.push(fetch('/api/pwhl').then(r => r.ok ? r.json() : []))
+        fetches.push(fetch(`/api/pwhl?${cacheBust}`, noCache).then(r => r.ok ? r.json() : []))
       }
       if (WHL_IDS.some(id => selectedTeamIds.includes(id))) {
         fetches.push(
-          fetch('/api/whl')
+          fetch(`/api/whl?${cacheBust}`, noCache)
             .then(r => r.ok ? (r.json() as Promise<Game[]>) : [])
             .then(gs => gs.filter(g => selectedTeamIds.includes(g.seattleTeamId)))
         )
@@ -220,7 +224,7 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
 
   const fetchLiveScores = useCallback(async () => {
     try {
-      const r = await fetch('/api/live-scores')
+      const r = await fetch('/api/live-scores', { headers: { 'Cache-Control': 'no-cache, no-store' } })
       if (!r.ok || !mountedRef.current) return
       const data = await r.json() as Record<string, { status: string }>
       if (!mountedRef.current) return
@@ -251,11 +255,20 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
   const allGames: Game[] = games.map(g => {
     const u = liveScores[g.id]
     if (!u) return g
+    // Guardrail: only apply live-score overlay for live/final states.
+    // Never overwrite with an 'upcoming' update (pre-game scores are 0/undefined
+    // and would corrupt cards that previously showed correct final scores).
+    if (u.status === 'upcoming') return g
+    // Validate scores before applying — reject NaN or implausible values (>150).
+    const validScore = (v: number | undefined): number | undefined => {
+      if (v === undefined || v === null) return undefined
+      return (isNaN(v) || v < 0 || v > 150) ? undefined : v
+    }
     return {
       ...g,
       status:        u.status,
-      seattleScore:  u.seattleScore,
-      opponentScore: u.opponentScore,
+      seattleScore:  validScore(u.seattleScore)  ?? g.seattleScore,
+      opponentScore: validScore(u.opponentScore) ?? g.opponentScore,
       clock:         u.clock,
       period:        u.period,
     }

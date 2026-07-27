@@ -412,7 +412,7 @@ function RecentCard({ game, onClick }: { game: Game; onClick: () => void }) {
             {hasScore ? leftScore : "–"}
           </span>
         </div>
-        <span className="text-[11px] text-zinc-700 self-center pb-2">–</span>
+        <span className="text-[11px] text-zinc-700 self-center">–</span>
         {/* Right (home) */}
         <div className="flex flex-col items-center flex-1">
           <TeamLogo src={rightLogo} emoji={rightEmoji} abbr={rightAbbr} size={26} />

@@ -186,9 +186,15 @@ async function fetchMLBSchedule(team: SeattleTeam): Promise<Game[]> {
       const parseScore = (val: any): number | undefined => {
         if (val === undefined || val === null || val === '') return undefined
         const n = Number(val)
-        return isNaN(n) ? undefined : n
+        // Guard against NaN or impossible values (negative, or > 150 which is absurd for any sport).
+        // Pre-game scores from MLB Stats API can be 0 for upcoming games; we keep 0 as valid
+        // since a shutout could produce 0, and the status field gates pre-game display.
+        return (isNaN(n) || n < 0 || n > 150) ? undefined : n
       }
 
+      // Only attach scores when the game has started — MLB Stats API returns score=0
+      // for upcoming games, which would show "0 – 0" on pre-game cards.
+      const hasStarted = status !== 'upcoming'
       games.push({
         id: `${team.id}|${game.gamePk}`,
         seattleTeamId: team.id,
@@ -208,8 +214,8 @@ async function fetchMLBSchedule(team: SeattleTeam): Promise<Game[]> {
           city: homeData.team.locationName ?? '',
         },
         status,
-        seattleScore: parseScore(mariners.score),
-        opponentScore: parseScore(opp.score),
+        seattleScore:  hasStarted ? parseScore(mariners.score) : undefined,
+        opponentScore: hasStarted ? parseScore(opp.score)      : undefined,
         sport: team.sport,
         league: team.league,
         seattleRecord: { wins: mW, losses: mL, summary: `${mW}-${mL}` },
@@ -224,7 +230,7 @@ async function fetchMLBSchedule(team: SeattleTeam): Promise<Game[]> {
 async function fetchNHLSchedule(team: SeattleTeam): Promise<Game[]> {
   const seasonId = getNHLSeasonId()
   const url = `https://api-web.nhle.com/v1/club-schedule-season/${NHL_KRAKEN_ABBREV}/${seasonId}`
-  const res = await fetch(url, { next: { revalidate: 60 } })
+  const res = await fetch(url, { cache: 'no-store' })
   if (!res.ok) return []
   const data = await res.json()
 
@@ -326,7 +332,9 @@ async function fetchESPNSchedule(team: SeattleTeam): Promise<Game[]> {
   // Fetch all three season types (1=preseason, default≈2=regular, 3=postseason) in parallel
   // so games appear on the home screen and schedule tab regardless of which phase we're in.
   const baseUrl = `https://site.api.espn.com/apis/site/v2/sports/${team.sport}/${team.league}/teams/${team.espnId}/schedule`
-  const fetchOpts = { next: { revalidate: 60 } }
+  // Use no-store so live scores are always authoritative — the route is already force-dynamic,
+  // so repeated fetches would hit the upstream ESPN API on every request anyway.
+  const fetchOpts = { cache: 'no-store' as const }
 
   const [defaultResult, preseasonResult, postseasonResult] = await Promise.allSettled([
     fetch(baseUrl, fetchOpts).then(r => r.ok ? r.json() : null).catch(() => null),
@@ -517,5 +525,12 @@ export async function GET(request: NextRequest) {
 
   allGames.sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime())
 
-  return Response.json(allGames)
+  return Response.json(allGames, {
+    headers: {
+      // Prevent all layers of caching (Vercel edge, CDN, browser) so scores are always
+      // authoritative. The upstream MLB/NHL/ESPN fetches already use cache: 'no-store'.
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Pragma': 'no-cache',
+    },
+  })
 }

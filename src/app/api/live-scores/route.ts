@@ -47,6 +47,10 @@ async function fetchMLBLiveScores(today: string, yesterday: string): Promise<Rec
       if (state === 'Live') status = 'live'
       else if (state === 'Final') status = 'ft'
 
+      // Skip upcoming games — pre-game scores are 0 and would overwrite the
+      // schedule API's cleaner undefined values (matching ESPN behavior below).
+      if (status === 'upcoming') continue
+
       const linescore = game.linescore
       let clock: string | undefined
       let period: string | undefined
@@ -58,12 +62,23 @@ async function fetchMLBLiveScores(today: string, yesterday: string): Promise<Rec
         period = `${isTop ? 'Top' : 'Bot'} ${linescore.currentInningOrdinal ?? `${inning}th`}`
       }
 
+      // Validate scores — MLB stats API occasionally returns null/undefined for
+      // scores in edge cases (postponed, suspended, etc.). Only include an update
+      // when we have real numeric values so we don't flash "0-0" for bad data.
+      const parsedSeattle = marinersData.score !== undefined && marinersData.score !== null
+        ? Number(marinersData.score) : undefined
+      const parsedOpp     = oppData.score     !== undefined && oppData.score     !== null
+        ? Number(oppData.score)     : undefined
+
+      if (parsedSeattle === undefined || isNaN(parsedSeattle) ||
+          parsedOpp     === undefined || isNaN(parsedOpp)) continue
+
       const gameId = `mariners|${game.gamePk}`
       updates[gameId] = {
         gameId,
         seattleTeamId: mariner.id,
-        seattleScore: marinersData.score !== undefined ? Number(marinersData.score) : 0,
-        opponentScore: oppData.score !== undefined ? Number(oppData.score) : 0,
+        seattleScore:  parsedSeattle,
+        opponentScore: parsedOpp,
         status,
         clock,
         period,
@@ -100,6 +115,9 @@ async function fetchNHLLiveScores(today: string): Promise<Record<string, ScoreUp
     if (state === 'LIVE' || state === 'CRIT') status = 'live'
     else if (state === 'FINAL' || state === 'OFF') status = 'ft'
 
+    // Skip upcoming games — scores are 0 pre-game and would corrupt displayed values.
+    if (status === 'upcoming') continue
+
     let clock: string | undefined
     let period: string | undefined
 
@@ -113,12 +131,21 @@ async function fetchNHLLiveScores(today: string): Promise<Record<string, ScoreUp
       clock = game.clock?.timeRemaining ?? undefined
     }
 
+    // Validate scores before storing.
+    const parsedKraken = krakenTeam.score !== undefined && krakenTeam.score !== null
+      ? Number(krakenTeam.score) : undefined
+    const parsedOpp    = oppTeam.score    !== undefined && oppTeam.score    !== null
+      ? Number(oppTeam.score)    : undefined
+
+    if (parsedKraken === undefined || isNaN(parsedKraken) ||
+        parsedOpp    === undefined || isNaN(parsedOpp)) continue
+
     const gameId = `kraken|${game.id}`
     updates[gameId] = {
       gameId,
       seattleTeamId: kraken.id,
-      seattleScore: krakenTeam.score !== undefined ? Number(krakenTeam.score) : 0,
-      opponentScore: oppTeam.score !== undefined ? Number(oppTeam.score) : 0,
+      seattleScore:  parsedKraken,
+      opponentScore: parsedOpp,
       status,
       clock,
       period,
@@ -243,5 +270,10 @@ export async function GET() {
     }),
   ])
 
-  return Response.json(updates)
+  return Response.json(updates, {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Pragma': 'no-cache',
+    },
+  })
 }

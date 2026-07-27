@@ -43,7 +43,34 @@ async function fetchTour(slug: string): Promise<GolfTournament | null> {
     const comp = event.competitions?.[0]
     if (!comp) return null
 
-    const venue = comp.venue ?? {}
+    // comp.venue is frequently null in ESPN's golf scoreboard endpoint.
+    // Fall back to the ESPN Core API (sports.core.api.espn.com) which exposes
+    // the full course list including name and address for the event.
+    const venueFromComp = comp.venue ?? null
+    let courseName = venueFromComp?.fullName ?? venueFromComp?.name ?? ''
+    let courseCity = venueFromComp?.address?.city ?? ''
+    let courseState = venueFromComp?.address?.state ?? ''
+
+    if (!courseName) {
+      try {
+        const coreUrl = `https://sports.core.api.espn.com/v2/sports/golf/leagues/${slug}/events/${event.id}`
+        const coreRes = await fetch(coreUrl, { cache: 'no-store' })
+        if (coreRes.ok) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const coreData: any = await coreRes.json()
+          // courses is an array; host course has host:true or just use first entry
+          const hostCourse = (coreData.courses ?? []).find((c: any) => c.host) ?? coreData.courses?.[0]
+          if (hostCourse) {
+            courseName = hostCourse.name ?? ''
+            courseCity = hostCourse.address?.city ?? ''
+            courseState = hostCourse.address?.state ?? ''
+          }
+        }
+      } catch {
+        // core API unavailable — leave course/location blank
+      }
+    }
+
     const status = event.status?.type?.state ?? 'pre'  // 'pre' | 'in' | 'post'
     // currentRound comes from the competition status (e.g. period=3 = "Round 3")
     const currentRound = comp.status?.period ?? 1
@@ -96,8 +123,8 @@ async function fetchTour(slug: string): Promise<GolfTournament | null> {
     return {
       id: event.id,
       name: event.name ?? event.shortName ?? 'Tournament',
-      course: venue.fullName ?? venue.name ?? '',
-      location: venue.address?.city ? `${venue.address.city}, ${venue.address.state ?? ''}`.trim().replace(/,$/, '') : '',
+      course: courseName,
+      location: courseCity ? `${courseCity}, ${courseState}`.trim().replace(/,$/, '') : '',
       status: status === 'pre' ? 'pre' : status === 'in' ? 'in' : 'post',
       round,
       totalRounds,
