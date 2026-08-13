@@ -103,7 +103,10 @@ function mlbLogoUrl(fileCode: string): string {
 }
 
 /**
- * MLB statsapi.mlb.com returns gameDate as "MM/DD/YYYY HH:MM:SS" (UTC).
+ * MLB statsapi.mlb.com returns gameDate as UTC but the string shape varies:
+ *   - "MM/DD/YYYY HH:MM:SS"     (24-hour UTC)
+ *   - "MM/DD/YYYY HH:MM:SS AM"  (12-hour UTC, current Stats API shape)
+ *   - ISO 8601
  * This format is non-standard and causes Invalid Date in Safari/WebKit.
  * Normalise to a proper ISO 8601 UTC string so new Date(kickoff) always works.
  *
@@ -129,7 +132,8 @@ function mlbLogoUrl(fileCode: string): string {
 function normalizeMLBDate(gameDate: string, _officialDate?: string): string {
   // MLB Stats API may return gameDate as either:
   //   ISO 8601: "2026-07-19T20:10:00Z"
-  //   Legacy:   "07/19/2026 20:10:00"   ← MM/DD/YYYY HH:MM:SS (UTC, no zone marker)
+  //   Legacy:   "07/19/2026 20:10:00"      ← 24-hour UTC
+  //   Legacy:   "08/12/2026 11:05:00 PM"   ← 12-hour UTC
   // We must always convert to ISO so Safari/WebKit handles new Date(kickoff) correctly.
 
   if (gameDate.includes('T')) {
@@ -137,13 +141,22 @@ function normalizeMLBDate(gameDate: string, _officialDate?: string): string {
     return gameDate.endsWith('Z') ? gameDate : `${gameDate}Z`
   }
 
-  // Legacy format: "07/19/2026 20:10:00"
-  const [datePart, timePart = '00:00:00'] = gameDate.split(' ')
-  const parts = datePart.split('/')
-  if (parts.length === 3) {
-    const [mm, dd, yyyy] = parts
+  // Legacy format: "07/19/2026 20:10:00" or "08/12/2026 11:05:00 PM".
+  // IMPORTANT: split(' ') loses the AM/PM token and turns 11:05 PM into 11:05Z,
+  // which makes the same Mariners game fail cross-system dedup against ESPN and
+  // can render duplicate cards with identical scores.
+  const match = gameDate.trim().match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*(AM|PM))?$/i
+  )
+  if (match) {
+    const [, mm, dd, yyyy, hourRaw, minute, second = '00', meridiemRaw] = match
+    let hour = Number(hourRaw)
+    const meridiem = meridiemRaw?.toUpperCase()
+    if (meridiem === 'PM' && hour < 12) hour += 12
+    if (meridiem === 'AM' && hour === 12) hour = 0
     const isoDate = `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`
-    return `${isoDate}T${timePart}Z`
+    const isoTime = `${String(hour).padStart(2, '0')}:${minute}:${second.padStart(2, '0')}`
+    return `${isoDate}T${isoTime}Z`
   }
 
   // Unknown format — return as-is; HomeClient parseKickoff will attempt to handle it
@@ -436,6 +449,11 @@ export async function GET(request: NextRequest) {
   const proTeamMap = new Map(ALL_PRO_TEAMS.map(t => [t.id, t]))
 
   const seattleTeams = SEATTLE_TEAMS.filter(t => teamIds.includes(t.id))
+  const selectedSeattleTeamKeys = new Set(
+    seattleTeams
+      .filter(t => t.espnId)
+      .map(t => `${t.sport}|${t.league}|${t.espnId}`)
+  )
   const otherProTeams = teamIds
     .filter(id => !seattleTeamSet.has(id) && proTeamMap.has(id))
     .map(id => {
@@ -456,6 +474,11 @@ export async function GET(request: NextRequest) {
       }
       return mapped
     })
+    // If a canonical Seattle team and its ALL_PRO_TEAMS twin are both followed
+    // (for example "mariners" and "mlb-sea"), keep the canonical Seattle feed.
+    // This avoids rendering the same real-world game twice via different APIs
+    // while still allowing users to follow the pro-team entry by itself.
+    .filter(t => !selectedSeattleTeamKeys.has(`${t.sport}|${t.league}|${t.espnId}`))
 
   const allGames: Game[] = []
   const seenIds = new Set<string>()
@@ -468,7 +491,11 @@ export async function GET(request: NextRequest) {
   function addGame(game: Game) {
     if (seenIds.has(game.id)) return
     // Key 1: raw event ID (strips team prefix) — catches same-system duplicates
-    const eventKey = game.id.includes('|') ? game.id.split('|').slice(1).join('|') : game.id
+    // ESPN event IDs are not guaranteed unique across sports/leagues.  Scope the raw
+    // ID by source sport+league so an MLB game cannot accidentally suppress an NFL,
+    // NHL, etc. game that happens to reuse the same numeric event ID.
+    const rawEventId = game.id.includes('|') ? game.id.split('|').slice(1).join('|') : game.id
+    const eventKey = `${game.sport}|${game.league}|${rawEventId}`
     if (seenEventKeys.has(eventKey)) return
     // Key 2: date + time + sport + sorted team abbrs — catches cross-system duplicates
     // (e.g. MLB Stats API gamePk vs ESPN event ID for the same Mariners/Giants game)
