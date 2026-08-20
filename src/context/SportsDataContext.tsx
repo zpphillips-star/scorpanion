@@ -221,6 +221,10 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
 
   const timeoutRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
   const mountedRef  = useRef(false)
+  // Stable ref to games so fetchLiveScores (stable callback) can read latest games
+  // without being recreated every time games changes.
+  const gamesRef    = useRef<Game[]>(games)
+  useEffect(() => { gamesRef.current = games }, [games])
 
   const fetchLiveScores = useCallback(async () => {
     try {
@@ -229,7 +233,18 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
       const data = await r.json() as Record<string, { status: string }>
       if (!mountedRef.current) return
       setLiveScores(data as Record<string, ScoreUpdate>)
-      const hasLive = Object.values(data).some(s => s.status === 'live')
+      // Only use 2s polling if a plausibly-live game exists (kickoff within a reasonable window).
+      // This prevents stale 'live' statuses from keeping us on the fast poll forever.
+      const now = Date.now()
+      const hasLive = Object.entries(data).some(([id, s]) => {
+        if (s.status !== 'live') return false
+        // Cross-reference with current games to check kickoff plausibility.
+        const game = gamesRef.current.find(g => g.id === id)
+        if (!game?.kickoff) return true   // no kickoff info — give benefit of the doubt
+        const ms = new Date(game.kickoff).getTime()
+        if (isNaN(ms)) return true
+        return ms <= now + 30 * 60_000 && ms >= now - 7 * 3_600_000
+      })
       timeoutRef.current = setTimeout(fetchLiveScores, hasLive ? 2_000 : 30_000)
     } catch {
       // Network hiccup — keep previous scores; retry in 30 s
@@ -259,6 +274,17 @@ export function SportsDataProvider({ children }: { children: ReactNode }) {
     // Never overwrite with an 'upcoming' update (pre-game scores are 0/undefined
     // and would corrupt cards that previously showed correct final scores).
     if (u.status === 'upcoming') return g
+    // Stale guard: don't apply a 'live' overlay when the kickoff is implausible
+    // (game hasn't started yet or started too long ago — likely stale API data).
+    if (u.status === 'live' && g.kickoff) {
+      const kickoffMs = new Date(g.kickoff).getTime()
+      const now = Date.now()
+      const isStale = !isNaN(kickoffMs) && (
+        kickoffMs > now + 30 * 60_000 ||        // future: can't be live yet
+        kickoffMs < now - 7 * 3_600_000          // past:   game too old to still be live
+      )
+      if (isStale) return g
+    }
     // Validate scores before applying — reject NaN or implausible values (>150).
     const validScore = (v: number | undefined): number | undefined => {
       if (v === undefined || v === null) return undefined

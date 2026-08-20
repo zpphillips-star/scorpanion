@@ -651,7 +651,9 @@ export async function GET(request: NextRequest) {
       return Response.json({ divisions: [], conferences: [], season: null, followedDivisionName: null, followedConferenceName: null }, NO_CACHE)
     }
 
-    const standingsUrl = `https://site.api.espn.com/apis/v2/sports/${mapping.sport}/${mapping.league}/standings`
+    // site.web.api.espn.com is required here — site.api.espn.com/apis/v2 now returns
+    // only {"fullViewLink":...} with no standings data (shape changed ~Aug 2026).
+    const standingsUrl = `https://site.web.api.espn.com/apis/v2/sports/${mapping.sport}/${mapping.league}/standings`
     const scoreboardUrl = `https://site.api.espn.com/apis/site/v2/sports/${mapping.sport}/${mapping.league}/scoreboard`
 
     const [standingsRes, scoreboardRes] = await Promise.all([
@@ -660,6 +662,11 @@ export async function GET(request: NextRequest) {
     ])
     if (!standingsRes.ok) throw new Error('ESPN standings request failed')
     const data = await standingsRes.json()
+    // Guard: if ESPN returned the degraded shape (only fullViewLink), surface an error
+    // rather than silently rendering empty standings.
+    if (!data.children && !data.standings && data.fullViewLink) {
+      throw new Error('ESPN standings returned empty fullViewLink response — API shape may have changed')
+    }
     const scoreboard = scoreboardRes.ok ? await scoreboardRes.json() : null
 
     const season = getSeasonInfo(data, leagueId, scoreboard)

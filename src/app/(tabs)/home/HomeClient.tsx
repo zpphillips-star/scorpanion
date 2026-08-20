@@ -62,6 +62,25 @@ function fmtDayHeader(ds: string) {
   return new Date(y, m - 1, day).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })
 }
 
+/**
+ * Returns true if a 'live' status looks stale or impossible for the given kickoff.
+ *  - Future guard: kickoff is more than 30 min from now → game can't be live yet.
+ *  - Stale guard:  kickoff was more than maxHours (7) ago → game almost certainly ended.
+ * Mirrors isLiveStatusStale() in the native normalizeGame.ts.
+ */
+function isLiveStatusStale(kickoff: string, maxHours = 7): boolean {
+  try {
+    const ms = parseKickoff(kickoff).getTime()
+    if (isNaN(ms)) return false
+    const now = Date.now()
+    if (ms > now + 30 * 60_000) return true      // hasn't started yet
+    if (ms < now - maxHours * 3_600_000) return true  // too long ago
+    return false
+  } catch {
+    return false
+  }
+}
+
 // ── College group helpers ──────────────────────────────────────────────────
 function getCollegeGroupKey(teamId: string): string | null {
   if (teamId.startsWith("uw-")) return "uw"
@@ -615,7 +634,8 @@ export default function HomeClient() {
   }).sort((a, b) => parseKickoff(b.kickoff).getTime() - parseKickoff(a.kickoff).getTime()).slice(0, 12)
 
   const todayGames = filtered.filter(g => dateStr(parseKickoff(g.kickoff)) === today)
-  const liveGames = filtered.filter(g => g.status === "live")
+  // Only count as live if kickoff is plausible (not stale, not future-game with wrong status).
+  const liveGames = filtered.filter(g => g.status === "live" && !isLiveStatusStale(g.kickoff))
   const upcoming = filtered.filter(g => {
     const d = dateStr(parseKickoff(g.kickoff))
     return g.status === "upcoming" && d > today && d <= cutoff14
