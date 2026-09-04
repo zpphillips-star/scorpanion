@@ -109,7 +109,9 @@ export async function GET() {
       const leaders: PGAPlayer[] = rawPlayers.map((c: any) => {
         const athlete = c.athlete ?? {}
         const totalRaw = c.score ?? c.scoreToParTotal ?? ''
-        const todayRaw = c.linescores?.[period - 1]?.value ?? c.scoreToParToday ?? ''
+        // ESPN golf linescores.value is raw round strokes (e.g. 66); displayValue is
+        // the round score to par (e.g. -4). Never format raw strokes as +/- to-par.
+        const todayRaw = c.linescores?.[period - 1]?.displayValue ?? c.scoreToParToday ?? ''
         const thru = c.status === 'active'
           ? (comp.status?.displayClock ?? c.thru ?? '')
           : (c.status === 'complete' ? 'F' : c.thru ?? '')
