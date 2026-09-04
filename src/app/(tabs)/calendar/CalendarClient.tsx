@@ -42,12 +42,14 @@ export default function CalendarClient() {
       const NCAA = ['uw-softball', 'uw-soccer']
       const espn = selectedTeamIds.filter(id => id !== 'torrent' && !WHL.includes(id) && !NCAA.includes(id) && !GOLF_IDS.includes(id))
       const fetches: Promise<Game[]>[] = []
-      if (espn.length > 0) fetches.push(fetch(`/api/schedule?teams=${espn.join(',')}`).then(r => r.ok ? r.json() : []))
-      if (selectedTeamIds.includes('torrent')) fetches.push(fetch('/api/pwhl').then(r => r.ok ? r.json() : []))
+      const noCache = { headers: { 'Cache-Control': 'no-cache, no-store' } }
+      const cacheBust = `_cb=${Date.now()}`
+      if (espn.length > 0) fetches.push(fetch(`/api/schedule?teams=${espn.join(',')}&${cacheBust}`, noCache).then(r => r.ok ? r.json() : []))
+      if (selectedTeamIds.includes('torrent')) fetches.push(fetch(`/api/pwhl?${cacheBust}`, noCache).then(r => r.ok ? r.json() : []))
       if (WHL.some(id => selectedTeamIds.includes(id)))
-        fetches.push(fetch('/api/whl').then(r => r.ok ? r.json() as Promise<Game[]> : []).then(gs => gs.filter(g => selectedTeamIds.includes(g.seattleTeamId))))
+        fetches.push(fetch(`/api/whl?${cacheBust}`, noCache).then(r => r.ok ? r.json() as Promise<Game[]> : []).then(gs => gs.filter(g => selectedTeamIds.includes(g.seattleTeamId))))
       if (NCAA.some(id => selectedTeamIds.includes(id)))
-        fetches.push(fetch('/api/ncaa', { signal: AbortSignal.timeout(8000) }).then(r => r.ok ? r.json() as Promise<Game[]> : []).then(gs => gs.filter(g => selectedTeamIds.includes(g.seattleTeamId))).catch(() => []))
+        fetches.push(fetch(`/api/ncaa?${cacheBust}`, { ...noCache, signal: AbortSignal.timeout(8000) }).then(r => r.ok ? r.json() as Promise<Game[]> : []).then(gs => gs.filter(g => selectedTeamIds.includes(g.seattleTeamId))).catch(() => []))
       const results = await Promise.all(fetches)
       setGames(results.flat())
 
@@ -61,8 +63,8 @@ export default function CalendarClient() {
         golfFetches.push(
           // Fetch schedule (dots) + current tournament data (for detail sheets) in parallel
           Promise.all([
-            fetch(`/api/golf?tour=${tour}&mode=schedule`).then(r => r.ok ? r.json() : []),
-            fetch(`/api/${tour}`).then(r => r.ok ? r.json() : []),
+            fetch(`/api/golf?tour=${tour}&mode=schedule&${cacheBust}`, noCache).then(r => r.ok ? r.json() : []),
+            fetch(`/api/${tour}?${cacheBust}`, noCache).then(r => r.ok ? r.json() : []),
           ]).then(([tournaments, currentTournaments]: [{ id: string; startDate: string; endDate: string; name: string }[], PGATournament[]]) => {
             // Plot dots for every day of every tournament
             for (const t of tournaments) {
@@ -105,6 +107,11 @@ export default function CalendarClient() {
   }, [loaded, selectedTeamIds])
 
   useEffect(() => { if (loaded) fetchSchedule() }, [loaded, fetchSchedule])
+  useEffect(() => {
+    if (!loaded) return
+    const timer = setInterval(fetchSchedule, 5 * 60_000)
+    return () => clearInterval(timer)
+  }, [loaded, fetchSchedule])
 
   // ── Live-score polling — 2s when live, 30s otherwise ────────────────────────
   // Uses setTimeout (schedule-after-completion) to prevent overlapping requests
@@ -114,7 +121,7 @@ export default function CalendarClient() {
 
   const fetchLiveScores = useCallback(async () => {
     try {
-      const r = await fetch('/api/live-scores')
+      const r = await fetch(`/api/live-scores?_cb=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache, no-store' } })
       if (!r.ok || !calMountedRef.current) return
       const data = await r.json() as Record<string, { status: string }>
       if (!calMountedRef.current) return

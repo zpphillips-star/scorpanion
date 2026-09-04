@@ -349,19 +349,31 @@ export default function ScheduleClient() {
   const golfVisible = (activeTeamFilter === 'all' || activeTeamFilter === 'pga' || activeTeamFilter === 'lpga')
 
   useEffect(() => {
-    if (pgaVisible) {
-      fetch('/api/pga').then(r => r.ok ? r.json() : []).then(setPgaTournaments).catch(() => {})
-    } else {
+    if (!pgaVisible) {
       setPgaTournaments([])
+      return
     }
+    const fetchPga = () => fetch(`/api/pga?_cb=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache, no-store' } })
+      .then(r => r.ok ? r.json() : [])
+      .then(setPgaTournaments)
+      .catch(() => {})
+    fetchPga()
+    const timer = setInterval(fetchPga, 5 * 60_000)
+    return () => clearInterval(timer)
   }, [pgaVisible])
 
   useEffect(() => {
-    if (lpgaVisible) {
-      fetch('/api/lpga').then(r => r.ok ? r.json() : []).then(setLpgaTournaments).catch(() => {})
-    } else {
+    if (!lpgaVisible) {
       setLpgaTournaments([])
+      return
     }
+    const fetchLpga = () => fetch(`/api/lpga?_cb=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache, no-store' } })
+      .then(r => r.ok ? r.json() : [])
+      .then(setLpgaTournaments)
+      .catch(() => {})
+    fetchLpga()
+    const timer = setInterval(fetchLpga, 5 * 60_000)
+    return () => clearInterval(timer)
   }, [lpgaVisible])
 
   const filteredGames = (() => {
