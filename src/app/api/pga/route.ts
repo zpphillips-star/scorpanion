@@ -256,7 +256,7 @@ async function parseScoreboardEvent(event: any): Promise<PGATournament | null> {
 export async function GET() {
   try {
     const scoreboardRes = await fetch(
-      'https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard',
+      'https://site.web.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard',
       { cache: 'no-store' }
     )
 
@@ -316,7 +316,7 @@ export async function GET() {
         let pushed = false
         try {
           const nextRes = await fetch(
-            `https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard?dates=${dateStr}`,
+            `https://site.web.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard?dates=${dateStr}`,
             { cache: 'no-store' }
           )
           if (nextRes.ok) {
@@ -374,7 +374,7 @@ export async function GET() {
         const yyyymmdd = new Date(lastEntry.endDate).toISOString().slice(0, 10).replace(/-/g, '')
         try {
           const prevRes = await fetch(
-            `https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard?dates=${yyyymmdd}`,
+            `https://site.web.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard?dates=${yyyymmdd}`,
             { cache: 'no-store' }
           )
           if (prevRes.ok) {

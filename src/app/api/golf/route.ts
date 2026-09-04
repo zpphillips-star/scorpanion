@@ -28,7 +28,7 @@ interface GolfTournament {
 
 async function fetchTour(slug: string): Promise<GolfTournament | null> {
   try {
-    const url = `https://site.api.espn.com/apis/site/v2/sports/golf/${slug}/scoreboard`
+    const url = `https://site.web.api.espn.com/apis/site/v2/sports/golf/${slug}/scoreboard`
     // No server-side cache — client polls on its own interval; always serve fresh data
     const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return null
@@ -148,7 +148,7 @@ export async function GET(req: NextRequest) {
   // because an empty calendar wipes ALL golf dots from every month at once.
   if (mode === 'schedule') {
     try {
-      const url = `https://site.api.espn.com/apis/site/v2/sports/golf/${slug}/scoreboard`
+      const url = `https://site.web.api.espn.com/apis/site/v2/sports/golf/${slug}/scoreboard`
       const res = await fetch(url, { cache: 'no-store' })
       if (!res.ok) {
         return Response.json(
@@ -194,7 +194,7 @@ export async function GET(req: NextRequest) {
   // Rankings mode: FedEx Cup (PGA) or Race to CME Globe (LPGA) standings
   if (mode === 'rankings') {
     try {
-      const url = `https://site.api.espn.com/apis/site/v2/sports/golf/${slug}/standings`
+      const url = `https://site.web.api.espn.com/apis/site/v2/sports/golf/${slug}/standings`
       const res = await fetch(url, { next: { revalidate: 3600 } })
       if (!res.ok) return Response.json([], { status: 200 })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

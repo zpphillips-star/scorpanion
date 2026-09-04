@@ -60,7 +60,7 @@ async function fetchVenueInfo(eventId: string): Promise<{ course: string; locati
 export async function GET() {
   try {
     const scoreboardRes = await fetch(
-      'https://site.api.espn.com/apis/site/v2/sports/golf/lpga/scoreboard',
+      'https://site.web.api.espn.com/apis/site/v2/sports/golf/lpga/scoreboard',
       { cache: 'no-store' }
     )
 
@@ -166,7 +166,7 @@ export async function GET() {
         let pushed = false
         try {
           const nextRes = await fetch(
-            `https://site.api.espn.com/apis/site/v2/sports/golf/lpga/scoreboard?dates=${dateStr}`,
+            `https://site.web.api.espn.com/apis/site/v2/sports/golf/lpga/scoreboard?dates=${dateStr}`,
             { cache: 'no-store' }
           )
           if (nextRes.ok) {
