@@ -49,17 +49,17 @@ const TEAM_DIVISION_MAP: Record<string, Record<string, string>> = {
   },
   nhl: {
     // Pacific Division (Kraken)
-    ANA: 'Pacific', CGY: 'Pacific', EDM: 'Pacific', LAK: 'Pacific',
-    SEA: 'Pacific', SJS: 'Pacific', VAN: 'Pacific', VGK: 'Pacific',
+    ANA: 'Pacific', CGY: 'Pacific', EDM: 'Pacific', LAK: 'Pacific', LA: 'Pacific',
+    SEA: 'Pacific', SJS: 'Pacific', SJ: 'Pacific', VAN: 'Pacific', VGK: 'Pacific',
     // Central Division
     CHI: 'Central', COL: 'Central', DAL: 'Central', MIN: 'Central',
     NSH: 'Central', STL: 'Central', UTA: 'Central', WPG: 'Central',
     // Metropolitan Division
-    CAR: 'Metropolitan', CBJ: 'Metropolitan', NJD: 'Metropolitan', NYI: 'Metropolitan',
+    CAR: 'Metropolitan', CBJ: 'Metropolitan', NJD: 'Metropolitan', NJ: 'Metropolitan', NYI: 'Metropolitan',
     NYR: 'Metropolitan', PHI: 'Metropolitan', PIT: 'Metropolitan', WSH: 'Metropolitan',
     // Atlantic Division
     BOS: 'Atlantic', BUF: 'Atlantic', DET: 'Atlantic', FLA: 'Atlantic',
-    MTL: 'Atlantic', OTT: 'Atlantic', TBL: 'Atlantic', TOR: 'Atlantic',
+    MTL: 'Atlantic', OTT: 'Atlantic', TBL: 'Atlantic', TB: 'Atlantic', TOR: 'Atlantic',
   },
   nba: {
     // Northwest Division
