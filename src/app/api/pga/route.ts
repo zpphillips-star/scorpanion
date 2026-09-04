@@ -156,6 +156,50 @@ function parsePar(raw: string | undefined | null): string {
   return n > 0 ? `+${n}` : `${n}`
 }
 
+function parseRank(c: any): string {
+  const standing = c.standing?.displayValue ?? c.standing?.value
+  const position = c.position?.displayValue ?? c.position?.value
+  const order = c.order ?? c.rank ?? c.seed
+  const value = standing ?? position ?? order
+  if (value === undefined || value === null || value === '') return '—'
+  return String(value)
+}
+
+function parseScoreToParValue(raw: unknown): number | undefined {
+  if (raw === undefined || raw === null || raw === '') return undefined
+  if (typeof raw === 'number') return Number.isFinite(raw) ? raw : undefined
+  const text = String(raw).trim().toUpperCase()
+  if (text === 'E' || text === 'EVEN') return 0
+  const parsed = Number(text.replace(/^\+/, ''))
+  return Number.isFinite(parsed) ? parsed : undefined
+}
+
+function buildCompletedRanks(players: any[]): Map<any, string> {
+  const ranked = players
+    .map((player, originalIndex) => ({
+      player,
+      originalIndex,
+      score: parseScoreToParValue(player.score ?? player.scoreToParTotal),
+    }))
+    .filter((entry): entry is { player: any; originalIndex: number; score: number } =>
+      entry.score !== undefined
+    )
+    .sort((a, b) => (a.score - b.score) || (a.originalIndex - b.originalIndex))
+
+  const ranks = new Map<any, string>()
+  for (let i = 0; i < ranked.length;) {
+    const rank = i + 1
+    let next = i + 1
+    while (next < ranked.length && ranked[next].score === ranked[i].score) next++
+
+    const displayRank = next - i > 1 ? `T${rank}` : String(rank)
+    for (let j = i; j < next; j++) ranks.set(ranked[j].player, displayRank)
+    i = next
+  }
+
+  return ranks
+}
+
 /** Fetch course name + location from ESPN core API for a given event ID */
 async function fetchVenueInfo(eventId: string): Promise<{ course: string; location: string }> {
   try {
@@ -199,6 +243,7 @@ async function parseScoreboardEvent(event: any): Promise<PGATournament | null> {
   const rawPlayers: any[] = (comp.competitors ?? [])
     .filter((c: any) => c.status !== 'cut' && c.status !== 'wd')
     .slice(0, 100)
+  const completedRanks = status === 'completed' ? buildCompletedRanks(rawPlayers) : new Map<any, string>()
 
   const leaders: PGAPlayer[] = rawPlayers.map((c: any) => {
     const athlete = c.athlete ?? {}
@@ -209,7 +254,7 @@ async function parseScoreboardEvent(event: any): Promise<PGATournament | null> {
       : (c.status === 'complete' ? 'F' : c.thru ?? '')
 
     return {
-      position: c.status === 'cut' ? 'CUT' : (c.standing?.displayValue ?? c.position?.displayValue ?? '—'),
+      position: c.status === 'cut' ? 'CUT' : (completedRanks.get(c) ?? parseRank(c)),
       name: athlete.displayName ?? c.displayName ?? 'Unknown',
       shortName: athlete.shortName ?? athlete.displayName ?? 'Unknown',
       totalScore: parsePar(totalRaw),
